@@ -77,10 +77,14 @@ class WebhookConfig:
     # Webhook Security
     WEBHOOK_AUTH_TOKEN = os.environ.get('WEBHOOK_AUTH_TOKEN', 'rmbb-health-webhook-2025')
     
-    # Server Configuration
+    # Server Configuration - Railway compatible
     PORT = int(os.environ.get('PORT', 8080))
     HOST = os.environ.get('HOST', '0.0.0.0')
     DEBUG = os.environ.get('DEBUG', 'false').lower() == 'true'
+    
+    # Railway deployment check
+    RAILWAY_ENVIRONMENT_ID = os.environ.get('RAILWAY_ENVIRONMENT_ID')
+    RAILWAY_SERVICE_ID = os.environ.get('RAILWAY_SERVICE_ID')
 
 # Validate configuration
 def validate_configuration():
@@ -464,8 +468,18 @@ if __name__ == '__main__':
     # Log startup information
     logging.info("🚀 Starting RMBB Health Webhook Handler")
     logging.info("=" * 60)
+    
+    # Railway environment debugging
+    if WebhookConfig.RAILWAY_ENVIRONMENT_ID:
+        logging.info(f"🚂 Railway Environment: {WebhookConfig.RAILWAY_ENVIRONMENT_ID}")
+        logging.info(f"🚂 Railway Service: {WebhookConfig.RAILWAY_SERVICE_ID}")
+        logging.info(f"🌐 Expected Public URL: https://rmbb-health-webhook.railway.app")
+    else:
+        logging.info("💻 Running in local development mode")
+    
     logging.info(f"🏥 RMBB Health Team ID: {WebhookConfig.RMBB_TEAM_ID}")
     logging.info(f"🔗 GHL V1 API Base: {WebhookConfig.GHL_BASE_URL}")
+    logging.info(f"⚙️ Server binding: {WebhookConfig.HOST}:{WebhookConfig.PORT}")
     logging.info("📡 Listening for GHL qualification webhooks")
     logging.info(f"🔗 Main endpoint: http://{WebhookConfig.HOST}:{WebhookConfig.PORT}/webhook/ghl-rmbb-qualification")
     logging.info(f"🧪 Test endpoint: http://{WebhookConfig.HOST}:{WebhookConfig.PORT}/webhook/test")
