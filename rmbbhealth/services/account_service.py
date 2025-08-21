@@ -1,5 +1,5 @@
 # services/account_service.py
-from ..client import RMBBHealthClient
+from client import RMBBHealthClient
 
 class AccountService:
     def __init__(self, client=None):
