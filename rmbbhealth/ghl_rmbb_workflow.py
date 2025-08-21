@@ -16,10 +16,17 @@ import json
 import requests
 import logging
 from datetime import datetime
-sys.path.insert(0, '/Users/timothywade/Jarvis')
-
-from rmbbhealth import RMBBHealthClient, PatientService, CaseService
-from rmbbhealth.services.provider_location_cache import get_provider_cache
+# Import modules with Railway compatibility
+try:
+    # Try package import first
+    from rmbbhealth import RMBBHealthClient, PatientService, CaseService
+    from rmbbhealth.services.provider_location_cache import get_provider_cache
+except ImportError:
+    # Fallback to direct imports in Railway environment
+    from client import RMBBHealthClient
+    from services.patient_service import PatientService
+    from services.case_service import CaseService
+    from services.provider_location_cache import get_provider_cache
 
 class GHLRMBBWorkflowHandler:
     """Complete workflow handler for GHL → RMBB Health → GHL integration"""
