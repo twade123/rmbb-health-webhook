@@ -22,14 +22,22 @@ import traceback
 from datetime import datetime
 from flask import Flask, request, jsonify
 
-# Add parent directory to path for imports
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-# Import our RMBB Health modules
-from rmbbhealth import (
-    RMBBHealthClient, PatientService, CaseService, 
-    FileService, NoteService, AccountService, StatusService
-)
+# Import our RMBB Health modules using relative imports for Railway
+try:
+    # Try package import first
+    from rmbbhealth import (
+        RMBBHealthClient, PatientService, CaseService, 
+        FileService, NoteService, AccountService, StatusService
+    )
+except ImportError:
+    # Fallback to direct imports in Railway environment
+    from client import RMBBHealthClient
+    from services.patient_service import PatientService
+    from services.case_service import CaseService
+    from services.file_service import FileService
+    from services.note_service import NoteService
+    from services.account_service import AccountService
+    from services.status_service import StatusService
 
 # Import the workflow handler
 from ghl_rmbb_workflow import GHLRMBBWorkflowHandler
