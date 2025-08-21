@@ -1,0 +1,16 @@
+[variables]
+NIXPACKS_PYTHON_VERSION = "3.10"
+
+[phases.setup]
+nixPkgs = ["python310", "gcc"]
+
+[phases.install]
+cmds = [
+    "python -m venv --copies /opt/venv",
+    ". /opt/venv/bin/activate && pip install -r requirements.txt"
+]
+
+[phases.build]
+
+[start]
+cmd = "python webhook_handler.py"
