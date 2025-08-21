@@ -42,14 +42,21 @@ except ImportError:
 # Import the workflow handler
 from ghl_rmbb_workflow import GHLRMBBWorkflowHandler
 
-# Configure logging
+# Configure logging - Railway compatible
+log_handlers = [logging.StreamHandler()]
+
+# Only add file handler if not in Railway environment
+if not os.getenv('RAILWAY_ENVIRONMENT'):
+    # Local development - use local path
+    try:
+        log_handlers.append(logging.FileHandler('/Users/timothywade/Jarvis/rmbbhealth/webhook.log'))
+    except:
+        pass  # If local path doesn't work, just use console logging
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.StreamHandler(),
-        logging.FileHandler('/Users/timothywade/Jarvis/rmbbhealth/webhook.log')
-    ]
+    handlers=log_handlers
 )
 
 # Initialize Flask app
