@@ -1,5 +1,5 @@
 # services/note_service.py
-from ..client import RMBBHealthClient
+from client import RMBBHealthClient
 
 class NoteService:
     def __init__(self, client=None):
