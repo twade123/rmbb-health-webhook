@@ -76,6 +76,24 @@ class GHLRMBBWorkflowHandler:
         if not contact_id:
             raise ValueError("Contact ID not found in webhook payload - required for GHL tracking")
         
+        # Handle missing location_id by using a default/fallback
+        if not location_id:
+            print(f"⚠️ WARNING: No location_id provided in webhook - using fallback location")
+            # Try to extract from provider cache or use environment variable
+            provider_name = webhook_payload.get('provider_name', '').strip()
+            if provider_name:
+                cached_location = self.provider_cache.get_location_id(provider_name)
+                if cached_location:
+                    location_id = cached_location
+                    print(f"✅ Found location_id from provider cache: {location_id}")
+                else:
+                    # Use environment variable as fallback
+                    location_id = os.environ.get('GHL_DEFAULT_LOCATION_ID', 'default_location')
+                    print(f"🔄 Using default location_id: {location_id}")
+            else:
+                location_id = os.environ.get('GHL_DEFAULT_LOCATION_ID', 'default_location')
+                print(f"🔄 No provider_name - using default location_id: {location_id}")
+        
         # Extract patient data using robust field mapping
         patient_form_data = self.extract_patient_data(webhook_payload)
         
@@ -297,7 +315,7 @@ Effective Date: {ivr_data['effective_date']}
         # Patient Personal Information - Using your exact GHL webhook field names
         first_name = (webhook_payload.get('patient_first_name') or '').strip()
         
-        last_name = (webhook_payload.get('paitent_last_name') or '').strip()  # Note: keeping typo from your payload
+        last_name = (webhook_payload.get('patient_last_name') or '').strip()  # Fixed: typo corrected
         
         # Date of Birth - Using your exact field name
         date_of_birth = (webhook_payload.get('patient_dob') or '').strip()
@@ -356,8 +374,10 @@ Effective Date: {ivr_data['effective_date']}
         surgery_date = ''  # Not in your webhook mapping
         cpt_surgery_code = ''  # Not in your webhook mapping
         place_of_service = facility_type or 'Physician Office - 11'  # Use facility_type as fallback
-        provider_name = ''  # Not in your webhook mapping - CRITICAL for routing!
-        provider_email = ''  # Not in your webhook mapping
+        
+        # Provider Information - Now available in your webhook mapping!
+        provider_name = (webhook_payload.get('provider_name') or '').strip()  # CRITICAL for routing!
+        provider_email = ''  # Still not in your webhook mapping
         
         return {
             # Patient personal data
