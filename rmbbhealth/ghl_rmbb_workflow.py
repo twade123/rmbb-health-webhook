@@ -344,8 +344,8 @@ Effective Date: {ivr_data['effective_date']}
         
         last_name = (webhook_payload.get('patient_last_name') or '').strip()  # Fixed: typo corrected
         
-        # Date of Birth - Using your exact field name, handle null values and format conversion
-        date_of_birth = (webhook_payload.get('patient_dob') or '').strip()
+        # Date of Birth - Using your updated field name, handle null values and format conversion
+        date_of_birth = (webhook_payload.get('patient_dob__ivr_form') or webhook_payload.get('patient_dob') or '').strip()
         if date_of_birth.lower() in ['null', 'none', '']:
             date_of_birth = ''  # Convert null string to empty string
         elif date_of_birth:
