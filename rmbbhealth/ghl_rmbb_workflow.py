@@ -592,6 +592,10 @@ Effective Date: {ivr_data['effective_date']}
             "surgery_date": form_data.get("expected_date_of_service", ""),  # Map expected_date_of_service to surgery_date
             "icd_10_code": form_data.get("icd_10_code", ""),
             "product_cpt_code": "15271-8" if product_info["primary_product"] else "",
+            # Provider and Facility Information from GHL webhook
+            "provider_name": form_data.get("provider_name", ""),
+            "facility_type": form_data.get("facility_type", ""),
+            "facility_npi": form_data.get("facility_npi", ""),
         }
         
         # Primary Insurance (matches rmbbhealth.txt structure lines 535-544)
