@@ -687,14 +687,31 @@ Effective Date: {ivr_data['effective_date']}
     def get_product_id_from_biologic(self, product_info):
         """
         Get RMBB Health product_id from selected biologic product
-        The Q codes (Q4239, Q4173, etc.) ARE the product IDs
+        RMBB Health expects numeric product IDs, not Q-codes
         """
         if not product_info["primary_product"]:
-            # No product selected, use default from Railway environment
-            return os.getenv('RMBB_PRODUCT_ID', '31')
+            # No product selected, use default Membrane Wrap (ID 98)
+            return int(os.getenv('RMBB_PRODUCT_ID', '98'))
         
-        # Return the Q code directly - it IS the product_id
-        return product_info["primary_product"]["product_id"]
+        # Map Q-codes to actual RMBB Health numeric product IDs
+        q_code_to_product_id = {
+            "Q4239": 229,  # amniomaxx → Amnio-Maxx
+            "Q4250": 230,  # amnioamp-mp → AmnioAMP-MP
+            "Q4290": 99,   # membrane_wrap_hydro → Membrane Wrap-Hydro
+            "Q4344": 98,   # membrane_wrap_tri-layer → Membrane Wrap
+            "Q4154": 232,  # biovance → Biovance
+            "Q4280": 237,  # xcell_amnio_matrix → Xcell Amnio Matrix
+            # Products not available in RMBB Health - using default Membrane Wrap (ID 98)
+            "Q4173": 98,   # palingen → Default: Membrane Wrap
+            "Q4316": 98,   # amchoplast → Default: Membrane Wrap
+            "Q4164": 98    # helicoll → Default: Membrane Wrap
+        }
+        
+        q_code = product_info["primary_product"]["product_id"]
+        numeric_product_id = q_code_to_product_id.get(q_code, 98)  # Default to Membrane Wrap (98) if not found
+        
+        print(f"🧬 Converting Q-code {q_code} → numeric product_id {numeric_product_id}")
+        return numeric_product_id
     
     def update_ghl_contact(self, contact_id, update_data, location_id=None):
         """Update GHL contact using V1 API - based on complete_subaccount_creation.py patterns"""
