@@ -200,10 +200,31 @@ class GHLRMBBWorkflowHandler:
         # Create case using real RMBB Health API
         try:
             case_response = self.case_service.create_case(rmbb_case_data)
-            print(f"✅ Case created with ID: {case_response['id']}")
+            
+            # Debug: Check what type of response we got for case creation
+            print(f"🔍 DEBUG - Case response type: {type(case_response)}")
+            print(f"🔍 DEBUG - Case response: {case_response}")
+            
+            # Handle different response types for case creation
+            if isinstance(case_response, dict) and 'id' in case_response:
+                print(f"✅ Case created with ID: {case_response['id']}")
+            elif isinstance(case_response, dict) and 'error' in case_response:
+                # RMBB Health API returned an error for case creation
+                error_msg = f"RMBB Health case creation error: {case_response['error']}"
+                if 'data' in case_response:
+                    validation_errors = case_response['data']
+                    for err in validation_errors:
+                        error_msg += f" - {err.get('path', 'field')}: {err.get('msg', 'validation error')}"
+                print(f"❌ {error_msg}")
+                return {"success": False, "error": error_msg}
+            else:
+                print(f"⚠️ Unexpected case API response format: {case_response}")
+                return {"success": False, "error": f"Unexpected case response format: {str(case_response)}"}
+                
         except Exception as e:
             error_msg = f"Failed to create RMBB Health case: {str(e)}"
             print(f"❌ {error_msg}")
+            print(f"🔍 DEBUG - Case creation exception type: {type(e)}")
             return {"success": False, "error": error_msg}
         
         # Update GHL contact with RMBB IDs and status
