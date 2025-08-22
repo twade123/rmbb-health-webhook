@@ -208,6 +208,21 @@ class GHLRMBBWorkflowHandler:
             # Handle different response types for case creation
             if isinstance(case_response, dict) and 'id' in case_response:
                 print(f"✅ Case created with ID: {case_response['id']}")
+                
+                # Upload additional provider/facility information
+                case_id = case_response['id']
+                additional_info_result = self.upload_additional_case_information(
+                    case_id=case_id,
+                    provider_name=patient_form_data.get('provider_name'),
+                    facility_type=patient_form_data.get('facility_type'), 
+                    facility_npi=patient_form_data.get('facility_npi'),
+                    provider_npi=patient_form_data.get('provider_npi', '')  # Add provider_npi if available
+                )
+                
+                if additional_info_result.get('success'):
+                    print(f"✅ Additional provider/facility information uploaded to case {case_id}")
+                else:
+                    print(f"⚠️ Warning: Failed to upload additional information: {additional_info_result.get('error')}")
             elif isinstance(case_response, dict) and 'error' in case_response:
                 # RMBB Health API returned an error for case creation
                 error_msg = f"RMBB Health case creation error: {case_response['error']}"
@@ -592,10 +607,6 @@ Effective Date: {ivr_data['effective_date']}
             "surgery_date": form_data.get("expected_date_of_service", ""),  # Map expected_date_of_service to surgery_date
             "icd_10_code": form_data.get("icd_10_code", ""),
             "product_cpt_code": "15271-8" if product_info["primary_product"] else "",
-            # Provider and Facility Information from GHL webhook
-            "provider_name": form_data.get("provider_name", ""),
-            "facility_type": form_data.get("facility_type", ""),
-            "facility_npi": form_data.get("facility_npi", ""),
         }
         
         # Primary Insurance (matches rmbbhealth.txt structure lines 535-544)
@@ -716,6 +727,52 @@ Effective Date: {ivr_data['effective_date']}
         
         print(f"🧬 Converting Q-code {q_code} → numeric product_id {numeric_product_id}")
         return numeric_product_id
+    
+    def upload_additional_case_information(self, case_id, provider_name=None, facility_type=None, facility_npi=None, provider_npi=None):
+        """
+        Upload additional provider/facility information to RMBB Health case
+        Uses: POST /team/:tid/case/:bicid/additional-information
+        """
+        if not case_id:
+            return {"success": False, "error": "Missing case_id"}
+        
+        # Build additional information payload
+        additional_info = {}
+        
+        if provider_name:
+            additional_info["provider_name"] = provider_name
+        if facility_type:
+            additional_info["facility_type"] = facility_type  
+        if facility_npi:
+            additional_info["facility_npi"] = facility_npi
+        if provider_npi:
+            additional_info["provider_npi"] = provider_npi
+            
+        if not additional_info:
+            return {"success": True, "message": "No additional information to upload"}
+        
+        url = f"{self.rmbb_base_url}/team/{self.rmbb_team_id}/case/{case_id}/additional-information"
+        
+        print(f"📄 Uploading additional case information:")
+        for key, value in additional_info.items():
+            print(f"   {key}: {value}")
+        
+        try:
+            response = requests.post(url, headers=self.rmbb_headers, json=additional_info)
+            print(f"📊 Additional info upload status: {response.status_code}")
+            
+            if response.status_code in [200, 201]:
+                print(f"✅ Additional information uploaded successfully to case {case_id}")
+                return {"success": True, "message": "Additional information uploaded"}
+            else:
+                error_msg = f"Additional information upload failed: {response.status_code} - {response.text}"
+                print(f"❌ {error_msg}")
+                return {"success": False, "error": error_msg}
+                
+        except Exception as e:
+            error_msg = f"Failed to upload additional information: {str(e)}"
+            print(f"❌ {error_msg}")
+            return {"success": False, "error": error_msg}
     
     def update_ghl_contact(self, contact_id, update_data, location_id=None):
         """Update GHL contact using V1 API - based on complete_subaccount_creation.py patterns"""
