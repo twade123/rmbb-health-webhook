@@ -536,6 +536,14 @@ Effective Date: {ivr_data['effective_date']}
         # Extract selected biologic product and wound size from GHL form
         product_info = self.extract_selected_biologic_product(form_data)
         
+        # DEBUG: Show product extraction results
+        print(f"🧬 DEBUG - Product extraction results:")
+        print(f"   Selected products: {len(product_info['selected_products'])}")
+        print(f"   Total cm2: {product_info['total_cm2']}")
+        print(f"   Primary product: {product_info['primary_product']}")
+        for i, product in enumerate(product_info['selected_products']):
+            print(f"   Product {i+1}: {product['name']} = {product['cm2']} cm2")
+        
         # Use biologic product cm2 as wound size, or fallback to wound_size field
         wound_size = ""
         total_wound_size = ""
