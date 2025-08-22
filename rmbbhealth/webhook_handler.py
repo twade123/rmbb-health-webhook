@@ -152,9 +152,28 @@ def handle_ghl_qualification_webhook():
         logging.info(f"📊 Available fields: {list(payload.keys())[:10]}...")  # First 10 fields
         
         # Initialize workflow handler with environment configuration
+        # Add error handling for missing RMBB_TEAM_ID
+        try:
+            rmbb_team_id = int(WebhookConfig.RMBB_TEAM_ID) if WebhookConfig.RMBB_TEAM_ID else None
+        except (ValueError, TypeError) as e:
+            logging.error(f"❌ Invalid RMBB_TEAM_ID environment variable: {WebhookConfig.RMBB_TEAM_ID}")
+            return jsonify({
+                "success": False, 
+                "error": f"Invalid RMBB_TEAM_ID configuration: {str(e)}",
+                "timestamp": datetime.now().isoformat()
+            }), 500
+        
+        if not rmbb_team_id:
+            logging.error(f"❌ RMBB_TEAM_ID not configured properly: {WebhookConfig.RMBB_TEAM_ID}")
+            return jsonify({
+                "success": False,
+                "error": "RMBB_TEAM_ID environment variable not set or invalid",
+                "timestamp": datetime.now().isoformat()
+            }), 500
+        
         workflow_handler = GHLRMBBWorkflowHandler(
             rmbb_api_key=WebhookConfig.RMBB_API_KEY,
-            rmbb_team_id=int(WebhookConfig.RMBB_TEAM_ID),
+            rmbb_team_id=rmbb_team_id,
             ghl_api_key=WebhookConfig.GHL_API_KEY
         )
         
@@ -218,10 +237,12 @@ def test_webhook():
             }
         })
     
-    # POST test with sample GHL form data - Updated to match actual webhook payload
+    # POST test with sample GHL form data - Updated to match your corrected webhook payload
     sample_ghl_payload = {
+        "contact_id": "test_contact_456",  # Updated: contactId → contact_id
+        "provider_name": "Test Provider",  # Added: provider_name for routing
         "patient_first_name": "John",
-        "paitent_last_name": "Smith",  # Note: keeping original typo from GHL payload
+        "patient_last_name": "Smith",  # Fixed: typo corrected
         "patient_dob": "1985-03-15",
         "patient_street_address": "123 Main Street",
         "patient_city": "Anytown",
@@ -245,8 +266,6 @@ def test_webhook():
         "xcell_amnio_matrix_(q4280)_units/cm2": "4.5",
         "icd_-_10_diagnosis_code(s)": "E11.621",
         "email": "john.smith@email.com",
-        "locationId": "test_location_123",
-        "contactId": "test_contact_456",
         "formId": "qualification_form_789"
     }
     
