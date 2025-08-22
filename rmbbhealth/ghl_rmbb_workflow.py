@@ -292,33 +292,33 @@ Effective Date: {ivr_data['effective_date']}
         return notification_result
     
     def extract_patient_data(self, webhook_payload):
-        """Extract patient form data from GHL webhook - Updated to match corrected GHL webhook field mapping"""
+        """Extract patient form data from GHL webhook - Updated to match your actual GHL webhook field names"""
         
-        # Patient Personal Information - Using your corrected GHL webhook field names
-        first_name = (webhook_payload.get('first name') or '').strip()  # Fixed: "first name": "{{contact.patient_first_name}}"
+        # Patient Personal Information - Using your exact GHL webhook field names
+        first_name = (webhook_payload.get('patient_first_name') or '').strip()
         
-        last_name = (webhook_payload.get('last name') or '').strip()  # Fixed: "last name": "{{contact.patient_last_name}}"
+        last_name = (webhook_payload.get('paitent_last_name') or '').strip()  # Note: keeping typo from your payload
         
-        # Date of Birth - Now properly mapped
-        date_of_birth = (webhook_payload.get('dob') or '').strip()  # Fixed: "dob": "{{contact.patient_dob__ivr_form}}"
+        # Date of Birth - Using your exact field name
+        date_of_birth = (webhook_payload.get('patient_dob') or '').strip()
         
         middle_name = ''  # Not provided in your webhook mapping
         
-        # Contact Information - Now properly mapped
-        street_address = (webhook_payload.get('address') or '').strip()  # Fixed: "address": "{{contact.patient_street_address}}"
+        # Contact Information - Using your exact field names
+        street_address = (webhook_payload.get('patient_street_address') or '').strip()
         
         # Still no phone number field in your webhook mapping - will be empty
         phone_number = ''  # Not provided in your webhook mapping
         
-        # Email address - Now properly mapped
-        email_address = (webhook_payload.get('email') or '').strip()  # Fixed: "email": "{{contact.ivr_email_1}}"
+        # Email address - Using your exact field name
+        email_address = (webhook_payload.get('email') or '').strip()
         
         # Address Information - Using your exact field names
-        city = (webhook_payload.get('city') or '').strip()
+        city = (webhook_payload.get('patient_city') or '').strip()
         
-        state = (webhook_payload.get('state') or '').strip()
+        state = (webhook_payload.get('patient_state') or '').strip()
         
-        zip_code = (webhook_payload.get('zipcode') or '').strip()  # Note: you use "zipcode" not "zip_code"
+        zip_code = (webhook_payload.get('patient_zip_code') or '').strip()
         
         # Insurance Information - Using your exact field names
         primary_insurance_name = (webhook_payload.get('patient_primary_insurance') or '').strip()
