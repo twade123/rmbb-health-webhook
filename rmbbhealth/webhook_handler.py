@@ -151,6 +151,20 @@ def handle_ghl_qualification_webhook():
         logging.info(f"📦 Webhook payload received: {len(str(payload))} characters")
         logging.info(f"📊 Available fields: {list(payload.keys())[:10]}...")  # First 10 fields
         
+        # DEBUG: Log the complete payload to see exact field names
+        logging.info(f"🔍 DEBUG - Complete webhook payload: {json.dumps(payload, indent=2)}")
+        
+        # DEBUG: Check for product fields specifically
+        product_fields = [k for k in payload.keys() if 'amniomaxx' in k.lower() or 'palingen' in k.lower() or 'biovance' in k.lower()]
+        logging.info(f"🧬 Product fields found: {product_fields}")
+        
+        # DEBUG: Check date of birth field
+        dob_fields = [k for k in payload.keys() if 'dob' in k.lower() or 'birth' in k.lower()]
+        logging.info(f"📅 Date fields found: {dob_fields}")
+        for field in dob_fields:
+            logging.info(f"📅 {field}: '{payload[field]}'")
+        
+        
         # Initialize workflow handler with environment configuration
         # Add error handling for missing RMBB_TEAM_ID
         try:
