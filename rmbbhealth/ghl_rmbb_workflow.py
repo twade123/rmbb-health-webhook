@@ -165,13 +165,24 @@ class GHLRMBBWorkflowHandler:
             # Handle different response types
             if isinstance(patient_response, dict) and 'id' in patient_response:
                 print(f"✅ Patient created with ID: {patient_response['id']}")
+            elif isinstance(patient_response, dict) and 'error' in patient_response:
+                # RMBB Health API returned an error (validation failed, etc.)
+                error_msg = f"RMBB Health API error: {patient_response['error']}"
+                if 'data' in patient_response:
+                    validation_errors = patient_response['data']
+                    for err in validation_errors:
+                        if err.get('path') == 'date_of_birth':
+                            error_msg += f" - Date of birth is required and must be valid (YYYY-MM-DD format)"
+                        else:
+                            error_msg += f" - {err.get('path', 'field')}: {err.get('msg', 'validation error')}"
+                print(f"❌ {error_msg}")
+                return {"success": False, "error": error_msg}
             elif isinstance(patient_response, str):
                 print(f"⚠️ API returned string response: {patient_response}")
-                # Try to extract ID from string response or use a fallback
-                patient_response = {"id": "mock_patient_id", "response": patient_response}
+                return {"success": False, "error": f"Unexpected string response: {patient_response}"}
             else:
                 print(f"⚠️ Unexpected API response format: {patient_response}")
-                patient_response = {"id": "mock_patient_id", "raw_response": str(patient_response)}
+                return {"success": False, "error": f"Unexpected response format: {str(patient_response)}"}
                 
         except Exception as e:
             error_msg = f"Failed to create RMBB Health patient: {str(e)}"
@@ -333,10 +344,24 @@ Effective Date: {ivr_data['effective_date']}
         
         last_name = (webhook_payload.get('patient_last_name') or '').strip()  # Fixed: typo corrected
         
-        # Date of Birth - Using your exact field name, handle null values
+        # Date of Birth - Using your exact field name, handle null values and format conversion
         date_of_birth = (webhook_payload.get('patient_dob') or '').strip()
         if date_of_birth.lower() in ['null', 'none', '']:
             date_of_birth = ''  # Convert null string to empty string
+        elif date_of_birth:
+            # Convert MM-DD-YYYY to YYYY-MM-DD format for RMBB Health API
+            try:
+                from datetime import datetime
+                # Try MM-DD-YYYY format first (your GHL form format)
+                if '-' in date_of_birth and len(date_of_birth) == 10:
+                    parts = date_of_birth.split('-')
+                    if len(parts) == 3 and len(parts[2]) == 4:  # MM-DD-YYYY
+                        month, day, year = parts
+                        date_of_birth = f"{year}-{month.zfill(2)}-{day.zfill(2)}"
+                        print(f"📅 Converted DOB format: {webhook_payload.get('patient_dob')} → {date_of_birth}")
+                    # If already YYYY-MM-DD format, leave as is
+            except Exception as e:
+                print(f"⚠️ Date conversion error: {e}, using original value: {date_of_birth}")
         
         middle_name = ''  # Not provided in your webhook mapping
         
