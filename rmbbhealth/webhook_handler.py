@@ -62,6 +62,110 @@ logging.basicConfig(
 # Initialize Flask app
 app = Flask(__name__)
 
+# Approval Status Analysis Function
+def analyze_rmbb_approval_status(status_data):
+    """
+    Analyze RMBB Health case status data to determine approval state.
+    
+    Args:
+        status_data (dict): Dictionary containing all status fields from RMBB Health case
+        
+    Returns:
+        dict: Analysis result with status, message, and confidence level
+    """
+    case_status = status_data.get('case_status', '').upper()
+    external_status = status_data.get('external_status', '').upper()
+    overall_result = status_data.get('overall_insurance_result', '').upper()
+    primary_status = status_data.get('primary_insurance_status', '').upper()
+    secondary_status = status_data.get('secondary_insurance_status', '').upper()
+    tertiary_status = status_data.get('tertiary_insurance_status', '').upper()
+    primary_result = status_data.get('primary_insurance_result', '').upper()
+    secondary_result = status_data.get('secondary_insurance_result', '').upper()
+    last_fax = status_data.get('last_fax_status', '').upper()
+    
+    # All status fields for analysis
+    all_statuses = [case_status, external_status, overall_result, primary_status, 
+                   secondary_status, tertiary_status, primary_result, secondary_result, last_fax]
+    all_statuses = [s for s in all_statuses if s]  # Remove empty strings
+    
+    # Define approval status patterns based on healthcare industry standards
+    approved_patterns = ['APPROVED', 'ACCEPTED', 'AUTHORIZED', 'COVERED', 'QUALIFIED', 'COMPLETED', 'SUCCESS']
+    denied_patterns = ['DENIED', 'REJECTED', 'DECLINED', 'NOT COVERED', 'DISQUALIFIED', 'FAILED', 'INELIGIBLE']
+    pending_patterns = ['PENDING', 'UNDER REVIEW', 'PROCESSING', 'SUBMITTED', 'IN PROGRESS', 'AWAITING']
+    created_patterns = ['CASE CREATED', 'CREATED', 'INITIATED', 'RECEIVED']
+    
+    # Priority order: overall_result > primary_result > case_status > external_status > insurance statuses
+    priority_fields = [
+        ('overall_result', overall_result),
+        ('primary_result', primary_result), 
+        ('secondary_result', secondary_result),
+        ('case_status', case_status),
+        ('external_status', external_status),
+        ('primary_status', primary_status),
+        ('secondary_status', secondary_status)
+    ]
+    
+    # Check for approval/denial in priority order
+    for field_name, field_value in priority_fields:
+        if not field_value:
+            continue
+            
+        # Check for approved status
+        if any(pattern in field_value for pattern in approved_patterns):
+            return {
+                'status': 'APPROVED',
+                'message': f'Approved based on {field_name}: {field_value}',
+                'confidence': 'HIGH',
+                'determining_field': field_name,
+                'determining_value': field_value,
+                'all_statuses': status_data
+            }
+        
+        # Check for denied status  
+        if any(pattern in field_value for pattern in denied_patterns):
+            return {
+                'status': 'DENIED',
+                'message': f'Denied based on {field_name}: {field_value}',
+                'confidence': 'HIGH',
+                'determining_field': field_name,
+                'determining_value': field_value,
+                'all_statuses': status_data
+            }
+    
+    # Check for pending status
+    for field_name, field_value in priority_fields:
+        if field_value and any(pattern in field_value for pattern in pending_patterns):
+            return {
+                'status': 'PENDING',
+                'message': f'Pending based on {field_name}: {field_value}',
+                'confidence': 'MEDIUM',
+                'determining_field': field_name,
+                'determining_value': field_value,
+                'all_statuses': status_data
+            }
+    
+    # Check for created/initial status
+    for field_name, field_value in priority_fields:
+        if field_value and any(pattern in field_value for pattern in created_patterns):
+            return {
+                'status': 'CREATED',
+                'message': f'Case created/initiated based on {field_name}: {field_value}',
+                'confidence': 'MEDIUM',
+                'determining_field': field_name,
+                'determining_value': field_value,
+                'all_statuses': status_data
+            }
+    
+    # Fallback: Unknown status
+    return {
+        'status': 'UNKNOWN',
+        'message': f'Status unclear from available fields: {", ".join(all_statuses[:3])}',
+        'confidence': 'LOW',
+        'determining_field': 'multiple',
+        'determining_value': ', '.join(all_statuses[:3]),
+        'all_statuses': status_data
+    }
+
 # Configuration from environment variables
 class WebhookConfig:
     """Configuration for webhook server using environment variables"""
@@ -293,8 +397,9 @@ def test_webhook():
 @app.route('/webhook/rmbb-status-update', methods=['POST'])
 def handle_rmbb_status_webhook():
     """
-    Webhook endpoint for RMBB Health to send case status updates.
-    This replaces polling and provides instant IVR qualification results.
+    Enhanced webhook endpoint for RMBB Health to send case status updates.
+    This monitors approval status fields: status, external_status, overall_insurance_result
+    and insurance-specific statuses for comprehensive IVR qualification tracking.
     """
     
     try:
@@ -315,11 +420,29 @@ def handle_rmbb_status_webhook():
         
         logging.info(f"📋 RMBB Health webhook received: {json.dumps(payload, indent=2)}")
         
-        # Extract critical data from RMBB webhook
+        # Extract critical data from RMBB webhook with enhanced status monitoring
         external_id = payload.get('external_id')
         case_id = payload.get('case_id') 
         provider_name = payload.get('provider_name')
-        case_status = payload.get('status')
+        
+        # ENHANCED: Monitor multiple approval status fields based on RMBB Health API structure
+        case_status = payload.get('status')                           # Primary status field
+        external_status = payload.get('external_status')             # External-facing status
+        overall_insurance_result = payload.get('overall_insurance_result', '')  # Final approval result
+        
+        # Insurance-specific status monitoring
+        primary_insurance_status = payload.get('primary_insurance', {}).get('status', '')
+        secondary_insurance_status = payload.get('secondary_insurance', {}).get('status', '')
+        tertiary_insurance_status = payload.get('tertiary_insurance', {}).get('status', '')
+        
+        # Extract insurance results for detailed tracking
+        primary_insurance_result = payload.get('primary_insurance', {}).get('result', '')
+        secondary_insurance_result = payload.get('secondary_insurance', {}).get('result', '')
+        
+        # Monitor last_fax_status for communication tracking
+        last_fax_status = payload.get('last_fax_status', '')
+        
+        # Legacy support: Also check ivr_data for backward compatibility
         ivr_data = payload.get('ivr_data', {})
         
         # Validate required fields
@@ -330,11 +453,29 @@ def handle_rmbb_status_webhook():
             logging.warning(f"⚠️ No provider_name in RMBB webhook - routing may fail")
             return jsonify({"error": "Missing provider_name for GHL routing"}), 400
         
+        # ENHANCED STATUS ANALYSIS: Determine approval state from multiple fields
+        approval_analysis = analyze_rmbb_approval_status({
+            'case_status': case_status,
+            'external_status': external_status,
+            'overall_insurance_result': overall_insurance_result,
+            'primary_insurance_status': primary_insurance_status,
+            'secondary_insurance_status': secondary_insurance_status,
+            'tertiary_insurance_status': tertiary_insurance_status,
+            'primary_insurance_result': primary_insurance_result,
+            'secondary_insurance_result': secondary_insurance_result,
+            'last_fax_status': last_fax_status
+        })
+        
         logging.info(f"🔗 Processing RMBB status update:")
         logging.info(f"   External ID: {external_id}")
         logging.info(f"   Provider: {provider_name}")
-        logging.info(f"   Status: {case_status}")
-        logging.info(f"   IVR Data: {ivr_data.get('approval_status', 'N/A')}")
+        logging.info(f"   Case Status: {case_status}")
+        logging.info(f"   External Status: {external_status}")
+        logging.info(f"   Overall Result: {overall_insurance_result}")
+        logging.info(f"   Primary Insurance Status: {primary_insurance_status}")
+        logging.info(f"   Secondary Insurance Status: {secondary_insurance_status}")
+        logging.info(f"   Approval Analysis: {approval_analysis['status']} - {approval_analysis['message']}")
+        logging.info(f"   Legacy IVR Data: {ivr_data.get('approval_status', 'N/A')}")
         
         # Extract GHL contact ID from external_id (format: ghl_contact_{contactId}_{timestamp})
         ghl_contact_id = None
@@ -380,18 +521,44 @@ def handle_rmbb_status_webhook():
             ghl_api_key=os.getenv('GHL_API_KEY')
         )
         
-        # Update GHL contact with IVR results
+        # Enhanced GHL contact update with comprehensive status tracking
         ivr_tracking_update = {
             "customFields": [
+                # Workflow status
                 {"key": "rmbb_workflow_status", "value": "ivr_received"},
-                {"key": "rmbb_case_status", "value": case_status or "unknown"},
-                {"key": "rmbb_approval_status", "value": ivr_data.get('approval_status', '')},
+                {"key": "rmbb_ivr_received_date", "value": datetime.now().isoformat()},
+                {"key": "rmbb_webhook_processed", "value": "true"},
+                
+                # Primary status fields from RMBB Health API
+                {"key": "rmbb_case_status", "value": case_status or ""},
+                {"key": "rmbb_external_status", "value": external_status or ""},
+                {"key": "rmbb_overall_result", "value": overall_insurance_result or ""},
+                
+                # Insurance-specific statuses
+                {"key": "rmbb_primary_insurance_status", "value": primary_insurance_status or ""},
+                {"key": "rmbb_secondary_insurance_status", "value": secondary_insurance_status or ""},
+                {"key": "rmbb_tertiary_insurance_status", "value": tertiary_insurance_status or ""},
+                
+                # Insurance results
+                {"key": "rmbb_primary_insurance_result", "value": primary_insurance_result or ""},
+                {"key": "rmbb_secondary_insurance_result", "value": secondary_insurance_result or ""},
+                
+                # Communication status
+                {"key": "rmbb_last_fax_status", "value": last_fax_status or ""},
+                
+                # Enhanced approval analysis
+                {"key": "rmbb_approval_status", "value": approval_analysis['status']},
+                {"key": "rmbb_approval_confidence", "value": approval_analysis['confidence']},
+                {"key": "rmbb_approval_message", "value": approval_analysis['message']},
+                {"key": "rmbb_determining_field", "value": approval_analysis['determining_field']},
+                {"key": "rmbb_determining_value", "value": approval_analysis['determining_value']},
+                
+                # Legacy IVR data support (backward compatibility)
+                {"key": "rmbb_legacy_approval", "value": ivr_data.get('approval_status', '')},
                 {"key": "rmbb_qualification_level", "value": ivr_data.get('qualification_level', '')},
                 {"key": "rmbb_prior_auth", "value": ivr_data.get('prior_authorization_number', '')},
                 {"key": "rmbb_effective_date", "value": ivr_data.get('effective_date', '')},
-                {"key": "rmbb_coverage_percentage", "value": str(ivr_data.get('coverage_percentage', ''))},
-                {"key": "rmbb_ivr_received_date", "value": datetime.now().isoformat()},
-                {"key": "rmbb_webhook_processed", "value": "true"}
+                {"key": "rmbb_coverage_percentage", "value": str(ivr_data.get('coverage_percentage', ''))}
             ]
         }
         
@@ -408,12 +575,41 @@ def handle_rmbb_status_webhook():
         
         logging.info(f"✅ Updated GHL contact {ghl_contact_id} with IVR results")
         
-        # Send provider notification in correct sub-account
+        # Send enhanced provider notification with comprehensive status information
         patient_name = payload.get('patient_name', 'Patient')
+        
+        # Create enhanced IVR data including approval analysis
+        enhanced_ivr_data = {
+            # Enhanced approval analysis
+            'approval_status': approval_analysis['status'],
+            'approval_confidence': approval_analysis['confidence'],
+            'approval_message': approval_analysis['message'],
+            'determining_field': approval_analysis['determining_field'],
+            'determining_value': approval_analysis['determining_value'],
+            
+            # RMBB Health case status fields
+            'case_status': case_status,
+            'external_status': external_status, 
+            'overall_insurance_result': overall_insurance_result,
+            'primary_insurance_status': primary_insurance_status,
+            'secondary_insurance_status': secondary_insurance_status,
+            'primary_insurance_result': primary_insurance_result,
+            'secondary_insurance_result': secondary_insurance_result,
+            'last_fax_status': last_fax_status,
+            
+            # Legacy IVR data (for backward compatibility)
+            'qualification_level': ivr_data.get('qualification_level', ''),
+            'treatment_authorized': ivr_data.get('treatment_authorized', ''),
+            'coverage_percentage': ivr_data.get('coverage_percentage', ''),
+            'prior_authorization_number': ivr_data.get('prior_authorization_number', ''),
+            'effective_date': ivr_data.get('effective_date', ''),
+            'notes': ivr_data.get('notes', '')
+        }
+        
         notification_result = workflow_handler.notify_provider_in_subaccount(
             contact_id=ghl_contact_id,
             location_id=location_id,
-            ivr_data=ivr_data,
+            ivr_data=enhanced_ivr_data,
             patient_name=patient_name
         )
         
@@ -421,11 +617,24 @@ def handle_rmbb_status_webhook():
         
         return jsonify({
             "status": "success",
-            "message": "RMBB Health status update processed successfully",
+            "message": "Enhanced RMBB Health status update processed successfully",
             "external_id": external_id,
             "ghl_contact_updated": ghl_contact_id,
             "provider_notified": notification_result.get('success', False),
             "routing_location": location_id,
+            "approval_analysis": {
+                "status": approval_analysis['status'],
+                "confidence": approval_analysis['confidence'],
+                "message": approval_analysis['message'],
+                "determining_field": approval_analysis['determining_field']
+            },
+            "monitored_fields": {
+                "case_status": case_status,
+                "external_status": external_status,
+                "overall_insurance_result": overall_insurance_result,
+                "primary_insurance_status": primary_insurance_status,
+                "secondary_insurance_status": secondary_insurance_status
+            },
             "timestamp": datetime.now().isoformat()
         })
         
