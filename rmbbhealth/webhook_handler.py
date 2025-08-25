@@ -425,25 +425,60 @@ def handle_rmbb_status_webhook():
         case_id = payload.get('case_id') 
         provider_name = payload.get('provider_name')
         
-        # ENHANCED: Monitor multiple approval status fields based on RMBB Health API structure
-        case_status = payload.get('status')                           # Primary status field
-        external_status = payload.get('external_status')             # External-facing status
-        overall_insurance_result = payload.get('overall_insurance_result', '')  # Final approval result
+        # ADAPTIVE: Handle both complete case data OR minimal webhook + API call
+        case_data = None
+        
+        # Check if webhook contains complete case data (Option 1)
+        if payload.get('primary_insurance') or payload.get('overall_insurance_result') is not None:
+            logging.info("📦 Webhook contains complete case data - using directly")
+            case_data = payload
+        else:
+            # Minimal webhook - need to fetch case data via API (Option 2)
+            logging.info(f"📡 Minimal webhook received - fetching case {case_id} via API")
+            
+            if not case_id:
+                return jsonify({"error": "Missing case_id - cannot fetch case data"}), 400
+                
+            try:
+                # Import services for API call
+                from services.case_service import CaseService
+                case_service = CaseService()
+                
+                # Fetch complete case data
+                case_data = case_service.get_case(case_id)
+                
+                if not case_data:
+                    return jsonify({"error": f"Could not fetch case data for case_id {case_id}"}), 404
+                    
+                logging.info(f"✅ Fetched complete case data via API: {len(case_data)} fields")
+                
+            except Exception as e:
+                logging.error(f"❌ Failed to fetch case data via API: {str(e)}")
+                return jsonify({
+                    "error": "Failed to fetch case data from RMBB Health API",
+                    "case_id": case_id,
+                    "details": str(e)
+                }), 500
+        
+        # ENHANCED: Extract status fields from case_data (whether from webhook or API)
+        case_status = case_data.get('status')                           # Primary status field
+        external_status = case_data.get('external_status')             # External-facing status
+        overall_insurance_result = case_data.get('overall_insurance_result', '')  # Final approval result
         
         # Insurance-specific status monitoring
-        primary_insurance_status = payload.get('primary_insurance', {}).get('status', '')
-        secondary_insurance_status = payload.get('secondary_insurance', {}).get('status', '')
-        tertiary_insurance_status = payload.get('tertiary_insurance', {}).get('status', '')
+        primary_insurance_status = case_data.get('primary_insurance', {}).get('status', '')
+        secondary_insurance_status = case_data.get('secondary_insurance', {}).get('status', '')
+        tertiary_insurance_status = case_data.get('tertiary_insurance', {}).get('status', '')
         
         # Extract insurance results for detailed tracking
-        primary_insurance_result = payload.get('primary_insurance', {}).get('result', '')
-        secondary_insurance_result = payload.get('secondary_insurance', {}).get('result', '')
+        primary_insurance_result = case_data.get('primary_insurance', {}).get('result', '')
+        secondary_insurance_result = case_data.get('secondary_insurance', {}).get('result', '')
         
         # Monitor last_fax_status for communication tracking
-        last_fax_status = payload.get('last_fax_status', '')
+        last_fax_status = case_data.get('last_fax_status', '')
         
         # Legacy support: Also check ivr_data for backward compatibility
-        ivr_data = payload.get('ivr_data', {})
+        ivr_data = payload.get('ivr_data', {})  # Legacy data might still be in original payload
         
         # Validate required fields
         if not external_id:
