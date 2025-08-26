@@ -699,8 +699,8 @@ Effective Date: {ivr_data['effective_date']}
                 "full_name": form_data.get("primary_insurance_name", ""),
                 "type": form_data.get("primary_insurance_type", form_data.get("insurance_type", "")),
                 "mac": "",
-                "parent_company": "Insurance Co",  # Default, could be form field
-                "participating_status": "Participating",  # Default, could be form field
+                "parent_company": form_data.get("patient_primary_insurance", ""),
+                "participating_status": form_data.get("primary_participating_status", ""),
                 "policy_number": form_data.get("primary_policy_number", ""),
                 "preferred_provider_organization": "Yes",  # Default
                 "health_maintenance_organization": "No",  # Default
@@ -713,8 +713,8 @@ Effective Date: {ivr_data['effective_date']}
                 "full_name": form_data.get("secondary_insurance_name", ""),
                 "type": form_data.get("secondary_insurance_type", ""),
                 "mac": "",
-                "parent_company": "Another Insurance Co",  # Default, could be form field
-                "participating_status": "Non-participating",  # Default, could be form field
+                "parent_company": form_data.get("patient_secondary_insurance", ""),
+                "participating_status": form_data.get("secondary_participating_status", ""),
                 "policy_number": form_data.get("secondary_policy_number", ""),
                 "preferred_provider_organization": "No",  # Default
                 "health_maintenance_organization": "Yes",  # Default
