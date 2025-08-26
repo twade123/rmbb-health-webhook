@@ -223,24 +223,18 @@ class GHLRMBBWorkflowHandler:
         
         # Create separate case for each selected product
         for i, product in enumerate(selected_products):
-            print(f"\n--- Creating Case {i+1}/{len(selected_products)} for {product['name']} ---")
+            print(f"Creating Case {i+1}/{len(selected_products)} for {product['name']}")
             
             # Create case data for this specific product
             case_external_id = f"{external_id}_{product['product_id']}"  # Unique external ID per product
             rmbb_case_data = self.transform_case_data_for_product(patient_form_data, patient_response['id'], product)
             rmbb_case_data["external_id"] = case_external_id
             
-            # DEBUG: Print exact case data being sent to RMBB Health API
-            print(f"🔍 CASE DATA for {product['name']} (Product ID: {product['product_id']}):")
-            print(json.dumps(rmbb_case_data, indent=2))
-            
             # Create case using real RMBB Health API
             try:
                 case_response = self.case_service.create_case(rmbb_case_data)
                 
-                # Debug: Check what type of response we got for case creation
-                print(f"🔍 DEBUG - Case response type: {type(case_response)}")
-                print(f"🔍 DEBUG - Case response: {case_response}")
+                # Case API call completed
             
                 # Handle different response types for case creation
                 if isinstance(case_response, dict) and 'id' in case_response:
@@ -248,15 +242,8 @@ class GHLRMBBWorkflowHandler:
                     print(f"✅ Case created with ID: {case_id}")
                     
                     # CRITICAL: Add case mapping to cache immediately after creation
-                    print(f"⏰ Adding case {case_id} mapping to provider cache...")
                     try:
                         provider_name = patient_form_data.get('provider_name', '')
-                        
-                        print(f"🔍 DEBUG - Case mapping data:")
-                        print(f"   case_id: {case_id}")
-                        print(f"   provider_name: '{provider_name}'")
-                        print(f"   contact_id: '{contact_id}'")
-                        print(f"   external_id: '{case_external_id}'")
                         
                         if provider_name and contact_id:
                             cache_success = self.provider_cache.add_case_mapping(
@@ -266,14 +253,10 @@ class GHLRMBBWorkflowHandler:
                                 external_id=case_external_id
                             )
                             
-                            if cache_success:
-                                print(f"✅ Case mapping added: {case_id} → {provider_name} → {contact_id}")
-                            else:
+                            if not cache_success:
                                 print(f"⚠️ Failed to add case mapping to cache")
                         else:
-                            print(f"⚠️ Missing provider_name or contact_id for case mapping:")
-                            print(f"   provider_name: '{provider_name}' (empty: {not bool(provider_name)})")
-                            print(f"   contact_id: '{contact_id}' (empty: {not bool(contact_id)})")
+                            print(f"⚠️ Missing provider_name or contact_id for case mapping")
                             
                     except Exception as cache_error:
                         print(f"⚠️ Cache mapping error: {cache_error}")
