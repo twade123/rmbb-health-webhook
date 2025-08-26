@@ -111,13 +111,7 @@ class GHLRMBBWorkflowHandler:
         
         print(f"📧 Contact ID: {contact_id}")
         print(f"📍 Location ID: {location_id}")
-        print(f"🔍 DEBUG - patient_form_data type: {type(patient_form_data)}")
-        if isinstance(patient_form_data, dict):
-            print(f"👤 Patient: {patient_form_data.get('first_name', 'MISSING')} {patient_form_data.get('last_name', 'MISSING')}")
-            print(f"👨‍⚕️ Provider: {patient_form_data.get('provider_name', 'NOT SPECIFIED')}")
-        else:
-            print(f"❌ ERROR: patient_form_data is not a dict: {patient_form_data}")
-            print(f"❌ This could be causing the 'string indices must be integers' error")
+        # Patient data extracted successfully
         
         # Create unique external ID for RMBB case linking
         external_id = f"ghl_contact_{contact_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
@@ -154,11 +148,7 @@ class GHLRMBBWorkflowHandler:
         else:
             print(f"⚠️ Warning: Failed to store initial tracking data: {contact_update_result['error']}")
         
-        print(f"🔍 DEBUG - handle_ghl_webhook returning:")
-        print(f"   external_id: {external_id} (type: {type(external_id)})")
-        print(f"   contact_id: {contact_id} (type: {type(contact_id)})")
-        print(f"   location_id: {location_id} (type: {type(location_id)})")
-        print(f"   patient_form_data: {type(patient_form_data)}")
+        # Webhook processing completed
         return external_id, contact_id, location_id, patient_form_data
     
     def submit_to_rmbb_health(self, external_id, contact_id, patient_form_data):
@@ -180,9 +170,7 @@ class GHLRMBBWorkflowHandler:
         try:
             patient_response = self.patient_service.create_patient(self.rmbb_team_id, rmbb_patient_data)
             
-            # Debug: Check what type of response we got
-            print(f"🔍 DEBUG - Patient response type: {type(patient_response)}")
-            print(f"🔍 DEBUG - Patient response: {patient_response}")
+            # Patient API response received
             
             # Handle different response types
             if isinstance(patient_response, dict) and 'id' in patient_response:
@@ -629,16 +617,7 @@ Effective Date: {ivr_data['effective_date']}
         helicoll_q4164 = (webhook_payload.get('helicoll_(q4164)_units/cm2') or '').strip()
         xcell_amnio_matrix_q4280 = (webhook_payload.get('xcell_amnio_matrix_(q4280)_units/cm2') or '').strip()
         
-        # DEBUG: Print product field values to see what we're getting
-        print(f"🧬 DEBUG - Product field values:")
-        product_debug = [
-            ('amniomaxx_q4239', amniomaxx_q4239),
-            ('palingen_q4173', palingen_q4173),
-            ('membrane_wrap_trilayer_q4344', membrane_wrap_trilayer_q4344),
-            ('biovance_q4154', biovance_q4154)
-        ]
-        for field_name, value in product_debug:
-            print(f"   {field_name}: '{value}' (empty: {not bool(value)})")
+        # Product fields extracted from GHL payload
         
         # Fields not provided in your webhook mapping - will be empty
         wound_type = ''  # Not in your webhook mapping
@@ -733,13 +712,7 @@ Effective Date: {ivr_data['effective_date']}
         # Extract selected biologic product and wound size from GHL form
         product_info = self.extract_selected_biologic_product(form_data)
         
-        # DEBUG: Show product extraction results
-        print(f"🧬 DEBUG - Product extraction results:")
-        print(f"   Selected products: {len(product_info['selected_products'])}")
-        print(f"   Total cm2: {product_info['total_cm2']}")
-        print(f"   Primary product: {product_info['primary_product']}")
-        for i, product in enumerate(product_info['selected_products']):
-            print(f"   Product {i+1}: {product['name']} = {product['cm2']} cm2")
+        # Product extraction completed
         
         # Use biologic product cm2 as wound size, or fallback to wound_size field
         wound_size = ""
