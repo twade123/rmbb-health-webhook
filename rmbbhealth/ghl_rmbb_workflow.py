@@ -249,7 +249,7 @@ class GHLRMBBWorkflowHandler:
             rmbb_case_data["external_id"] = case_external_id
             
             # DEBUG: Show what we're sending to RMBB Health API
-            print(f"🔍 CASE PAYLOAD DEBUG for {product_name}:")
+            print(f"🔍 CASE PAYLOAD DEBUG for {product['name']}:")
             print(f"   📋 Product ID: {rmbb_case_data.get('product_id')}")
             print(f"   🏥 Account Location ID: {rmbb_case_data.get('account_location_id')}")
             print(f"   👨‍⚕️ Physician ID: {rmbb_case_data.get('physician_id')}")
