@@ -111,7 +111,10 @@ class GHLRMBBWorkflowHandler:
         
         print(f"📧 Contact ID: {contact_id}")
         print(f"📍 Location ID: {location_id}")
-        # Patient data extracted successfully
+        # DEBUG: Check if insurance data was extracted
+        print(f"🔍 Extracted Insurance: Primary='{patient_form_data.get('primary_insurance_name', 'MISSING')}', Secondary='{patient_form_data.get('secondary_insurance_name', 'MISSING')}'")
+        print(f"🔍 Extracted ICD-10: '{patient_form_data.get('icd_10_code', 'MISSING')}'")
+        print(f"🔍 Extracted Facility: '{patient_form_data.get('facility_type', 'MISSING')}')")
         
         # Create unique external ID for RMBB case linking
         external_id = f"ghl_contact_{contact_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
@@ -570,7 +573,7 @@ Effective Date: {ivr_data['effective_date']}
                    webhook_payload.get('zip_code') or 
                    webhook_payload.get('zip') or '').strip()
         
-        # Insurance Information - Using your exact field names
+        # Insurance Information - Using your exact field names from payload
         primary_insurance_name = (webhook_payload.get('patient_primary_insurance') or '').strip()
         
         primary_policy_number = (webhook_payload.get('patient_primary_insurance_') or '').strip()  # Your field ends with underscore
@@ -579,7 +582,7 @@ Effective Date: {ivr_data['effective_date']}
         
         secondary_policy_number = (webhook_payload.get('patient_secondary_insurance_') or '').strip()  # Your field ends with underscore
         
-        # Additional Medical Fields - Using your exact field names
+        # Additional Medical Fields - Using your exact field names from payload
         icd_10_code = (webhook_payload.get('icd_-_10_diagnosis_code(s)') or '').strip()
         
         # Facility Information - Using your exact field names
