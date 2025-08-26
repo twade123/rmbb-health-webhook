@@ -218,110 +218,189 @@ class GHLRMBBWorkflowHandler:
             print(f"❌ {error_msg}")
             return {"success": False, "error": error_msg}
         
-        # Transform form data to case format with external_id linking back to GHL contact
+        # Get selected products for multiple case creation
         print(f"🔍 DEBUG - About to access patient_response['id']")
         print(f"🔍 DEBUG - patient_response type: {type(patient_response)}")
         print(f"🔍 DEBUG - patient_response: {patient_response}")
-        rmbb_case_data = self.transform_case_data(patient_form_data, patient_response['id'])
-        rmbb_case_data["external_id"] = external_id  # Link back to GHL contact
         
-        print("\nCreating case for qualification...")
-        print(f"🔗 Case external_id: {external_id} (links to GHL contact {contact_id})")
+        # Extract selected products
+        product_info = self.extract_selected_biologic_product(patient_form_data)
+        selected_products = product_info["selected_products"]
         
-        # DEBUG: Print exact case data being sent to RMBB Health API
-        print(f"🔍 DETAILED CASE DATA being sent to RMBB Health API:")
-        print(json.dumps(rmbb_case_data, indent=2))
+        print(f"\n🔗 Creating {len(selected_products)} cases for selected products...")
+        print(f"🔗 Case external_id base: {external_id} (links to GHL contact {contact_id})")
         
-        # Create case using real RMBB Health API
-        try:
-            case_response = self.case_service.create_case(rmbb_case_data)
+        created_cases = []
+        failed_cases = []
+        
+        # Create separate case for each selected product
+        for i, product in enumerate(selected_products):
+            print(f"\n--- Creating Case {i+1}/{len(selected_products)} for {product['name']} ---")
             
-            # Debug: Check what type of response we got for case creation
-            print(f"🔍 DEBUG - Case response type: {type(case_response)}")
-            print(f"🔍 DEBUG - Case response: {case_response}")
+            # Create case data for this specific product
+            case_external_id = f"{external_id}_{product['product_id']}"  # Unique external ID per product
+            rmbb_case_data = self.transform_case_data_for_product(patient_form_data, patient_response['id'], product)
+            rmbb_case_data["external_id"] = case_external_id
             
-            # Handle different response types for case creation
-            if isinstance(case_response, dict) and 'id' in case_response:
-                case_id = case_response['id']
-                print(f"✅ Case created with ID: {case_id}")
+            # DEBUG: Print exact case data being sent to RMBB Health API
+            print(f"🔍 CASE DATA for {product['name']} (Product ID: {product['product_id']}):")
+            print(json.dumps(rmbb_case_data, indent=2))
+            
+            # Create case using real RMBB Health API
+            try:
+                case_response = self.case_service.create_case(rmbb_case_data)
                 
-                # CRITICAL: Add case mapping to cache immediately after creation
-                print(f"⏰ STEP 2: Adding case {case_id} mapping to provider cache...")
-                try:
-                    # Use the class instance provider_cache (already initialized)
-                    provider_name = patient_form_data.get('provider_name', '')
-                    # contact_id is passed as parameter, not in patient_form_data
+                # Debug: Check what type of response we got for case creation
+                print(f"🔍 DEBUG - Case response type: {type(case_response)}")
+                print(f"🔍 DEBUG - Case response: {case_response}")
+            
+                # Handle different response types for case creation
+                if isinstance(case_response, dict) and 'id' in case_response:
+                    case_id = case_response['id']
+                    print(f"✅ Case created with ID: {case_id}")
                     
-                    print(f"🔍 DEBUG - Case mapping data:")
-                    print(f"   case_id: {case_id}")
-                    print(f"   provider_name: '{provider_name}'")
-                    print(f"   contact_id: '{contact_id}'")
-                    print(f"   external_id: '{external_id}'")
-                    
-                    if provider_name and contact_id:
-                        cache_success = self.provider_cache.add_case_mapping(
-                            case_id=str(case_id),
-                            provider_name=provider_name,
-                            contact_id=contact_id,
-                            external_id=external_id
-                        )
+                    # CRITICAL: Add case mapping to cache immediately after creation
+                    print(f"⏰ Adding case {case_id} mapping to provider cache...")
+                    try:
+                        provider_name = patient_form_data.get('provider_name', '')
                         
-                        if cache_success:
-                            print(f"✅ Case mapping added: {case_id} → {provider_name} → {contact_id}")
+                        print(f"🔍 DEBUG - Case mapping data:")
+                        print(f"   case_id: {case_id}")
+                        print(f"   provider_name: '{provider_name}'")
+                        print(f"   contact_id: '{contact_id}'")
+                        print(f"   external_id: '{case_external_id}'")
+                        
+                        if provider_name and contact_id:
+                            cache_success = self.provider_cache.add_case_mapping(
+                                case_id=str(case_id),
+                                provider_name=provider_name,
+                                contact_id=contact_id,
+                                external_id=case_external_id
+                            )
+                            
+                            if cache_success:
+                                print(f"✅ Case mapping added: {case_id} → {provider_name} → {contact_id}")
+                            else:
+                                print(f"⚠️ Failed to add case mapping to cache")
                         else:
-                            print(f"⚠️ Failed to add case mapping to cache")
+                            print(f"⚠️ Missing provider_name or contact_id for case mapping:")
+                            print(f"   provider_name: '{provider_name}' (empty: {not bool(provider_name)})")
+                            print(f"   contact_id: '{contact_id}' (empty: {not bool(contact_id)})")
+                            
+                    except Exception as cache_error:
+                        print(f"⚠️ Cache mapping error: {cache_error}")
+                        import traceback
+                        print(f"⚠️ Cache mapping traceback: {traceback.format_exc()}")
+                        # Don't fail the whole workflow due to cache issues
+                    
+                    # Upload additional provider/facility information
+                    additional_info_result = self.upload_additional_case_information(
+                        case_id=case_id,
+                        provider_name=patient_form_data.get('provider_name'),
+                        facility_type=patient_form_data.get('facility_type'), 
+                        facility_npi=patient_form_data.get('facility_npi'),
+                        provider_npi=patient_form_data.get('provider_npi', '')
+                    )
+                    
+                    if additional_info_result.get('success'):
+                        print(f"✅ Additional provider/facility information uploaded to case {case_id}")
                     else:
-                        print(f"⚠️ Missing provider_name or contact_id for case mapping:")
-                        print(f"   provider_name: '{provider_name}' (empty: {not bool(provider_name)})")
-                        print(f"   contact_id: '{contact_id}' (empty: {not bool(contact_id)})")
-                        
-                except Exception as cache_error:
-                    print(f"⚠️ Cache mapping error: {cache_error}")
-                    import traceback
-                    print(f"⚠️ Cache mapping traceback: {traceback.format_exc()}")
-                    # Don't fail the whole workflow due to cache issues
-                
-                # Upload additional provider/facility information
-                additional_info_result = self.upload_additional_case_information(
-                    case_id=case_id,
-                    provider_name=patient_form_data.get('provider_name'),
-                    facility_type=patient_form_data.get('facility_type'), 
-                    facility_npi=patient_form_data.get('facility_npi'),
-                    provider_npi=patient_form_data.get('provider_npi', '')  # Add provider_npi if available
-                )
-                
-                if additional_info_result.get('success'):
-                    print(f"✅ Additional provider/facility information uploaded to case {case_id}")
+                        print(f"⚠️ Warning: Failed to upload additional information: {additional_info_result.get('error')}")
+                    
+                    # Add successful case to created_cases list
+                    created_cases.append({
+                        "product_name": product['name'],
+                        "product_id": product['product_id'],
+                        "case_id": case_id,
+                        "external_id": case_external_id,
+                        "cm2": product['cm2']
+                    })
+                    
+                elif isinstance(case_response, dict) and 'error' in case_response:
+                    # RMBB Health API returned an error for case creation
+                    error_msg = f"RMBB Health case creation error for {product['name']}: {case_response['error']}"
+                    if 'data' in case_response:
+                        validation_errors = case_response['data']
+                        for err in validation_errors:
+                            error_msg += f" - {err.get('path', 'field')}: {err.get('msg', 'validation error')}"
+                    print(f"❌ {error_msg}")
+                    
+                    # Add failed case to failed_cases list
+                    failed_cases.append({
+                        "product_name": product['name'],
+                        "product_id": product['product_id'],
+                        "error": error_msg,
+                        "cm2": product['cm2']
+                    })
+                    
                 else:
-                    print(f"⚠️ Warning: Failed to upload additional information: {additional_info_result.get('error')}")
-            elif isinstance(case_response, dict) and 'error' in case_response:
-                # RMBB Health API returned an error for case creation
-                error_msg = f"RMBB Health case creation error: {case_response['error']}"
-                if 'data' in case_response:
-                    validation_errors = case_response['data']
-                    for err in validation_errors:
-                        error_msg += f" - {err.get('path', 'field')}: {err.get('msg', 'validation error')}"
+                    error_msg = f"Unexpected case API response format for {product['name']}: {case_response}"
+                    print(f"⚠️ {error_msg}")
+                    
+                    # Add failed case to failed_cases list
+                    failed_cases.append({
+                        "product_name": product['name'],
+                        "product_id": product['product_id'],
+                        "error": error_msg,
+                        "cm2": product['cm2']
+                    })
+                    
+            except Exception as e:
+                error_msg = f"Failed to create RMBB Health case for {product['name']}: {str(e)}"
                 print(f"❌ {error_msg}")
-                return {"success": False, "error": error_msg}
-            else:
-                print(f"⚠️ Unexpected case API response format: {case_response}")
-                return {"success": False, "error": f"Unexpected case response format: {str(case_response)}"}
+                print(f"🔍 DEBUG - Case creation exception type: {type(e)}")
                 
-        except Exception as e:
-            error_msg = f"Failed to create RMBB Health case: {str(e)}"
-            print(f"❌ {error_msg}")
-            print(f"🔍 DEBUG - Case creation exception type: {type(e)}")
-            return {"success": False, "error": error_msg}
+                # Add failed case to failed_cases list
+                failed_cases.append({
+                    "product_name": product['name'],
+                    "product_id": product['product_id'],
+                    "error": error_msg,
+                    "cm2": product['cm2']
+                })
         
-        # Update GHL contact with RMBB IDs and status
+        # Print summary of case creation results
+        print(f"\n📊 CASE CREATION SUMMARY:")
+        print(f"✅ Successfully created: {len(created_cases)} cases")
+        print(f"❌ Failed: {len(failed_cases)} cases")
+        
+        if created_cases:
+            print(f"\n✅ SUCCESSFUL CASES:")
+            for case in created_cases:
+                print(f"   • {case['product_name']} (Q-code: {case['product_id']}, {case['cm2']} cm2) → Case ID: {case['case_id']}")
+        
+        if failed_cases:
+            print(f"\n❌ FAILED CASES:")
+            for case in failed_cases:
+                print(f"   • {case['product_name']} (Q-code: {case['product_id']}, {case['cm2']} cm2) → Error: {case['error']}")
+        
+        # Check if any cases were created successfully
+        if not created_cases:
+            error_msg = "All case creations failed - no cases were successfully created"
+            print(f"❌ {error_msg}")
+            return {"success": False, "error": error_msg, "failed_cases": failed_cases}
+        
+        # Update GHL contact with RMBB IDs and status (multiple cases)
+        case_ids_str = ", ".join([str(case['case_id']) for case in created_cases])
+        case_products_str = ", ".join([f"{case['product_name']} ({case['cm2']} cm2)" for case in created_cases])
+        
         rmbb_tracking_update = {
             "customFields": [
                 {"key": "rmbb_workflow_status", "value": "submitted_for_qualification"},
                 {"key": "rmbb_patient_id", "value": str(patient_response['id'])},
-                {"key": "rmbb_case_id", "value": str(case_response['id'])},
+                {"key": "rmbb_case_ids", "value": case_ids_str},  # Multiple case IDs
+                {"key": "rmbb_case_count", "value": str(len(created_cases))},
+                {"key": "rmbb_products", "value": case_products_str},
                 {"key": "rmbb_submission_completed", "value": datetime.now().isoformat()}
             ]
         }
+        
+        # Add failure info if any cases failed
+        if failed_cases:
+            failed_products_str = ", ".join([f"{case['product_name']} (ERROR)" for case in failed_cases])
+            rmbb_tracking_update["customFields"].extend([
+                {"key": "rmbb_failed_products", "value": failed_products_str},
+                {"key": "rmbb_partial_failure", "value": "true"}
+            ])
         
         # Update GHL contact (note: location_id not available in this method, will use fallback)
         contact_update_result = self.update_ghl_contact(contact_id, rmbb_tracking_update)
@@ -330,9 +409,18 @@ class GHLRMBBWorkflowHandler:
         else:
             print(f"⚠️ Warning: Failed to update GHL contact: {contact_update_result['error']}")
         
-        return patient_response, case_response
+        # Return multiple case creation results
+        return {
+            "success": True,
+            "patient_response": patient_response,
+            "created_cases": created_cases,
+            "failed_cases": failed_cases,
+            "total_cases_attempted": len(selected_products),
+            "successful_cases": len(created_cases),
+            "failed_cases_count": len(failed_cases)
+        }
     
-    def finalize_rmbb_submission(self, external_id, contact_id, case_id, provider_name):
+    def finalize_rmbb_submission(self, external_id, contact_id, created_cases, provider_name):
         """
         STEP 3: Finalize RMBB Health submission and prepare for webhook
         This workflow ends here - RMBB Health will send webhook when IVR is complete
@@ -341,15 +429,23 @@ class GHLRMBBWorkflowHandler:
         print("STEP 3: Finalizing RMBB Health Submission")
         print("=" * 60)
         
-        print(f"🔗 RMBB Case ID: {case_id}")
-        print(f"🔗 External ID: {external_id} (links to GHL contact {contact_id})")
-        print(f"👨‍⚕️ Provider: {provider_name} (cached for webhook routing)")
+        case_ids = [case['case_id'] for case in created_cases]
+        case_ids_str = ", ".join([str(case_id) for case_id in case_ids])
         
-        # Update GHL contact to show case submitted and awaiting IVR
+        print(f"🔗 RMBB Case IDs: {case_ids_str}")
+        print(f"🔗 External ID base: {external_id} (links to GHL contact {contact_id})")
+        print(f"👨‍⚕️ Provider: {provider_name} (cached for webhook routing)")
+        print(f"📦 Products: {len(created_cases)} cases created")
+        
+        for case in created_cases:
+            print(f"   • {case['product_name']} (Q-code: {case['product_id']}, {case['cm2']} cm2) → Case ID: {case['case_id']}")
+        
+        # Update GHL contact to show cases submitted and awaiting IVR
         final_tracking_update = {
             "customFields": [
                 {"key": "rmbb_workflow_status", "value": "submitted_awaiting_ivr"},
-                {"key": "rmbb_case_id", "value": str(case_id)},
+                {"key": "rmbb_case_ids", "value": case_ids_str},
+                {"key": "rmbb_case_count", "value": str(len(created_cases))},
                 {"key": "rmbb_submission_completed_date", "value": datetime.now().isoformat()},
                 {"key": "rmbb_awaiting_ivr", "value": "true"}
             ]
@@ -369,9 +465,11 @@ class GHLRMBBWorkflowHandler:
         return {
             "submission_completed": True,
             "external_id": external_id,
-            "case_id": case_id,
+            "case_ids": case_ids,
             "contact_id": contact_id,
             "provider_name": provider_name,
+            "created_cases": created_cases,
+            "total_cases": len(created_cases),
             "status": "awaiting_ivr_webhook",
             "completed_at": datetime.now().isoformat()
         }
@@ -693,13 +791,14 @@ Effective Date: {ivr_data['effective_date']}
             "product_cpt_code": "15271-8" if product_info["primary_product"] else "",
         }
         
-        # Primary Insurance (matches rmbbhealth.txt structure lines 535-544)
-        if form_data.get("primary_insurance_name"):
+        # Primary Insurance (matches rmbbhealth.txt structure) - using actual GHL payload fields
+        primary_insurance_name = form_data.get("primary_insurance_name", "")
+        if primary_insurance_name:
             case_data["primary_insurance"] = {
-                "full_name": form_data.get("primary_insurance_name", ""),
+                "full_name": primary_insurance_name,
                 "type": form_data.get("primary_insurance_type", form_data.get("insurance_type", "")),
                 "mac": "",
-                "parent_company": form_data.get("patient_primary_insurance", ""),
+                "parent_company": primary_insurance_name,  # Use actual insurance name from GHL payload
                 "participating_status": form_data.get("primary_participating_status", ""),
                 "policy_number": form_data.get("primary_policy_number", ""),
                 "preferred_provider_organization": "Yes",  # Default
@@ -707,13 +806,14 @@ Effective Date: {ivr_data['effective_date']}
                 "prior_authorization": ""  # Could be form field
             }
         
-        # Secondary Insurance (matches rmbbhealth.txt structure lines 546-556)
-        if form_data.get("secondary_insurance_name"):
+        # Secondary Insurance (matches rmbbhealth.txt structure) - using actual GHL payload fields
+        secondary_insurance_name = form_data.get("secondary_insurance_name", "")
+        if secondary_insurance_name:
             case_data["secondary_insurance"] = {
-                "full_name": form_data.get("secondary_insurance_name", ""),
+                "full_name": secondary_insurance_name,
                 "type": form_data.get("secondary_insurance_type", ""),
                 "mac": "",
-                "parent_company": form_data.get("patient_secondary_insurance", ""),
+                "parent_company": secondary_insurance_name,  # Use actual insurance name from GHL payload
                 "participating_status": form_data.get("secondary_participating_status", ""),
                 "policy_number": form_data.get("secondary_policy_number", ""),
                 "preferred_provider_organization": "No",  # Default
@@ -723,20 +823,98 @@ Effective Date: {ivr_data['effective_date']}
         
         return case_data
     
+    def transform_case_data_for_product(self, form_data, patient_id, product):
+        """
+        Transform GHL form data to RMBB case format for a specific product
+        Creates case data with individual product details
+        """
+        # Start with base case data (same as original method)
+        case_data = {
+            "tid": self.rmbb_team_id,
+            "account_location_id": self.get_account_location_id(form_data.get('ghl_location_id')),
+            "physician_id": self.get_physician_id(form_data.get('provider_name')),
+            "patient_id": patient_id,
+            "product_id": self.get_product_id_for_product(product),  # Individual product ID
+            "place_of_service": form_data.get("facility_type", ""),
+            "wound_size": f"{product['cm2']} cm2",  # Individual product wound size
+            "total_wound_size": f"{product['cm2']} cm2",  # Same as wound_size for individual product
+            "wound_type": form_data.get("wound_type", ""),
+            "is_in_skilled_nursing_facility": 1 if "skilled nursing" in form_data.get("facility_type", "").lower() else 0,
+            "is_in_surgical_nursing_facility": 0,  # Default
+            "cpt_surgery_code": form_data.get("cpt_surgery_code", ""),
+            "surgery_date": form_data.get("expected_date_of_service", ""),
+            "icd_10_code": form_data.get("icd_10_code", ""),
+            "product_cpt_code": "15271-8"  # Default, could be product-specific
+        }
+        
+        # Add insurance data (same for all products) - using actual GHL payload fields
+        primary_insurance_name = form_data.get("primary_insurance_name", "")
+        if primary_insurance_name:
+            case_data["primary_insurance"] = {
+                "full_name": primary_insurance_name,
+                "type": form_data.get("primary_insurance_type", form_data.get("insurance_type", "")),
+                "mac": "",
+                "parent_company": primary_insurance_name,  # Use actual insurance name from GHL payload
+                "participating_status": form_data.get("primary_participating_status", ""),
+                "policy_number": form_data.get("primary_policy_number", ""),
+                "preferred_provider_organization": "Yes",  # Default
+                "health_maintenance_organization": "No",  # Default
+                "prior_authorization": ""  # Could be form field
+            }
+        
+        secondary_insurance_name = form_data.get("secondary_insurance_name", "")
+        if secondary_insurance_name:
+            case_data["secondary_insurance"] = {
+                "full_name": secondary_insurance_name,
+                "type": form_data.get("secondary_insurance_type", ""),
+                "mac": "",
+                "parent_company": secondary_insurance_name,  # Use actual insurance name from GHL payload
+                "participating_status": form_data.get("secondary_participating_status", ""),
+                "policy_number": form_data.get("secondary_policy_number", ""),
+                "preferred_provider_organization": "No",  # Default
+                "health_maintenance_organization": "Yes",  # Default
+                "prior_authorization": ""  # Could be form field
+            }
+        
+        return case_data
+    
+    def get_product_id_for_product(self, product):
+        """
+        Get RMBB Health product_id for a specific product
+        """
+        q_code_to_product_id = {
+            "Q4239": 229,  # amniomaxx → Amnio-Maxx
+            "Q4250": 230,  # amnioamp-mp → AmnioAMP-MP
+            "Q4290": 99,   # membrane_wrap_hydro → Membrane Wrap-Hydro
+            "Q4344": 98,   # membrane_wrap_tri-layer → Membrane Wrap
+            "Q4154": 232,  # biovance → Biovance
+            "Q4280": 237,  # xcell_amnio_matrix → Xcell Amnio Matrix
+            # Products not available in RMBB Health - using default Membrane Wrap (ID 98)
+            "Q4173": 98,   # palingen → Default: Membrane Wrap
+            "Q4316": 98,   # amchoplast → Default: Membrane Wrap
+            "Q4164": 98    # helicoll → Default: Membrane Wrap
+        }
+        
+        q_code = product["product_id"]
+        numeric_product_id = q_code_to_product_id.get(q_code, 98)  # Default to Membrane Wrap (98) if not found
+        
+        print(f"🧬 Converting Q-code {q_code} → numeric product_id {numeric_product_id} for {product['name']}")
+        return numeric_product_id
+    
     def get_account_location_id(self, ghl_location_id):
         """
         Get RMBB account_location_id from Railway environment variables
-        Production TBD Account Location: 4195
         """
-        account_location_id = os.getenv('RMBB_ACCOUNT_LOCATION_ID', '8720')  # Updated from RMBB Health API
+        account_location_id = os.getenv('RMBB_ACCOUNT_LOCATION_ID', '8720')  # Railway env var, fallback to known working ID
+        print(f"🏥 Using RMBB account_location_id: {account_location_id} (from Railway env vars)")
         return int(account_location_id)
     
     def get_physician_id(self, provider_name):
         """
         Get RMBB physician_id from Railway environment variables  
-        Production TBD Physician: 8077
         """
-        physician_id = os.getenv('RMBB_PHYSICIAN_ID', '15995')  # Updated from RMBB Health API
+        physician_id = os.getenv('RMBB_PHYSICIAN_ID', '15995')  # Railway env var, fallback to known working ID
+        print(f"👨‍⚕️ Using RMBB physician_id: {physician_id} (from Railway env vars)")
         return int(physician_id)
     
     
@@ -802,7 +980,6 @@ Effective Date: {ivr_data['effective_date']}
             "Q4344": 98,   # membrane_wrap_tri-layer → Membrane Wrap
             "Q4154": 232,  # biovance → Biovance
             "Q4280": 237,  # xcell_amnio_matrix → Xcell Amnio Matrix
-            "Q4301": 339,  # activate_matrix → Activate Matrix (available in dev sandbox)
             # Products not available in RMBB Health - using default Membrane Wrap (ID 98)
             "Q4173": 98,   # palingen → Default: Membrane Wrap
             "Q4316": 98,   # amchoplast → Default: Membrane Wrap
@@ -942,26 +1119,44 @@ Effective Date: {ivr_data['effective_date']}
                 # Case or patient creation failed
                 print(f"❌ RMBB Health submission failed: {rmbb_result['error']}")
                 return rmbb_result
-            patient_response, case_response = rmbb_result
+                
+            # Extract results from multiple case creation
+            patient_response = rmbb_result['patient_response']
+            created_cases = rmbb_result['created_cases']
+            failed_cases = rmbb_result['failed_cases']
             
             # Step 3: Finalize RMBB submission and end workflow (RMBB Health will webhook us)
             provider_name = patient_data.get('provider_name')
             submission_result = self.finalize_rmbb_submission(
                 external_id=external_id,
                 contact_id=contact_id, 
-                case_id=case_response['id'],
+                created_cases=created_cases,
                 provider_name=provider_name
             )
             
             print("\n" + "=" * 80)
             print("✅ GHL → RMBB HEALTH SUBMISSION COMPLETED")
             print("=" * 80)
-            print(f"🔗 External ID: {external_id}")
+            print(f"🔗 External ID base: {external_id}")
             print(f"📧 GHL Contact ID: {contact_id}")
             print(f"📍 GHL Location ID: {location_id}")
             print(f"👨‍⚕️ Provider: {provider_name} (cached for webhook routing)")
             print(f"🏥 RMBB Patient ID: {patient_response['id']}")
-            print(f"📋 RMBB Case ID: {case_response['id']}")
+            
+            # Display multiple cases created
+            case_ids_str = ", ".join([str(case['case_id']) for case in created_cases])
+            print(f"📋 RMBB Cases Created: {len(created_cases)}")
+            print(f"📋 RMBB Case IDs: {case_ids_str}")
+            
+            for case in created_cases:
+                print(f"   • {case['product_name']} (Q-code: {case['product_id']}, {case['cm2']} cm2) → Case ID: {case['case_id']}")
+            
+            # Show failed cases if any
+            if failed_cases:
+                print(f"⚠️ Failed Cases: {len(failed_cases)}")
+                for case in failed_cases:
+                    print(f"   • {case['product_name']} (Q-code: {case['product_id']}, {case['cm2']} cm2) → ERROR: {case['error']}")
+            
             print(f"✅ Status: {submission_result['status']}")
             print(f"📋 Next: RMBB Health will webhook IVR results to /webhook/rmbb-status-update")
             print("🛡️ HIPAA Compliant - No external data storage")
@@ -975,10 +1170,13 @@ Effective Date: {ivr_data['effective_date']}
                 "location_id": location_id,
                 "provider_name": provider_name,
                 "rmbb_patient_id": patient_response['id'],
-                "rmbb_case_id": case_response['id'],
+                "rmbb_case_ids": [case['case_id'] for case in created_cases],
+                "total_cases_created": len(created_cases),
+                "created_cases": created_cases,
+                "failed_cases": failed_cases,
                 "submission_status": submission_result['status'],
                 "completed_at": submission_result['completed_at'],
-                "note": "GHL → RMBB submission complete. IVR results will arrive via separate RMBB webhook."
+                "note": f"GHL → RMBB submission complete. {len(created_cases)} cases created. IVR results will arrive via separate RMBB webhook."
             }
             
         except Exception as e:
