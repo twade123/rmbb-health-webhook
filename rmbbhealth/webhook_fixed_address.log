@@ -1,0 +1,902 @@
+2025-08-26 07:00:33,467 - INFO - ✅ Using dual token mode (agency + location tokens)
+2025-08-26 07:00:33,468 - INFO - ✅ All required environment variables are configured
+2025-08-26 07:00:33,468 - INFO - 🚀 Starting RMBB Health Webhook Handler
+2025-08-26 07:00:33,468 - INFO - ============================================================
+2025-08-26 07:00:33,468 - INFO - 💻 Running in local development mode
+2025-08-26 07:00:33,468 - INFO - 🏥 RMBB Health Team ID: 85
+2025-08-26 07:00:33,468 - INFO - 🔗 GHL V1 API Base: https://rest.gohighlevel.com/v1
+2025-08-26 07:00:33,468 - INFO - ⚙️ Server binding: 0.0.0.0:8080
+2025-08-26 07:00:33,468 - INFO - 📡 Listening for GHL qualification webhooks
+2025-08-26 07:00:33,468 - INFO - 🔗 Main endpoint: http://0.0.0.0:8080/webhook/ghl-rmbb-qualification
+2025-08-26 07:00:33,468 - INFO - 🧪 Test endpoint: http://0.0.0.0:8080/webhook/test
+2025-08-26 07:00:33,468 - INFO - ❤️ Health check: http://0.0.0.0:8080/health
+2025-08-26 07:00:33,468 - INFO - ============================================================
+ * Serving Flask app 'webhook_handler'
+ * Debug mode: off
+2025-08-26 07:00:38,503 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8080
+ * Running on http://192.168.1.226:8080
+2025-08-26 07:00:38,503 - INFO - [33mPress CTRL+C to quit[0m
+2025-08-26 07:00:53,303 - INFO - 127.0.0.1 - - [26/Aug/2025 07:00:53] "GET /health HTTP/1.1" 200 -
+2025-08-26 07:00:53,306 - INFO - 📝 GHL → RMBB Health qualification webhook received
+2025-08-26 07:00:53,306 - INFO - 🔗 Headers: {'Host': 'localhost:8080', 'User-Agent': 'python-requests/2.32.3', 'Accept-Encoding': 'gzip, deflate', 'Accept': '*/*', 'Connection': 'keep-alive', 'Content-Type': 'application/json', 'Authorization': 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI2NzRhMjM2OGE0MjVjOTI1ZGNjOTM5OTkiLCJqdGkiOiJiZWUzY2FhZS00MjQzLTRhZTUtYWRjNi1iMzUxNDE5YmUzOGIiLCJpYXQiOjE3MjQ2MTMzODEsIm5iZiI6MTcyNDYxMzM4MSwiZXhwIjoxNzI3MjA1MzgxLCJzdWIiOiJ1c2VyIiwic2NvcGVzIjpbImNhbGVuZGFycy5yZWFkb25seSIsImNhbGVuZGFycy53cml0ZSIsImNhbXBhaWducy5yZWFkb25seSIsImNvbXBhbmllcy5yZWFkb25seSIsImNvbXBhbmllcy53cml0ZSIsImNvbnRhY3RzLnJlYWRvbmx5IiwiY29udGFjdHMud3JpdGUiLCJjb252ZXJzYXRpb25zLnJlYWRvbmx5IiwiY29udmVyc2F0aW9ucy53cml0ZSIsImNvdXJzZXMucmVhZG9ubHkiLCJjb3Vyc2VzLndyaXRlIiwiZm9ybXMucmVhZG9ubHkiLCJmb3Jtcy53cml0ZSIsImZ1bm5lbHMucmVhZG9ubHkiLCJsaW5rcy5yZWFkb25seSIsImxpbmtzLndyaXRlIiwibG9jYXRpb25zLnJlYWRvbmx5IiwibG9jYXRpb25zLndyaXRlIiwibWVkaWEucmVhZG9ubHkiLCJtZWRpYS53cml0ZSIsIm9wcG9ydHVuaXRpZXMucmVhZG9ubHkiLCJvcHBvcnR1bml0aWVzLndyaXRlIiwicGlwZWxpbmVzLnJlYWRvbmx5IiwicGlwZWxpbmVzLndyaXRlIiwicHJvZHVjdHMucmVhZG9ubHkiLCJwcm9kdWN0cy53cml0ZSIsInN1cnZleXMucmVhZG9ubHkiLCJzdXJ2ZXlzLndyaXRlIiwidXNlcnMucmVhZG9ubHkiLCJ1c2Vycy53cml0ZSIsIndvcmtmbG93cy5yZWFkb25seSIsIndvcmtmbG93cy53cml0ZSIsInRyaWdnZXJzLndyaXRlIl0sImxvY2F0aW9uSWQiOiJTcWJleGo1NG52c3hPSTRWN1NzRCJ9.PjHV5sqZ4ShbTf0JaWgRuBt--zRg2o4rqOGsXesDRBA', 'Content-Length': '670'}
+2025-08-26 07:00:53,306 - INFO - 📦 Webhook payload received: 670 characters
+2025-08-26 07:00:53,306 - INFO - 📊 Available fields: ['contactId', 'locationId', 'firstName', 'lastName', 'email', 'phone', 'dateOfBirth', 'provider_name', 'insurance_type', 'patient_first_name']...
+2025-08-26 07:00:53,306 - INFO - 🔍 DEBUG - Complete webhook payload: {
+  "contactId": "0L8CuPLnCi5xQhbcuPUs",
+  "locationId": "Sqbexj54nvsxOI4V7SsD",
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "john.doe@test.com",
+  "phone": "+1234567890",
+  "dateOfBirth": "1990-01-01",
+  "provider_name": "Cell Products",
+  "insurance_type": "Medicare",
+  "patient_first_name": "John",
+  "patient_last_name": "Doe",
+  "patient_date_of_birth": "1990-01-01",
+  "patient_phone": "+1234567890",
+  "patient_email": "john.doe@test.com",
+  "street_address": "123 Test Street",
+  "city": "Las Vegas",
+  "state": "NV",
+  "zip_code": "89101",
+  "wound_type": "Diabetic Foot Ulcer",
+  "wound_size": "2x3cm",
+  "product_biovance": "true",
+  "product_amniomaxx": "false",
+  "product_palingen": "false"
+}
+2025-08-26 07:00:53,306 - INFO - 🧬 Product fields found: ['product_biovance', 'product_amniomaxx', 'product_palingen']
+2025-08-26 07:00:53,306 - INFO - ⏰ STEP 1: Auto-populating provider cache from GHL agency...
+2025-08-26 07:00:53,306 - INFO - 🔍 Querying GHL agency for all sub-accounts...
+2025-08-26 07:00:53,612 - ERROR - ❌ GHL locations API failed: 401 - {"msg":"Unauthorized, Switch to the new API token."}
+2025-08-26 07:00:53,613 - WARNING - ⚠️ Cache population failed (continuing anyway): GHL locations API failed: 401 - {"msg":"Unauthorized, Switch to the new API token."}
+2025-08-26 07:00:53,613 - INFO - 📅 Date fields found: ['dateOfBirth', 'patient_date_of_birth']
+2025-08-26 07:00:53,613 - INFO - 📅 dateOfBirth: '1990-01-01'
+2025-08-26 07:00:53,613 - INFO - 📅 patient_date_of_birth: '1990-01-01'
+2025-08-26 07:00:53,614 - INFO - 🚀 Starting complete GHL → RMBB Health → GHL workflow...
+2025-08-26 07:00:53,615 - INFO - 📝 Updating GHL contact 0L8CuPLnCi5xQhbcuPUs
+2025-08-26 07:00:53,615 - INFO - 🔗 PUT https://rest.gohighlevel.com/v1/locations/Sqbexj54nvsxOI4V7SsD/contacts/0L8CuPLnCi5xQhbcuPUs
+2025-08-26 07:00:53,879 - INFO - 📊 Status: 404
+2025-08-26 07:00:53,880 - ERROR - ❌ GHL contact update failed: 404 - {"msg":"Not found"}
+2025-08-26 07:00:54,344 - INFO - 🔍 DEBUG - Result type: <class 'dict'>
+2025-08-26 07:00:54,344 - INFO - 🔍 DEBUG - Result: {'success': False, 'error': 'RMBB Health case creation error: 1020'}
+2025-08-26 07:00:54,344 - ERROR - ❌ Workflow failed: RMBB Health case creation error: 1020
+2025-08-26 07:00:54,345 - INFO - 127.0.0.1 - - [26/Aug/2025 07:00:54] "[35m[1mPOST /webhook/ghl-rmbb-qualification HTTP/1.1[0m" 500 -
+2025-08-26 08:23:56,162 - INFO - 127.0.0.1 - - [26/Aug/2025 08:23:56] "GET /health HTTP/1.1" 200 -
+2025-08-26 08:23:56,166 - INFO - 📝 GHL → RMBB Health qualification webhook received
+2025-08-26 08:23:56,166 - INFO - 🔗 Headers: {'Host': 'localhost:8080', 'User-Agent': 'python-requests/2.32.3', 'Accept-Encoding': 'gzip, deflate', 'Accept': '*/*', 'Connection': 'keep-alive', 'Content-Type': 'application/json', 'Authorization': 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI2NzRhMjM2OGE0MjVjOTI1ZGNjOTM5OTkiLCJqdGkiOiJiZWUzY2FhZS00MjQzLTRhZTUtYWRjNi1iMzUxNDE5YmUzOGIiLCJpYXQiOjE3MjQ2MTMzODEsIm5iZiI6MTcyNDYxMzM4MSwiZXhwIjoxNzI3MjA1MzgxLCJzdWIiOiJ1c2VyIiwic2NvcGVzIjpbImNhbGVuZGFycy5yZWFkb25seSIsImNhbGVuZGFycy53cml0ZSIsImNhbXBhaWducy5yZWFkb25seSIsImNvbXBhbmllcy5yZWFkb25seSIsImNvbXBhbmllcy53cml0ZSIsImNvbnRhY3RzLnJlYWRvbmx5IiwiY29udGFjdHMud3JpdGUiLCJjb252ZXJzYXRpb25zLnJlYWRvbmx5IiwiY29udmVyc2F0aW9ucy53cml0ZSIsImNvdXJzZXMucmVhZG9ubHkiLCJjb3Vyc2VzLndyaXRlIiwiZm9ybXMucmVhZG9ubHkiLCJmb3Jtcy53cml0ZSIsImZ1bm5lbHMucmVhZG9ubHkiLCJsaW5rcy5yZWFkb25seSIsImxpbmtzLndyaXRlIiwibG9jYXRpb25zLnJlYWRvbmx5IiwibG9jYXRpb25zLndyaXRlIiwibWVkaWEucmVhZG9ubHkiLCJtZWRpYS53cml0ZSIsIm9wcG9ydHVuaXRpZXMucmVhZG9ubHkiLCJvcHBvcnR1bml0aWVzLndyaXRlIiwicGlwZWxpbmVzLnJlYWRvbmx5IiwicGlwZWxpbmVzLndyaXRlIiwicHJvZHVjdHMucmVhZG9ubHkiLCJwcm9kdWN0cy53cml0ZSIsInN1cnZleXMucmVhZG9ubHkiLCJzdXJ2ZXlzLndyaXRlIiwidXNlcnMucmVhZG9ubHkiLCJ1c2Vycy53cml0ZSIsIndvcmtmbG93cy5yZWFkb25seSIsIndvcmtmbG93cy53cml0ZSIsInRyaWdnZXJzLndyaXRlIl0sImxvY2F0aW9uSWQiOiJTcWJleGo1NG52c3hPSTRWN1NzRCJ9.PjHV5sqZ4ShbTf0JaWgRuBt--zRg2o4rqOGsXesDRBA', 'Content-Length': '670'}
+2025-08-26 08:23:56,167 - INFO - 📦 Webhook payload received: 670 characters
+2025-08-26 08:23:56,167 - INFO - 📊 Available fields: ['contactId', 'locationId', 'firstName', 'lastName', 'email', 'phone', 'dateOfBirth', 'provider_name', 'insurance_type', 'patient_first_name']...
+2025-08-26 08:23:56,167 - INFO - 🔍 DEBUG - Complete webhook payload: {
+  "contactId": "0L8CuPLnCi5xQhbcuPUs",
+  "locationId": "Sqbexj54nvsxOI4V7SsD",
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "john.doe@test.com",
+  "phone": "+1234567890",
+  "dateOfBirth": "1990-01-01",
+  "provider_name": "Cell Products",
+  "insurance_type": "Medicare",
+  "patient_first_name": "John",
+  "patient_last_name": "Doe",
+  "patient_date_of_birth": "1990-01-01",
+  "patient_phone": "+1234567890",
+  "patient_email": "john.doe@test.com",
+  "street_address": "123 Test Street",
+  "city": "Las Vegas",
+  "state": "NV",
+  "zip_code": "89101",
+  "wound_type": "Diabetic Foot Ulcer",
+  "wound_size": "2x3cm",
+  "product_biovance": "true",
+  "product_amniomaxx": "false",
+  "product_palingen": "false"
+}
+2025-08-26 08:23:56,167 - INFO - 🧬 Product fields found: ['product_biovance', 'product_amniomaxx', 'product_palingen']
+2025-08-26 08:23:56,167 - INFO - ⏰ STEP 1: Auto-populating provider cache from GHL agency...
+2025-08-26 08:23:56,167 - INFO - 🔍 Querying GHL agency for all sub-accounts...
+2025-08-26 08:23:56,804 - ERROR - ❌ GHL locations API failed: 401 - {"msg":"Unauthorized, Switch to the new API token."}
+2025-08-26 08:23:56,804 - WARNING - ⚠️ Cache population failed (continuing anyway): GHL locations API failed: 401 - {"msg":"Unauthorized, Switch to the new API token."}
+2025-08-26 08:23:56,804 - INFO - 📅 Date fields found: ['dateOfBirth', 'patient_date_of_birth']
+2025-08-26 08:23:56,804 - INFO - 📅 dateOfBirth: '1990-01-01'
+2025-08-26 08:23:56,804 - INFO - 📅 patient_date_of_birth: '1990-01-01'
+2025-08-26 08:23:56,804 - INFO - 🚀 Starting complete GHL → RMBB Health → GHL workflow...
+2025-08-26 08:23:56,805 - INFO - 📝 Updating GHL contact 0L8CuPLnCi5xQhbcuPUs
+2025-08-26 08:23:56,805 - INFO - 🔗 PUT https://rest.gohighlevel.com/v1/locations/Sqbexj54nvsxOI4V7SsD/contacts/0L8CuPLnCi5xQhbcuPUs
+2025-08-26 08:23:57,102 - INFO - 📊 Status: 404
+2025-08-26 08:23:57,102 - ERROR - ❌ GHL contact update failed: 404 - {"msg":"Not found"}
+2025-08-26 08:23:57,618 - INFO - 🔍 DEBUG - Result type: <class 'dict'>
+2025-08-26 08:23:57,619 - INFO - 🔍 DEBUG - Result: {'success': False, 'error': 'RMBB Health case creation error: 1020'}
+2025-08-26 08:23:57,619 - ERROR - ❌ Workflow failed: RMBB Health case creation error: 1020
+2025-08-26 08:23:57,619 - INFO - 127.0.0.1 - - [26/Aug/2025 08:23:57] "[35m[1mPOST /webhook/ghl-rmbb-qualification HTTP/1.1[0m" 500 -
+2025-08-26 08:24:37,145 - INFO - 127.0.0.1 - - [26/Aug/2025 08:24:37] "GET /health HTTP/1.1" 200 -
+2025-08-26 08:24:37,148 - INFO - 📝 GHL → RMBB Health qualification webhook received
+2025-08-26 08:24:37,148 - INFO - 🔗 Headers: {'Host': 'localhost:8080', 'User-Agent': 'python-requests/2.32.3', 'Accept-Encoding': 'gzip, deflate', 'Accept': '*/*', 'Connection': 'keep-alive', 'Content-Type': 'application/json', 'Authorization': 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI2NzRhMjM2OGE0MjVjOTI1ZGNjOTM5OTkiLCJqdGkiOiJiZWUzY2FhZS00MjQzLTRhZTUtYWRjNi1iMzUxNDE5YmUzOGIiLCJpYXQiOjE3MjQ2MTMzODEsIm5iZiI6MTcyNDYxMzM4MSwiZXhwIjoxNzI3MjA1MzgxLCJzdWIiOiJ1c2VyIiwic2NvcGVzIjpbImNhbGVuZGFycy5yZWFkb25seSIsImNhbGVuZGFycy53cml0ZSIsImNhbXBhaWducy5yZWFkb25seSIsImNvbXBhbmllcy5yZWFkb25seSIsImNvbXBhbmllcy53cml0ZSIsImNvbnRhY3RzLnJlYWRvbmx5IiwiY29udGFjdHMud3JpdGUiLCJjb252ZXJzYXRpb25zLnJlYWRvbmx5IiwiY29udmVyc2F0aW9ucy53cml0ZSIsImNvdXJzZXMucmVhZG9ubHkiLCJjb3Vyc2VzLndyaXRlIiwiZm9ybXMucmVhZG9ubHkiLCJmb3Jtcy53cml0ZSIsImZ1bm5lbHMucmVhZG9ubHkiLCJsaW5rcy5yZWFkb25seSIsImxpbmtzLndyaXRlIiwibG9jYXRpb25zLnJlYWRvbmx5IiwibG9jYXRpb25zLndyaXRlIiwibWVkaWEucmVhZG9ubHkiLCJtZWRpYS53cml0ZSIsIm9wcG9ydHVuaXRpZXMucmVhZG9ubHkiLCJvcHBvcnR1bml0aWVzLndyaXRlIiwicGlwZWxpbmVzLnJlYWRvbmx5IiwicGlwZWxpbmVzLndyaXRlIiwicHJvZHVjdHMucmVhZG9ubHkiLCJwcm9kdWN0cy53cml0ZSIsInN1cnZleXMucmVhZG9ubHkiLCJzdXJ2ZXlzLndyaXRlIiwidXNlcnMucmVhZG9ubHkiLCJ1c2Vycy53cml0ZSIsIndvcmtmbG93cy5yZWFkb25seSIsIndvcmtmbG93cy53cml0ZSIsInRyaWdnZXJzLndyaXRlIl0sImxvY2F0aW9uSWQiOiJTcWJleGo1NG52c3hPSTRWN1NzRCJ9.PjHV5sqZ4ShbTf0JaWgRuBt--zRg2o4rqOGsXesDRBA', 'Content-Length': '995'}
+2025-08-26 08:24:37,148 - INFO - 📦 Webhook payload received: 995 characters
+2025-08-26 08:24:37,148 - INFO - 📊 Available fields: ['contactId', 'locationId', 'firstName', 'lastName', 'email', 'phone', 'dateOfBirth', 'provider_name', 'insurance_type', 'patient_first_name']...
+2025-08-26 08:24:37,148 - INFO - 🔍 DEBUG - Complete webhook payload: {
+  "contactId": "0L8CuPLnCi5xQhbcuPUs",
+  "locationId": "Sqbexj54nvsxOI4V7SsD",
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "john.doe@test.com",
+  "phone": "+1234567890",
+  "dateOfBirth": "1990-01-01",
+  "provider_name": "Cell Products",
+  "insurance_type": "Medicare",
+  "patient_first_name": "John",
+  "patient_last_name": "Doe",
+  "patient_date_of_birth": "1990-01-01",
+  "patient_phone": "+1234567890",
+  "patient_email": "john.doe@test.com",
+  "street_address": "123 Test Street",
+  "city": "Las Vegas",
+  "state": "NV",
+  "zip_code": "89101",
+  "wound_type": "Diabetic Foot Ulcer",
+  "wound_size": "2x3cm",
+  "product_biovance": "true",
+  "product_amniomaxx": "false",
+  "product_palingen": "false",
+  "primary_insurance_name": "MEDICARE PART B",
+  "primary_policy_number": "POL123456",
+  "secondary_insurance_name": "AARP MEDICARE SUPPLEMENT PLAN F",
+  "secondary_policy_number": "POL654321",
+  "icd_10_code": "E11.621",
+  "cpt_surgery_code": "12345",
+  "expected_date_of_service": "2023-04-01",
+  "facility_type": "Physician Office - 11"
+}
+2025-08-26 08:24:37,148 - INFO - 🧬 Product fields found: ['product_biovance', 'product_amniomaxx', 'product_palingen']
+2025-08-26 08:24:37,148 - INFO - ⏰ STEP 1: Auto-populating provider cache from GHL agency...
+2025-08-26 08:24:37,148 - INFO - 🔍 Querying GHL agency for all sub-accounts...
+2025-08-26 08:24:37,300 - ERROR - ❌ GHL locations API failed: 401 - {"msg":"Unauthorized, Switch to the new API token."}
+2025-08-26 08:24:37,300 - WARNING - ⚠️ Cache population failed (continuing anyway): GHL locations API failed: 401 - {"msg":"Unauthorized, Switch to the new API token."}
+2025-08-26 08:24:37,301 - INFO - 📅 Date fields found: ['dateOfBirth', 'patient_date_of_birth']
+2025-08-26 08:24:37,301 - INFO - 📅 dateOfBirth: '1990-01-01'
+2025-08-26 08:24:37,301 - INFO - 📅 patient_date_of_birth: '1990-01-01'
+2025-08-26 08:24:37,301 - INFO - 🚀 Starting complete GHL → RMBB Health → GHL workflow...
+✅ Loaded provider cache with 4 providers
+🔄 COMPLETE GHL ↔ RMBB HEALTH ↔ GHL FLOW-THROUGH WORKFLOW
+Multi-tenant sub-account routing with HIPAA-compliant GHL storage
+================================================================================
+🔍 DEBUG - About to call handle_ghl_webhook
+============================================================
+STEP 1: Processing GHL Webhook
+============================================================
+🧬 DEBUG - Product field values:
+   amniomaxx_q4239: '' (empty: True)
+   palingen_q4173: '' (empty: True)
+   membrane_wrap_trilayer_q4344: '' (empty: True)
+   biovance_q4154: '' (empty: True)
+📧 Contact ID: 0L8CuPLnCi5xQhbcuPUs
+📍 Location ID: Sqbexj54nvsxOI4V7SsD
+🔍 DEBUG - patient_form_data type: <class 'dict'>
+👤 Patient: John Doe
+👨‍⚕️ Provider: Cell Products
+🔄 Updated provider: Cell Products (32 submissions, 3 cases)
+💾 Saved provider cache with 4 providers
+💾 Cached provider mapping: Cell Products → Sqbexj54nvsxOI4V7SsD
+⚠️ Warning: Failed to store initial tracking data: GHL contact update failed: 404 - {"msg":"Not found"}
+🔍 DEBUG - handle_ghl_webhook returning:
+   external_id: ghl_contact_0L8CuPLnCi5xQhbcuPUs_20250826_070053 (type: <class 'str'>)
+   contact_id: 0L8CuPLnCi5xQhbcuPUs (type: <class 'str'>)
+   location_id: Sqbexj54nvsxOI4V7SsD (type: <class 'str'>)
+   patient_form_data: <class 'dict'>
+🔍 DEBUG - handle_ghl_webhook completed successfully
+
+============================================================
+STEP 2: Submitting to RMBB Health
+============================================================
+Creating patient in RMBB Health...
+Patient Data: {
+  "personal_identifier": {
+    "first": "John",
+    "middle": "",
+    "last": "Doe"
+  },
+  "address": {
+    "street": "123 Test Street",
+    "suite": "",
+    "city": "Las Vegas",
+    "state": "NV",
+    "country": "USA",
+    "zip": "89101"
+  },
+  "communication_information": {
+    "phone": "+1234567890",
+    "fax": "",
+    "email": "john.doe@test.com"
+  },
+  "date_of_birth": "1990-01-01",
+  "gender": "",
+  "note": "Patient from GHL form submission",
+  "social_security_number": ""
+}
+🔍 DEBUG - Patient response type: <class 'dict'>
+🔍 DEBUG - Patient response: {'id': 47103, 'tid': 85, 'hipaa_id': 'JOHDOE90', 'note': 'Patient from GHL form submission', 'date_of_birth': '1990-01-01', 'gender': 'Unknown', 'social_security_number': '', 'created_at': '2025-08-26T11:00:54.000Z', 'updated_at': '2025-08-26T11:00:54.000Z', 'personal_identifier': {'id': 118761, 'first': 'JOHN', 'middle': '', 'last': 'DOE'}, 'address': {'id': 95690, 'street': '123 TEST STREET', 'suite': '', 'city': 'LAS VEGAS', 'state': 'NV', 'country': 'USA', 'zip': '89101'}, 'communication_information': {'id': 309041, 'phone': '+1234567890', 'fax': '', 'email': 'john.doe@test.com'}}
+✅ Patient created with ID: 47103
+🔍 DEBUG - About to access patient_response['id']
+🔍 DEBUG - patient_response type: <class 'dict'>
+🔍 DEBUG - patient_response: {'id': 47103, 'tid': 85, 'hipaa_id': 'JOHDOE90', 'note': 'Patient from GHL form submission', 'date_of_birth': '1990-01-01', 'gender': 'Unknown', 'social_security_number': '', 'created_at': '2025-08-26T11:00:54.000Z', 'updated_at': '2025-08-26T11:00:54.000Z', 'personal_identifier': {'id': 118761, 'first': 'JOHN', 'middle': '', 'last': 'DOE'}, 'address': {'id': 95690, 'street': '123 TEST STREET', 'suite': '', 'city': 'LAS VEGAS', 'state': 'NV', 'country': 'USA', 'zip': '89101'}, 'communication_information': {'id': 309041, 'phone': '+1234567890', 'fax': '', 'email': 'john.doe@test.com'}}
+🧬 DEBUG - Product extraction results:
+   Selected products: 0
+   Total cm2: 0
+   Primary product: None
+
+Creating case for qualification...
+🔗 Case external_id: ghl_contact_0L8CuPLnCi5xQhbcuPUs_20250826_070053 (links to GHL contact 0L8CuPLnCi5xQhbcuPUs)
+🔍 DEBUG - Case response type: <class 'dict'>
+🔍 DEBUG - Case response: {'error': 1020}
+❌ RMBB Health case creation error: 1020
+❌ RMBB Health submission failed: RMBB Health case creation error: 1020
+🔄 COMPLETE GHL ↔ RMBB HEALTH ↔ GHL FLOW-THROUGH WORKFLOW
+Multi-tenant sub-account routing with HIPAA-compliant GHL storage
+================================================================================
+🔍 DEBUG - About to call handle_ghl_webhook
+============================================================
+STEP 1: Processing GHL Webhook
+============================================================
+🧬 DEBUG - Product field values:
+   amniomaxx_q4239: '' (empty: True)
+   palingen_q4173: '' (empty: True)
+   membrane_wrap_trilayer_q4344: '' (empty: True)
+   biovance_q4154: '' (empty: True)
+📧 Contact ID: 0L8CuPLnCi5xQhbcuPUs
+📍 Location ID: Sqbexj54nvsxOI4V7SsD
+🔍 DEBUG - patient_form_data type: <class 'dict'>
+👤 Patient: John Doe
+👨‍⚕️ Provider: Cell Products
+🔄 Updated provider: Cell Products (33 submissions, 3 cases)
+💾 Saved provider cache with 4 providers
+💾 Cached provider mapping: Cell Products → Sqbexj54nvsxOI4V7SsD
+⚠️ Warning: Failed to store initial tracking data: GHL contact update failed: 404 - {"msg":"Not found"}
+🔍 DEBUG - handle_ghl_webhook returning:
+   external_id: ghl_contact_0L8CuPLnCi5xQhbcuPUs_20250826_082356 (type: <class 'str'>)
+   contact_id: 0L8CuPLnCi5xQhbcuPUs (type: <class 'str'>)
+   location_id: Sqbexj54nvsxOI4V7SsD (type: <class 'str'>)
+   patient_form_data: <class 'dict'>
+🔍 DEBUG - handle_ghl_webhook completed successfully
+
+============================================================
+STEP 2: Submitting to RMBB Health
+============================================================
+Creating patient in RMBB Health...
+Patient Data: {
+  "personal_identifier": {
+    "first": "John",
+    "middle": "",
+    "last": "Doe"
+  },
+  "address": {
+    "street": "123 Test Street",
+    "suite": "",
+    "city": "Las Vegas",
+    "state": "NV",
+    "country": "USA",
+    "zip": "89101"
+  },
+  "communication_information": {
+    "phone": "+1234567890",
+    "fax": "",
+    "email": "john.doe@test.com"
+  },
+  "date_of_birth": "1990-01-01",
+  "gender": "",
+  "note": "Patient from GHL form submission",
+  "social_security_number": ""
+}
+🔍 DEBUG - Patient response type: <class 'dict'>
+🔍 DEBUG - Patient response: {'id': 47113, 'tid': 85, 'hipaa_id': 'JOHDOE90', 'note': 'Patient from GHL form submission', 'date_of_birth': '1990-01-01', 'gender': 'Unknown', 'social_security_number': '', 'created_at': '2025-08-26T12:23:57.000Z', 'updated_at': '2025-08-26T12:23:57.000Z', 'personal_identifier': {'id': 118771, 'first': 'JOHN', 'middle': '', 'last': 'DOE'}, 'address': {'id': 95700, 'street': '123 TEST STREET', 'suite': '', 'city': 'LAS VEGAS', 'state': 'NV', 'country': 'USA', 'zip': '89101'}, 'communication_information': {'id': 309075, 'phone': '+1234567890', 'fax': '', 'email': 'john.doe@test.com'}}
+✅ Patient created with ID: 47113
+🔍 DEBUG - About to access patient_response['id']
+🔍 DEBUG - patient_response type: <class 'dict'>
+🔍 DEBUG - patient_response: {'id': 47113, 'tid': 85, 'hipaa_id': 'JOHDOE90', 'note': 'Patient from GHL form submission', 'date_of_birth': '1990-01-01', 'gender': 'Unknown', 'social_security_number': '', 'created_at': '2025-08-26T12:23:57.000Z', 'updated_at': '2025-08-26T12:23:57.000Z', 'personal_identifier': {'id': 118771, 'first': 'JOHN', 'middle': '', 'last': 'DOE'}, 'address': {'id': 95700, 'street': '123 TEST STREET', 'suite': '', 'city': 'LAS VEGAS', 'state': 'NV', 'country': 'USA', 'zip': '89101'}, 'communication_information': {'id': 309075, 'phone': '+1234567890', 'fax': '', 'email': 'john.doe@test.com'}}
+🧬 DEBUG - Product extraction results:
+   Selected products: 0
+   Total cm2: 0
+   Primary product: None
+
+Creating case for qualification...
+🔗 Case external_id: ghl_contact_0L8CuPLnCi5xQhbcuPUs_20250826_082356 (links to GHL contact 0L8CuPLnCi5xQhbcuPUs)
+🔍 DEBUG - Case response type: <class 'dict'>
+🔍 DEBUG - Case response: {'error': 1020}
+❌ RMBB Health case creation error: 1020
+❌ RMBB Health submission failed: RMBB Health case creation error: 1020
+🔄 COMPLETE GHL ↔ RMBB HEALTH ↔ GHL FLOW-THROUGH WORKFLOW
+Multi-tenant sub-account routing with HIPAA-compliant GHL storage2025-08-26 08:24:37,301 - INFO - 📝 Updating GHL contact 0L8CuPLnCi5xQhbcuPUs
+2025-08-26 08:24:37,301 - INFO - 🔗 PUT https://rest.gohighlevel.com/v1/locations/Sqbexj54nvsxOI4V7SsD/contacts/0L8CuPLnCi5xQhbcuPUs
+2025-08-26 08:24:37,505 - INFO - 📊 Status: 404
+2025-08-26 08:24:37,505 - ERROR - ❌ GHL contact update failed: 404 - {"msg":"Not found"}
+2025-08-26 08:24:37,951 - INFO - 🔍 DEBUG - Result type: <class 'dict'>
+2025-08-26 08:24:37,952 - INFO - 🔍 DEBUG - Result: {'success': False, 'error': 'RMBB Health case creation error: 1010'}
+2025-08-26 08:24:37,952 - ERROR - ❌ Workflow failed: RMBB Health case creation error: 1010
+2025-08-26 08:24:37,952 - INFO - 127.0.0.1 - - [26/Aug/2025 08:24:37] "[35m[1mPOST /webhook/ghl-rmbb-qualification HTTP/1.1[0m" 500 -
+2025-08-26 08:26:03,425 - INFO - 127.0.0.1 - - [26/Aug/2025 08:26:03] "GET /health HTTP/1.1" 200 -
+2025-08-26 08:26:03,429 - INFO - 📝 GHL → RMBB Health qualification webhook received
+2025-08-26 08:26:03,429 - INFO - 🔗 Headers: {'Host': 'localhost:8080', 'User-Agent': 'python-requests/2.32.3', 'Accept-Encoding': 'gzip, deflate', 'Accept': '*/*', 'Connection': 'keep-alive', 'Content-Type': 'application/json', 'Authorization': 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI2NzRhMjM2OGE0MjVjOTI1ZGNjOTM5OTkiLCJqdGkiOiJiZWUzY2FhZS00MjQzLTRhZTUtYWRjNi1iMzUxNDE5YmUzOGIiLCJpYXQiOjE3MjQ2MTMzODEsIm5iZiI6MTcyNDYxMzM4MSwiZXhwIjoxNzI3MjA1MzgxLCJzdWIiOiJ1c2VyIiwic2NvcGVzIjpbImNhbGVuZGFycy5yZWFkb25seSIsImNhbGVuZGFycy53cml0ZSIsImNhbXBhaWducy5yZWFkb25seSIsImNvbXBhbmllcy5yZWFkb25seSIsImNvbXBhbmllcy53cml0ZSIsImNvbnRhY3RzLnJlYWRvbmx5IiwiY29udGFjdHMud3JpdGUiLCJjb252ZXJzYXRpb25zLnJlYWRvbmx5IiwiY29udmVyc2F0aW9ucy53cml0ZSIsImNvdXJzZXMucmVhZG9ubHkiLCJjb3Vyc2VzLndyaXRlIiwiZm9ybXMucmVhZG9ubHkiLCJmb3Jtcy53cml0ZSIsImZ1bm5lbHMucmVhZG9ubHkiLCJsaW5rcy5yZWFkb25seSIsImxpbmtzLndyaXRlIiwibG9jYXRpb25zLnJlYWRvbmx5IiwibG9jYXRpb25zLndyaXRlIiwibWVkaWEucmVhZG9ubHkiLCJtZWRpYS53cml0ZSIsIm9wcG9ydHVuaXRpZXMucmVhZG9ubHkiLCJvcHBvcnR1bml0aWVzLndyaXRlIiwicGlwZWxpbmVzLnJlYWRvbmx5IiwicGlwZWxpbmVzLndyaXRlIiwicHJvZHVjdHMucmVhZG9ubHkiLCJwcm9kdWN0cy53cml0ZSIsInN1cnZleXMucmVhZG9ubHkiLCJzdXJ2ZXlzLndyaXRlIiwidXNlcnMucmVhZG9ubHkiLCJ1c2Vycy53cml0ZSIsIndvcmtmbG93cy5yZWFkb25seSIsIndvcmtmbG93cy53cml0ZSIsInRyaWdnZXJzLndyaXRlIl0sImxvY2F0aW9uSWQiOiJTcWJleGo1NG52c3hPSTRWN1NzRCJ9.PjHV5sqZ4ShbTf0JaWgRuBt--zRg2o4rqOGsXesDRBA', 'Content-Length': '995'}
+2025-08-26 08:26:03,429 - INFO - 📦 Webhook payload received: 995 characters
+2025-08-26 08:26:03,429 - INFO - 📊 Available fields: ['contactId', 'locationId', 'firstName', 'lastName', 'email', 'phone', 'dateOfBirth', 'provider_name', 'insurance_type', 'patient_first_name']...
+2025-08-26 08:26:03,429 - INFO - 🔍 DEBUG - Complete webhook payload: {
+  "contactId": "0L8CuPLnCi5xQhbcuPUs",
+  "locationId": "Sqbexj54nvsxOI4V7SsD",
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "john.doe@test.com",
+  "phone": "+1234567890",
+  "dateOfBirth": "1990-01-01",
+  "provider_name": "Cell Products",
+  "insurance_type": "Medicare",
+  "patient_first_name": "John",
+  "patient_last_name": "Doe",
+  "patient_date_of_birth": "1990-01-01",
+  "patient_phone": "+1234567890",
+  "patient_email": "john.doe@test.com",
+  "street_address": "123 Test Street",
+  "city": "Las Vegas",
+  "state": "NV",
+  "zip_code": "89101",
+  "wound_type": "Diabetic Foot Ulcer",
+  "wound_size": "2x3cm",
+  "product_biovance": "true",
+  "product_amniomaxx": "false",
+  "product_palingen": "false",
+  "primary_insurance_name": "MEDICARE PART B",
+  "primary_policy_number": "POL123456",
+  "secondary_insurance_name": "AARP MEDICARE SUPPLEMENT PLAN F",
+  "secondary_policy_number": "POL654321",
+  "icd_10_code": "E11.621",
+  "cpt_surgery_code": "12345",
+  "expected_date_of_service": "2023-04-01",
+  "facility_type": "Physician Office - 11"
+}
+2025-08-26 08:26:03,429 - INFO - 🧬 Product fields found: ['product_biovance', 'product_amniomaxx', 'product_palingen']
+2025-08-26 08:26:03,429 - INFO - ⏰ STEP 1: Auto-populating provider cache from GHL agency...
+2025-08-26 08:26:03,429 - INFO - 🔍 Querying GHL agency for all sub-accounts...
+2025-08-26 08:26:03,644 - ERROR - ❌ GHL locations API failed: 401 - {"msg":"Unauthorized, Switch to the new API token."}
+2025-08-26 08:26:03,645 - WARNING - ⚠️ Cache population failed (continuing anyway): GHL locations API failed: 401 - {"msg":"Unauthorized, Switch to the new API token."}
+2025-08-26 08:26:03,645 - INFO - 📅 Date fields found: ['dateOfBirth', 'patient_date_of_birth']
+2025-08-26 08:26:03,645 - INFO - 📅 dateOfBirth: '1990-01-01'
+2025-08-26 08:26:03,645 - INFO - 📅 patient_date_of_birth: '1990-01-01'
+2025-08-26 08:26:03,645 - INFO - 🚀 Starting complete GHL → RMBB Health → GHL workflow...
+2025-08-26 08:26:03,645 - INFO - 📝 Updating GHL contact 0L8CuPLnCi5xQhbcuPUs
+2025-08-26 08:26:03,645 - INFO - 🔗 PUT https://rest.gohighlevel.com/v1/locations/Sqbexj54nvsxOI4V7SsD/contacts/0L8CuPLnCi5xQhbcuPUs
+2025-08-26 08:26:03,874 - INFO - 📊 Status: 404
+2025-08-26 08:26:03,874 - ERROR - ❌ GHL contact update failed: 404 - {"msg":"Not found"}
+2025-08-26 08:26:04,308 - INFO - 🔍 DEBUG - Result type: <class 'dict'>
+2025-08-26 08:26:04,308 - INFO - 🔍 DEBUG - Result: {'success': False, 'error': 'RMBB Health case creation error: 1020'}
+2025-08-26 08:26:04,309 - ERROR - ❌ Workflow failed: RMBB Health case creation error: 1020
+2025-08-26 08:26:04,309 - INFO - 127.0.0.1 - - [26/Aug/2025 08:26:04] "[35m[1mPOST /webhook/ghl-rmbb-qualification HTTP/1.1[0m" 500 -
+2025-08-26 11:40:00,462 - INFO - 127.0.0.1 - - [26/Aug/2025 11:40:00] "GET /health HTTP/1.1" 200 -
+2025-08-26 11:40:00,465 - INFO - 📝 GHL → RMBB Health qualification webhook received
+2025-08-26 11:40:00,465 - INFO - 🔗 Headers: {'Host': 'localhost:8080', 'User-Agent': 'python-requests/2.32.3', 'Accept-Encoding': 'gzip, deflate', 'Accept': '*/*', 'Connection': 'keep-alive', 'Content-Type': 'application/json', 'Authorization': 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI2NzRhMjM2OGE0MjVjOTI1ZGNjOTM5OTkiLCJqdGkiOiJiZWUzY2FhZS00MjQzLTRhZTUtYWRjNi1iMzUxNDE5YmUzOGIiLCJpYXQiOjE3MjQ2MTMzODEsIm5iZiI6MTcyNDYxMzM4MSwiZXhwIjoxNzI3MjA1MzgxLCJzdWIiOiJ1c2VyIiwic2NvcGVzIjpbImNhbGVuZGFycy5yZWFkb25seSIsImNhbGVuZGFycy53cml0ZSIsImNhbXBhaWducy5yZWFkb25seSIsImNvbXBhbmllcy5yZWFkb25seSIsImNvbXBhbmllcy53cml0ZSIsImNvbnRhY3RzLnJlYWRvbmx5IiwiY29udGFjdHMud3JpdGUiLCJjb252ZXJzYXRpb25zLnJlYWRvbmx5IiwiY29udmVyc2F0aW9ucy53cml0ZSIsImNvdXJzZXMucmVhZG9ubHkiLCJjb3Vyc2VzLndyaXRlIiwiZm9ybXMucmVhZG9ubHkiLCJmb3Jtcy53cml0ZSIsImZ1bm5lbHMucmVhZG9ubHkiLCJsaW5rcy5yZWFkb25seSIsImxpbmtzLndyaXRlIiwibG9jYXRpb25zLnJlYWRvbmx5IiwibG9jYXRpb25zLndyaXRlIiwibWVkaWEucmVhZG9ubHkiLCJtZWRpYS53cml0ZSIsIm9wcG9ydHVuaXRpZXMucmVhZG9ubHkiLCJvcHBvcnR1bml0aWVzLndyaXRlIiwicGlwZWxpbmVzLnJlYWRvbmx5IiwicGlwZWxpbmVzLndyaXRlIiwicHJvZHVjdHMucmVhZG9ubHkiLCJwcm9kdWN0cy53cml0ZSIsInN1cnZleXMucmVhZG9ubHkiLCJzdXJ2ZXlzLndyaXRlIiwidXNlcnMucmVhZG9ubHkiLCJ1c2Vycy53cml0ZSIsIndvcmtmbG93cy5yZWFkb25seSIsIndvcmtmbG93cy53cml0ZSIsInRyaWdnZXJzLndyaXRlIl0sImxvY2F0aW9uSWQiOiJTcWJleGo1NG52c3hPSTRWN1NzRCJ9.PjHV5sqZ4ShbTf0JaWgRuBt--zRg2o4rqOGsXesDRBA', 'Content-Length': '995'}
+2025-08-26 11:40:00,465 - INFO - 📦 Webhook payload received: 995 characters
+2025-08-26 11:40:00,465 - INFO - 📊 Available fields: ['contactId', 'locationId', 'firstName', 'lastName', 'email', 'phone', 'dateOfBirth', 'provider_name', 'insurance_type', 'patient_first_name']...
+2025-08-26 11:40:00,465 - INFO - 🔍 DEBUG - Complete webhook payload: {
+  "contactId": "0L8CuPLnCi5xQhbcuPUs",
+  "locationId": "Sqbexj54nvsxOI4V7SsD",
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "john.doe@test.com",
+  "phone": "+1234567890",
+  "dateOfBirth": "1990-01-01",
+  "provider_name": "Cell Products",
+  "insurance_type": "Medicare",
+  "patient_first_name": "John",
+  "patient_last_name": "Doe",
+  "patient_date_of_birth": "1990-01-01",
+  "patient_phone": "+1234567890",
+  "patient_email": "john.doe@test.com",
+  "street_address": "123 Test Street",
+  "city": "Las Vegas",
+  "state": "NV",
+  "zip_code": "89101",
+  "wound_type": "Diabetic Foot Ulcer",
+  "wound_size": "2x3cm",
+  "product_biovance": "true",
+  "product_amniomaxx": "false",
+  "product_palingen": "false",
+  "primary_insurance_name": "MEDICARE PART B",
+  "primary_policy_number": "POL123456",
+  "secondary_insurance_name": "AARP MEDICARE SUPPLEMENT PLAN F",
+  "secondary_policy_number": "POL654321",
+  "icd_10_code": "E11.621",
+  "cpt_surgery_code": "12345",
+  "expected_date_of_service": "2023-04-01",
+  "facility_type": "Physician Office - 11"
+}
+2025-08-26 11:40:00,465 - INFO - 🧬 Product fields found: ['product_biovance', 'product_amniomaxx', 'product_palingen']
+2025-08-26 11:40:00,465 - INFO - ⏰ STEP 1: Auto-populating provider cache from GHL agency...
+2025-08-26 11:40:00,465 - INFO - 🔍 Querying GHL agency for all sub-accounts...
+2025-08-26 11:40:00,847 - ERROR - ❌ GHL locations API failed: 401 - {"msg":"Unauthorized, Switch to the new API token."}
+2025-08-26 11:40:00,848 - WARNING - ⚠️ Cache population failed (continuing anyway): GHL locations API failed: 401 - {"msg":"Unauthorized, Switch to the new API token."}
+2025-08-26 11:40:00,848 - INFO - 📅 Date fields found: ['dateOfBirth', 'patient_date_of_birth']
+2025-08-26 11:40:00,848 - INFO - 📅 dateOfBirth: '1990-01-01'
+2025-08-26 11:40:00,848 - INFO - 📅 patient_date_of_birth: '1990-01-01'
+2025-08-26 11:40:00,848 - INFO - 🚀 Starting complete GHL → RMBB Health → GHL workflow...
+
+================================================================================
+🔍 DEBUG - About to call handle_ghl_webhook
+============================================================
+STEP 1: Processing GHL Webhook
+============================================================
+🧬 DEBUG - Product field values:
+   amniomaxx_q4239: '' (empty: True)
+   palingen_q4173: '' (empty: True)
+   membrane_wrap_trilayer_q4344: '' (empty: True)
+   biovance_q4154: '' (empty: True)
+📧 Contact ID: 0L8CuPLnCi5xQhbcuPUs
+📍 Location ID: Sqbexj54nvsxOI4V7SsD
+🔍 DEBUG - patient_form_data type: <class 'dict'>
+👤 Patient: John Doe
+👨‍⚕️ Provider: Cell Products
+🔄 Updated provider: Cell Products (34 submissions, 3 cases)
+💾 Saved provider cache with 4 providers
+💾 Cached provider mapping: Cell Products → Sqbexj54nvsxOI4V7SsD
+⚠️ Warning: Failed to store initial tracking data: GHL contact update failed: 404 - {"msg":"Not found"}
+🔍 DEBUG - handle_ghl_webhook returning:
+   external_id: ghl_contact_0L8CuPLnCi5xQhbcuPUs_20250826_082437 (type: <class 'str'>)
+   contact_id: 0L8CuPLnCi5xQhbcuPUs (type: <class 'str'>)
+   location_id: Sqbexj54nvsxOI4V7SsD (type: <class 'str'>)
+   patient_form_data: <class 'dict'>
+🔍 DEBUG - handle_ghl_webhook completed successfully
+
+============================================================
+STEP 2: Submitting to RMBB Health
+============================================================
+Creating patient in RMBB Health...
+Patient Data: {
+  "personal_identifier": {
+    "first": "John",
+    "middle": "",
+    "last": "Doe"
+  },
+  "address": {
+    "street": "123 Test Street",
+    "suite": "",
+    "city": "Las Vegas",
+    "state": "NV",
+    "country": "USA",
+    "zip": "89101"
+  },
+  "communication_information": {
+    "phone": "+1234567890",
+    "fax": "",
+    "email": "john.doe@test.com"
+  },
+  "date_of_birth": "1990-01-01",
+  "gender": "",
+  "note": "Patient from GHL form submission",
+  "social_security_number": ""
+}
+🔍 DEBUG - Patient response type: <class 'dict'>
+🔍 DEBUG - Patient response: {'id': 47114, 'tid': 85, 'hipaa_id': 'JOHDOE90', 'note': 'Patient from GHL form submission', 'date_of_birth': '1990-01-01', 'gender': 'Unknown', 'social_security_number': '', 'created_at': '2025-08-26T12:24:37.000Z', 'updated_at': '2025-08-26T12:24:37.000Z', 'personal_identifier': {'id': 118772, 'first': 'JOHN', 'middle': '', 'last': 'DOE'}, 'address': {'id': 95701, 'street': '123 TEST STREET', 'suite': '', 'city': 'LAS VEGAS', 'state': 'NV', 'country': 'USA', 'zip': '89101'}, 'communication_information': {'id': 309076, 'phone': '+1234567890', 'fax': '', 'email': 'john.doe@test.com'}}
+✅ Patient created with ID: 47114
+🔍 DEBUG - About to access patient_response['id']
+🔍 DEBUG - patient_response type: <class 'dict'>
+🔍 DEBUG - patient_response: {'id': 47114, 'tid': 85, 'hipaa_id': 'JOHDOE90', 'note': 'Patient from GHL form submission', 'date_of_birth': '1990-01-01', 'gender': 'Unknown', 'social_security_number': '', 'created_at': '2025-08-26T12:24:37.000Z', 'updated_at': '2025-08-26T12:24:37.000Z', 'personal_identifier': {'id': 118772, 'first': 'JOHN', 'middle': '', 'last': 'DOE'}, 'address': {'id': 95701, 'street': '123 TEST STREET', 'suite': '', 'city': 'LAS VEGAS', 'state': 'NV', 'country': 'USA', 'zip': '89101'}, 'communication_information': {'id': 309076, 'phone': '+1234567890', 'fax': '', 'email': 'john.doe@test.com'}}
+🧬 DEBUG - Product extraction results:
+   Selected products: 0
+   Total cm2: 0
+   Primary product: None
+
+Creating case for qualification...
+🔗 Case external_id: ghl_contact_0L8CuPLnCi5xQhbcuPUs_20250826_082437 (links to GHL contact 0L8CuPLnCi5xQhbcuPUs)
+🔍 DEBUG - Case response type: <class 'dict'>
+🔍 DEBUG - Case response: {'error': 1010}
+❌ RMBB Health case creation error: 1010
+❌ RMBB Health submission failed: RMBB Health case creation error: 1010
+🔄 COMPLETE GHL ↔ RMBB HEALTH ↔ GHL FLOW-THROUGH WORKFLOW
+Multi-tenant sub-account routing with HIPAA-compliant GHL storage
+================================================================================
+🔍 DEBUG - About to call handle_ghl_webhook
+============================================================
+STEP 1: Processing GHL Webhook
+============================================================
+🧬 DEBUG - Product field values:
+   amniomaxx_q4239: '' (empty: True)
+   palingen_q4173: '' (empty: True)
+   membrane_wrap_trilayer_q4344: '' (empty: True)
+   biovance_q4154: '' (empty: True)
+📧 Contact ID: 0L8CuPLnCi5xQhbcuPUs
+📍 Location ID: Sqbexj54nvsxOI4V7SsD
+🔍 DEBUG - patient_form_data type: <class 'dict'>
+👤 Patient: John Doe
+👨‍⚕️ Provider: Cell Products
+🔄 Updated provider: Cell Products (35 submissions, 3 cases)
+💾 Saved provider cache with 4 providers
+💾 Cached provider mapping: Cell Products → Sqbexj54nvsxOI4V7SsD
+⚠️ Warning: Failed to store initial tracking data: GHL contact update failed: 404 - {"msg":"Not found"}
+🔍 DEBUG - handle_ghl_webhook returning:
+   external_id: ghl_contact_0L8CuPLnCi5xQhbcuPUs_20250826_082603 (type: <class 'str'>)
+   contact_id: 0L8CuPLnCi5xQhbcuPUs (type: <class 'str'>)
+   location_id: Sqbexj54nvsxOI4V7SsD (type: <class 'str'>)
+   patient_form_data: <class 'dict'>
+🔍 DEBUG - handle_ghl_webhook completed successfully
+
+============================================================
+STEP 2: Submitting to RMBB Health
+============================================================
+Creating patient in RMBB Health...
+Patient Data: {
+  "personal_identifier": {
+    "first": "John",
+    "middle": "",
+    "last": "Doe"
+  },
+  "address": {
+    "street": "123 Test Street",
+    "suite": "",
+    "city": "Las Vegas",
+    "state": "NV",
+    "country": "USA",
+    "zip": "89101"
+  },
+  "communication_information": {
+    "phone": "+1234567890",
+    "fax": "",
+    "email": "john.doe@test.com"
+  },
+  "date_of_birth": "1990-01-01",
+  "gender": "",
+  "note": "Patient from GHL form submission",
+  "social_security_number": ""
+}
+🔍 DEBUG - Patient response type: <class 'dict'>
+🔍 DEBUG - Patient response: {'id': 47116, 'tid': 85, 'hipaa_id': 'JOHDOE90', 'note': 'Patient from GHL form submission', 'date_of_birth': '1990-01-01', 'gender': 'Unknown', 'social_security_number': '', 'created_at': '2025-08-26T12:26:04.000Z', 'updated_at': '2025-08-26T12:26:04.000Z', 'personal_identifier': {'id': 118774, 'first': 'JOHN', 'middle': '', 'last': 'DOE'}, 'address': {'id': 95703, 'street': '123 TEST STREET', 'suite': '', 'city': 'LAS VEGAS', 'state': 'NV', 'country': 'USA', 'zip': '89101'}, 'communication_information': {'id': 309081, 'phone': '+1234567890', 'fax': '', 'email': 'john.doe@test.com'}}
+✅ Patient created with ID: 47116
+🔍 DEBUG - About to access patient_response['id']
+🔍 DEBUG - patient_response type: <class 'dict'>
+🔍 DEBUG - patient_response: {'id': 47116, 'tid': 85, 'hipaa_id': 'JOHDOE90', 'note': 'Patient from GHL form submission', 'date_of_birth': '1990-01-01', 'gender': 'Unknown', 'social_security_number': '', 'created_at': '2025-08-26T12:26:04.000Z', 'updated_at': '2025-08-26T12:26:04.000Z', 'personal_identifier': {'id': 118774, 'first': 'JOHN', 'middle': '', 'last': 'DOE'}, 'address': {'id': 95703, 'street': '123 TEST STREET', 'suite': '', 'city': 'LAS VEGAS', 'state': 'NV', 'country': 'USA', 'zip': '89101'}, 'communication_information': {'id': 309081, 'phone': '+1234567890', 'fax': '', 'email': 'john.doe@test.com'}}
+🧬 DEBUG - Product extraction results:
+   Selected products: 0
+   Total cm2: 0
+   Primary product: None
+
+Creating case for qualification...
+🔗 Case external_id: ghl_contact_0L8CuPLnCi5xQhbcuPUs_20250826_082603 (links to GHL contact 0L8CuPLnCi5xQhbcuPUs)
+🔍 DEBUG - Case response type: <class 'dict'>
+🔍 DEBUG - Case response: {'error': 1020}
+❌ RMBB Health case creation error: 1020
+❌ RMBB Health submission failed: RMBB Health case creation error: 1020
+🔄 COMPLETE GHL ↔ RMBB HEALTH ↔ GHL FLOW-THROUGH WORKFLOW
+Multi-tenant sub-account routing with HIPAA-compliant GHL storage
+================================================================================
+🔍 DEBUG - About to call handle_ghl_webhook
+2025-08-26 11:40:00,849 - INFO - 📝 Updating GHL contact 0L8CuPLnCi5xQhbcuPUs
+2025-08-26 11:40:00,849 - INFO - 🔗 PUT https://rest.gohighlevel.com/v1/locations/Sqbexj54nvsxOI4V7SsD/contacts/0L8CuPLnCi5xQhbcuPUs
+2025-08-26 11:40:01,072 - INFO - 📊 Status: 404
+2025-08-26 11:40:01,072 - ERROR - ❌ GHL contact update failed: 404 - {"msg":"Not found"}
+2025-08-26 11:40:01,658 - INFO - 🔍 DEBUG - Result type: <class 'dict'>
+2025-08-26 11:40:01,659 - INFO - 🔍 DEBUG - Result: {'success': False, 'error': 'RMBB Health case creation error: 1020'}
+2025-08-26 11:40:01,659 - ERROR - ❌ Workflow failed: RMBB Health case creation error: 1020
+2025-08-26 11:40:01,659 - INFO - 127.0.0.1 - - [26/Aug/2025 11:40:01] "[35m[1mPOST /webhook/ghl-rmbb-qualification HTTP/1.1[0m" 500 -
+2025-08-26 11:41:11,968 - INFO - 127.0.0.1 - - [26/Aug/2025 11:41:11] "GET /health HTTP/1.1" 200 -
+2025-08-26 11:41:11,972 - INFO - 📝 GHL → RMBB Health qualification webhook received
+2025-08-26 11:41:11,972 - INFO - 🔗 Headers: {'Host': 'localhost:8080', 'User-Agent': 'python-requests/2.32.3', 'Accept-Encoding': 'gzip, deflate', 'Accept': '*/*', 'Connection': 'keep-alive', 'Content-Type': 'application/json', 'Authorization': 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI2NzRhMjM2OGE0MjVjOTI1ZGNjOTM5OTkiLCJqdGkiOiJiZWUzY2FhZS00MjQzLTRhZTUtYWRjNi1iMzUxNDE5YmUzOGIiLCJpYXQiOjE3MjQ2MTMzODEsIm5iZiI6MTcyNDYxMzM4MSwiZXhwIjoxNzI3MjA1MzgxLCJzdWIiOiJ1c2VyIiwic2NvcGVzIjpbImNhbGVuZGFycy5yZWFkb25seSIsImNhbGVuZGFycy53cml0ZSIsImNhbXBhaWducy5yZWFkb25seSIsImNvbXBhbmllcy5yZWFkb25seSIsImNvbXBhbmllcy53cml0ZSIsImNvbnRhY3RzLnJlYWRvbmx5IiwiY29udGFjdHMud3JpdGUiLCJjb252ZXJzYXRpb25zLnJlYWRvbmx5IiwiY29udmVyc2F0aW9ucy53cml0ZSIsImNvdXJzZXMucmVhZG9ubHkiLCJjb3Vyc2VzLndyaXRlIiwiZm9ybXMucmVhZG9ubHkiLCJmb3Jtcy53cml0ZSIsImZ1bm5lbHMucmVhZG9ubHkiLCJsaW5rcy5yZWFkb25seSIsImxpbmtzLndyaXRlIiwibG9jYXRpb25zLnJlYWRvbmx5IiwibG9jYXRpb25zLndyaXRlIiwibWVkaWEucmVhZG9ubHkiLCJtZWRpYS53cml0ZSIsIm9wcG9ydHVuaXRpZXMucmVhZG9ubHkiLCJvcHBvcnR1bml0aWVzLndyaXRlIiwicGlwZWxpbmVzLnJlYWRvbmx5IiwicGlwZWxpbmVzLndyaXRlIiwicHJvZHVjdHMucmVhZG9ubHkiLCJwcm9kdWN0cy53cml0ZSIsInN1cnZleXMucmVhZG9ubHkiLCJzdXJ2ZXlzLndyaXRlIiwidXNlcnMucmVhZG9ubHkiLCJ1c2Vycy53cml0ZSIsIndvcmtmbG93cy5yZWFkb25seSIsIndvcmtmbG93cy53cml0ZSIsInRyaWdnZXJzLndyaXRlIl0sImxvY2F0aW9uSWQiOiJTcWJleGo1NG52c3hPSTRWN1NzRCJ9.PjHV5sqZ4ShbTf0JaWgRuBt--zRg2o4rqOGsXesDRBA', 'Content-Length': '995'}
+2025-08-26 11:41:11,973 - INFO - 📦 Webhook payload received: 995 characters
+2025-08-26 11:41:11,973 - INFO - 📊 Available fields: ['contactId', 'locationId', 'firstName', 'lastName', 'email', 'phone', 'dateOfBirth', 'provider_name', 'insurance_type', 'patient_first_name']...
+2025-08-26 11:41:11,973 - INFO - 🔍 DEBUG - Complete webhook payload: {
+  "contactId": "0L8CuPLnCi5xQhbcuPUs",
+  "locationId": "Sqbexj54nvsxOI4V7SsD",
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "john.doe@test.com",
+  "phone": "+1234567890",
+  "dateOfBirth": "1990-01-01",
+  "provider_name": "Cell Products",
+  "insurance_type": "Medicare",
+  "patient_first_name": "John",
+  "patient_last_name": "Doe",
+  "patient_date_of_birth": "1990-01-01",
+  "patient_phone": "+1234567890",
+  "patient_email": "john.doe@test.com",
+  "street_address": "123 Test Street",
+  "city": "Las Vegas",
+  "state": "NV",
+  "zip_code": "89101",
+  "wound_type": "Diabetic Foot Ulcer",
+  "wound_size": "2x3cm",
+  "product_biovance": "true",
+  "product_amniomaxx": "false",
+  "product_palingen": "false",
+  "primary_insurance_name": "MEDICARE PART B",
+  "primary_policy_number": "POL123456",
+  "secondary_insurance_name": "AARP MEDICARE SUPPLEMENT PLAN F",
+  "secondary_policy_number": "POL654321",
+  "icd_10_code": "E11.621",
+  "cpt_surgery_code": "12345",
+  "expected_date_of_service": "2023-04-01",
+  "facility_type": "Physician Office - 11"
+}
+2025-08-26 11:41:11,973 - INFO - 🧬 Product fields found: ['product_biovance', 'product_amniomaxx', 'product_palingen']
+2025-08-26 11:41:11,973 - INFO - ⏰ STEP 1: Auto-populating provider cache from GHL agency...
+2025-08-26 11:41:11,973 - INFO - 🔍 Querying GHL agency for all sub-accounts...
+2025-08-26 11:41:12,178 - ERROR - ❌ GHL locations API failed: 401 - {"msg":"Unauthorized, Switch to the new API token."}
+2025-08-26 11:41:12,178 - WARNING - ⚠️ Cache population failed (continuing anyway): GHL locations API failed: 401 - {"msg":"Unauthorized, Switch to the new API token."}
+2025-08-26 11:41:12,178 - INFO - 📅 Date fields found: ['dateOfBirth', 'patient_date_of_birth']
+2025-08-26 11:41:12,178 - INFO - 📅 dateOfBirth: '1990-01-01'
+2025-08-26 11:41:12,178 - INFO - 📅 patient_date_of_birth: '1990-01-01'
+2025-08-26 11:41:12,178 - INFO - 🚀 Starting complete GHL → RMBB Health → GHL workflow...
+2025-08-26 11:41:12,179 - INFO - 📝 Updating GHL contact 0L8CuPLnCi5xQhbcuPUs
+2025-08-26 11:41:12,179 - INFO - 🔗 PUT https://rest.gohighlevel.com/v1/locations/Sqbexj54nvsxOI4V7SsD/contacts/0L8CuPLnCi5xQhbcuPUs
+2025-08-26 11:41:12,451 - INFO - 📊 Status: 404
+2025-08-26 11:41:12,451 - ERROR - ❌ GHL contact update failed: 404 - {"msg":"Not found"}
+2025-08-26 11:41:12,913 - INFO - 🔍 DEBUG - Result type: <class 'dict'>
+2025-08-26 11:41:12,913 - INFO - 🔍 DEBUG - Result: {'success': False, 'error': 'RMBB Health case creation error: 1020'}
+2025-08-26 11:41:12,913 - ERROR - ❌ Workflow failed: RMBB Health case creation error: 1020
+2025-08-26 11:41:12,914 - INFO - 127.0.0.1 - - [26/Aug/2025 11:41:12] "[35m[1mPOST /webhook/ghl-rmbb-qualification HTTP/1.1[0m" 500 -
+2025-08-26 11:56:25,754 - INFO - 127.0.0.1 - - [26/Aug/2025 11:56:25] "GET /health HTTP/1.1" 200 -
+2025-08-26 11:56:25,759 - INFO - 📝 GHL → RMBB Health qualification webhook received
+2025-08-26 11:56:25,759 - INFO - 🔗 Headers: {'Host': 'localhost:8080', 'User-Agent': 'python-requests/2.32.3', 'Accept-Encoding': 'gzip, deflate', 'Accept': '*/*', 'Connection': 'keep-alive', 'Content-Type': 'application/json', 'Authorization': 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI2NzRhMjM2OGE0MjVjOTI1ZGNjOTM5OTkiLCJqdGkiOiJiZWUzY2FhZS00MjQzLTRhZTUtYWRjNi1iMzUxNDE5YmUzOGIiLCJpYXQiOjE3MjQ2MTMzODEsIm5iZiI6MTcyNDYxMzM4MSwiZXhwIjoxNzI3MjA1MzgxLCJzdWIiOiJ1c2VyIiwic2NvcGVzIjpbImNhbGVuZGFycy5yZWFkb25seSIsImNhbGVuZGFycy53cml0ZSIsImNhbXBhaWducy5yZWFkb25seSIsImNvbXBhbmllcy5yZWFkb25seSIsImNvbXBhbmllcy53cml0ZSIsImNvbnRhY3RzLnJlYWRvbmx5IiwiY29udGFjdHMud3JpdGUiLCJjb252ZXJzYXRpb25zLnJlYWRvbmx5IiwiY29udmVyc2F0aW9ucy53cml0ZSIsImNvdXJzZXMucmVhZG9ubHkiLCJjb3Vyc2VzLndyaXRlIiwiZm9ybXMucmVhZG9ubHkiLCJmb3Jtcy53cml0ZSIsImZ1bm5lbHMucmVhZG9ubHkiLCJsaW5rcy5yZWFkb25seSIsImxpbmtzLndyaXRlIiwibG9jYXRpb25zLnJlYWRvbmx5IiwibG9jYXRpb25zLndyaXRlIiwibWVkaWEucmVhZG9ubHkiLCJtZWRpYS53cml0ZSIsIm9wcG9ydHVuaXRpZXMucmVhZG9ubHkiLCJvcHBvcnR1bml0aWVzLndyaXRlIiwicGlwZWxpbmVzLnJlYWRvbmx5IiwicGlwZWxpbmVzLndyaXRlIiwicHJvZHVjdHMucmVhZG9ubHkiLCJwcm9kdWN0cy53cml0ZSIsInN1cnZleXMucmVhZG9ubHkiLCJzdXJ2ZXlzLndyaXRlIiwidXNlcnMucmVhZG9ubHkiLCJ1c2Vycy53cml0ZSIsIndvcmtmbG93cy5yZWFkb25seSIsIndvcmtmbG93cy53cml0ZSIsInRyaWdnZXJzLndyaXRlIl0sImxvY2F0aW9uSWQiOiJTcWJleGo1NG52c3hPSTRWN1NzRCJ9.PjHV5sqZ4ShbTf0JaWgRuBt--zRg2o4rqOGsXesDRBA', 'Content-Length': '1137'}
+2025-08-26 11:56:25,760 - INFO - 📦 Webhook payload received: 1137 characters
+2025-08-26 11:56:25,760 - INFO - 📊 Available fields: ['contactId', 'locationId', 'firstName', 'lastName', 'first_name', 'last_name', 'email', 'email_address', 'phone', 'phone_number']...
+2025-08-26 11:56:25,760 - INFO - 🔍 DEBUG - Complete webhook payload: {
+  "contactId": "0L8CuPLnCi5xQhbcuPUs",
+  "locationId": "Sqbexj54nvsxOI4V7SsD",
+  "firstName": "John",
+  "lastName": "Doe",
+  "first_name": "John",
+  "last_name": "Doe",
+  "email": "john.doe@test.com",
+  "email_address": "john.doe@test.com",
+  "phone": "+1234567890",
+  "phone_number": "+1234567890",
+  "dateOfBirth": "1990-01-01",
+  "date_of_birth": "1990-01-01",
+  "provider_name": "Cell Products",
+  "insurance_type": "Medicare",
+  "patient_first_name": "John",
+  "patient_last_name": "Doe",
+  "patient_date_of_birth": "1990-01-01",
+  "patient_phone": "+1234567890",
+  "patient_email": "john.doe@test.com",
+  "street_address": "123 Test Street",
+  "city": "Las Vegas",
+  "state": "NV",
+  "zip_code": "89101",
+  "wound_type": "Diabetic Foot Ulcer",
+  "wound_size": "2x3cm",
+  "product_biovance": "true",
+  "product_amniomaxx": "false",
+  "product_palingen": "false",
+  "primary_insurance_name": "MEDICARE PART B",
+  "primary_policy_number": "POL123456",
+  "secondary_insurance_name": "AARP MEDICARE SUPPLEMENT PLAN F",
+  "secondary_policy_number": "POL654321",
+  "icd_10_code": "E11.621",
+  "cpt_surgery_code": "12345",
+  "expected_date_of_service": "2023-04-01",
+  "facility_type": "Physician Office - 11"
+}
+2025-08-26 11:56:25,760 - INFO - 🧬 Product fields found: ['product_biovance', 'product_amniomaxx', 'product_palingen']
+2025-08-26 11:56:25,760 - INFO - ⏰ STEP 1: Auto-populating provider cache from GHL agency...
+2025-08-26 11:56:25,760 - INFO - 🔍 Querying GHL agency for all sub-accounts...
+2025-08-26 11:56:26,044 - ERROR - ❌ GHL locations API failed: 401 - {"msg":"Unauthorized, Switch to the new API token."}
+2025-08-26 11:56:26,044 - WARNING - ⚠️ Cache population failed (continuing anyway): GHL locations API failed: 401 - {"msg":"Unauthorized, Switch to the new API token."}
+2025-08-26 11:56:26,044 - INFO - 📅 Date fields found: ['dateOfBirth', 'date_of_birth', 'patient_date_of_birth']
+2025-08-26 11:56:26,044 - INFO - 📅 dateOfBirth: '1990-01-01'
+2025-08-26 11:56:26,044 - INFO - 📅 date_of_birth: '1990-01-01'
+2025-08-26 11:56:26,044 - INFO - 📅 patient_date_of_birth: '1990-01-01'
+2025-08-26 11:56:26,044 - INFO - 🚀 Starting complete GHL → RMBB Health → GHL workflow...
+============================================================
+STEP 1: Processing GHL Webhook
+============================================================
+🧬 DEBUG - Product field values:
+   amniomaxx_q4239: '' (empty: True)
+   palingen_q4173: '' (empty: True)
+   membrane_wrap_trilayer_q4344: '' (empty: True)
+   biovance_q4154: '' (empty: True)
+📧 Contact ID: 0L8CuPLnCi5xQhbcuPUs
+📍 Location ID: Sqbexj54nvsxOI4V7SsD
+🔍 DEBUG - patient_form_data type: <class 'dict'>
+👤 Patient: John Doe
+👨‍⚕️ Provider: Cell Products
+🔄 Updated provider: Cell Products (36 submissions, 3 cases)
+💾 Saved provider cache with 4 providers
+💾 Cached provider mapping: Cell Products → Sqbexj54nvsxOI4V7SsD
+⚠️ Warning: Failed to store initial tracking data: GHL contact update failed: 404 - {"msg":"Not found"}
+🔍 DEBUG - handle_ghl_webhook returning:
+   external_id: ghl_contact_0L8CuPLnCi5xQhbcuPUs_20250826_114000 (type: <class 'str'>)
+   contact_id: 0L8CuPLnCi5xQhbcuPUs (type: <class 'str'>)
+   location_id: Sqbexj54nvsxOI4V7SsD (type: <class 'str'>)
+   patient_form_data: <class 'dict'>
+🔍 DEBUG - handle_ghl_webhook completed successfully
+
+============================================================
+STEP 2: Submitting to RMBB Health
+============================================================
+Creating patient in RMBB Health...
+Patient Data: {
+  "personal_identifier": {
+    "first": "John",
+    "middle": "",
+    "last": "Doe"
+  },
+  "address": {
+    "street": "123 Test Street",
+    "suite": "",
+    "city": "Las Vegas",
+    "state": "NV",
+    "country": "USA",
+    "zip": "89101"
+  },
+  "communication_information": {
+    "phone": "+1234567890",
+    "fax": "",
+    "email": "john.doe@test.com"
+  },
+  "date_of_birth": "1990-01-01",
+  "gender": "",
+  "note": "Patient from GHL form submission",
+  "social_security_number": ""
+}
+🔍 DEBUG - Patient response type: <class 'dict'>
+🔍 DEBUG - Patient response: {'id': 47175, 'tid': 85, 'hipaa_id': 'JOHDOE90', 'note': 'Patient from GHL form submission', 'date_of_birth': '1990-01-01', 'gender': 'Unknown', 'social_security_number': '', 'created_at': '2025-08-26T15:40:01.000Z', 'updated_at': '2025-08-26T15:40:01.000Z', 'personal_identifier': {'id': 118843, 'first': 'JOHN', 'middle': '', 'last': 'DOE'}, 'address': {'id': 95778, 'street': '123 TEST STREET', 'suite': '', 'city': 'LAS VEGAS', 'state': 'NV', 'country': 'USA', 'zip': '89101'}, 'communication_information': {'id': 309342, 'phone': '+1234567890', 'fax': '', 'email': 'john.doe@test.com'}}
+✅ Patient created with ID: 47175
+🔍 DEBUG - About to access patient_response['id']
+🔍 DEBUG - patient_response type: <class 'dict'>
+🔍 DEBUG - patient_response: {'id': 47175, 'tid': 85, 'hipaa_id': 'JOHDOE90', 'note': 'Patient from GHL form submission', 'date_of_birth': '1990-01-01', 'gender': 'Unknown', 'social_security_number': '', 'created_at': '2025-08-26T15:40:01.000Z', 'updated_at': '2025-08-26T15:40:01.000Z', 'personal_identifier': {'id': 118843, 'first': 'JOHN', 'middle': '', 'last': 'DOE'}, 'address': {'id': 95778, 'street': '123 TEST STREET', 'suite': '', 'city': 'LAS VEGAS', 'state': 'NV', 'country': 'USA', 'zip': '89101'}, 'communication_information': {'id': 309342, 'phone': '+1234567890', 'fax': '', 'email': 'john.doe@test.com'}}
+🧬 DEBUG - Product extraction results:
+   Selected products: 0
+   Total cm2: 0
+   Primary product: None
+
+Creating case for qualification...
+🔗 Case external_id: ghl_contact_0L8CuPLnCi5xQhbcuPUs_20250826_114000 (links to GHL contact 0L8CuPLnCi5xQhbcuPUs)
+🔍 DEBUG - Case response type: <class 'dict'>
+🔍 DEBUG - Case response: {'error': 1020}
+❌ RMBB Health case creation error: 1020
+❌ RMBB Health submission failed: RMBB Health case creation error: 1020
+🔄 COMPLETE GHL ↔ RMBB HEALTH ↔ GHL FLOW-THROUGH WORKFLOW
+Multi-tenant sub-account routing with HIPAA-compliant GHL storage
+================================================================================
+🔍 DEBUG - About to call handle_ghl_webhook
+============================================================
+STEP 1: Processing GHL Webhook
+============================================================
+🧬 DEBUG - Product field values:
+   amniomaxx_q4239: '' (empty: True)
+   palingen_q4173: '' (empty: True)
+   membrane_wrap_trilayer_q4344: '' (empty: True)
+   biovance_q4154: '' (empty: True)
+📧 Contact ID: 0L8CuPLnCi5xQhbcuPUs
+📍 Location ID: Sqbexj54nvsxOI4V7SsD
+🔍 DEBUG - patient_form_data type: <class 'dict'>
+👤 Patient: John Doe
+👨‍⚕️ Provider: Cell Products
+🔄 Updated provider: Cell Products (37 submissions, 3 cases)
+💾 Saved provider cache with 4 providers
+💾 Cached provider mapping: Cell Products → Sqbexj54nvsxOI4V7SsD
+⚠️ Warning: Failed to store initial tracking data: GHL contact update failed: 404 - {"msg":"Not found"}
+🔍 DEBUG - handle_ghl_webhook returning:
+   external_id: ghl_contact_0L8CuPLnCi5xQhbcuPUs_20250826_114112 (type: <class 'str'>)
+   contact_id: 0L8CuPLnCi5xQhbcuPUs (type: <class 'str'>)
+   location_id: Sqbexj54nvsxOI4V7SsD (type: <class 'str'>)
+   patient_form_data: <class 'dict'>
+🔍 DEBUG - handle_ghl_webhook completed successfully
+
+============================================================
+STEP 2: Submitting to RMBB Health
+============================================================
+Creating patient in RMBB Health...
+Patient Data: {
+  "personal_identifier": {
+    "first": "John",
+    "middle": "",
+    "last": "Doe"
+  },
+  "address": {
+    "street": "123 Test Street",
+    "suite": "",
+    "city": "Las Vegas",
+    "state": "NV",
+    "country": "USA",
+    "zip": "89101"
+  },
+  "communication_information": {
+    "phone": "+1234567890",
+    "fax": "",
+    "email": "john.doe@test.com"
+  },
+  "date_of_birth": "1990-01-01",
+  "gender": "",
+  "note": "Patient from GHL form submission",
+  "social_security_number": ""
+}
+🔍 DEBUG - Patient response type: <class 'dict'>
+🔍 DEBUG - Patient response: {'id': 47176, 'tid': 85, 'hipaa_id': 'JOHDOE90', 'note': 'Patient from GHL form submission', 'date_of_birth': '1990-01-01', 'gender': 'Unknown', 'social_security_number': '', 'created_at': '2025-08-26T15:41:12.000Z', 'updated_at': '2025-08-26T15:41:12.000Z', 'personal_identifier': {'id': 118844, 'first': 'JOHN', 'middle': '', 'last': 'DOE'}, 'address': {'id': 95779, 'street': '123 TEST STREET', 'suite': '', 'city': 'LAS VEGAS', 'state': 'NV', 'country': 'USA', 'zip': '89101'}, 'communication_information': {'id': 309346, 'phone': '+1234567890', 'fax': '', 'email': 'john.doe@test.com'}}
+✅ Patient created with ID: 47176
+🔍 DEBUG - About to access patient_response['id']
+🔍 DEBUG - patient_response type: <class 'dict'>
+🔍 DEBUG - patient_response: {'id': 47176, 'tid': 85, 'hipaa_id': 'JOHDOE90', 'note': 'Patient from GHL form submission', 'date_of_birth': '1990-01-01', 'gender': 'Unknown', 'social_security_number': '', 'created_at': '2025-08-26T15:41:12.000Z', 'updated_at': '2025-08-26T15:41:12.000Z', 'personal_identifier': {'id': 118844, 'first': 'JOHN', 'middle': '', 'last': 'DOE'}, 'address': {'id': 95779, 'street': '123 TEST STREET', 'suite': '', 'city': 'LAS VEGAS', 'state': 'NV', 'country': 'USA', 'zip': '89101'}, 'communication_information': {'id': 309346, 'phone': '+1234567890', 'fax': '', 'email': 'john.doe@test.com'}}
+🧬 DEBUG - Product extraction results:
+   Selected products: 0
+   Total cm2: 0
+   Primary product: None
+
+Creating case for qualification...
+🔗 Case external_id: ghl_contact_0L8CuPLnCi5xQhbcuPUs_20250826_114112 (links to GHL contact 0L8CuPLnCi5xQhbcuPUs)
+🔍 DEBUG - Case response type: <class 'dict'>
+🔍 DEBUG - Case response: {'error': 1020}
+❌ RMBB Health case creation error: 1020
+❌ RMBB Health submission failed: RMBB Health case creation error: 1020
+🔄 COMPLETE GHL ↔ RMBB HEALTH ↔ GHL FLOW-THROUGH WORKFLOW
+Multi-tenant sub-account routing with HIPAA-compliant GHL storage
+================================================================================
+🔍 DEBUG - About to call handle_ghl_webhook
+============================================================
+STEP 1: Processing GHL Webhook
+============================================================
+2025-08-26 11:56:26,044 - INFO - 📝 Updating GHL contact 0L8CuPLnCi5xQhbcuPUs
+2025-08-26 11:56:26,044 - INFO - 🔗 PUT https://rest.gohighlevel.com/v1/locations/Sqbexj54nvsxOI4V7SsD/contacts/0L8CuPLnCi5xQhbcuPUs
+2025-08-26 11:56:26,262 - INFO - 📊 Status: 404
+2025-08-26 11:56:26,264 - ERROR - ❌ GHL contact update failed: 404 - {"msg":"Not found"}
+2025-08-26 11:56:26,749 - INFO - 🔍 DEBUG - Result type: <class 'dict'>
+2025-08-26 11:56:26,749 - INFO - 🔍 DEBUG - Result: {'success': False, 'error': 'RMBB Health case creation error: 1020'}
+2025-08-26 11:56:26,749 - ERROR - ❌ Workflow failed: RMBB Health case creation error: 1020
+2025-08-26 11:56:26,750 - INFO - 127.0.0.1 - - [26/Aug/2025 11:56:26] "[35m[1mPOST /webhook/ghl-rmbb-qualification HTTP/1.1[0m" 500 -
+2025-08-26 12:25:04,286 - INFO - 127.0.0.1 - - [26/Aug/2025 12:25:04] "GET /health HTTP/1.1" 200 -
+2025-08-26 12:25:04,289 - INFO - 📝 GHL → RMBB Health qualification webhook received
+2025-08-26 12:25:04,290 - INFO - 🔗 Headers: {'Host': 'localhost:8080', 'User-Agent': 'python-requests/2.32.3', 'Accept-Encoding': 'gzip, deflate', 'Accept': '*/*', 'Connection': 'keep-alive', 'Content-Type': 'application/json', 'Authorization': 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI2NzRhMjM2OGE0MjVjOTI1ZGNjOTM5OTkiLCJqdGkiOiJiZWUzY2FhZS00MjQzLTRhZTUtYWRjNi1iMzUxNDE5YmUzOGIiLCJpYXQiOjE3MjQ2MTMzODEsIm5iZiI6MTcyNDYxMzM4MSwiZXhwIjoxNzI3MjA1MzgxLCJzdWIiOiJ1c2VyIiwic2NvcGVzIjpbImNhbGVuZGFycy5yZWFkb25seSIsImNhbGVuZGFycy53cml0ZSIsImNhbXBhaWducy5yZWFkb25seSIsImNvbXBhbmllcy5yZWFkb25seSIsImNvbXBhbmllcy53cml0ZSIsImNvbnRhY3RzLnJlYWRvbmx5IiwiY29udGFjdHMud3JpdGUiLCJjb252ZXJzYXRpb25zLnJlYWRvbmx5IiwiY29udmVyc2F0aW9ucy53cml0ZSIsImNvdXJzZXMucmVhZG9ubHkiLCJjb3Vyc2VzLndyaXRlIiwiZm9ybXMucmVhZG9ubHkiLCJmb3Jtcy53cml0ZSIsImZ1bm5lbHMucmVhZG9ubHkiLCJsaW5rcy5yZWFkb25seSIsImxpbmtzLndyaXRlIiwibG9jYXRpb25zLnJlYWRvbmx5IiwibG9jYXRpb25zLndyaXRlIiwibWVkaWEucmVhZG9ubHkiLCJtZWRpYS53cml0ZSIsIm9wcG9ydHVuaXRpZXMucmVhZG9ubHkiLCJvcHBvcnR1bml0aWVzLndyaXRlIiwicGlwZWxpbmVzLnJlYWRvbmx5IiwicGlwZWxpbmVzLndyaXRlIiwicHJvZHVjdHMucmVhZG9ubHkiLCJwcm9kdWN0cy53cml0ZSIsInN1cnZleXMucmVhZG9ubHkiLCJzdXJ2ZXlzLndyaXRlIiwidXNlcnMucmVhZG9ubHkiLCJ1c2Vycy53cml0ZSIsIndvcmtmbG93cy5yZWFkb25seSIsIndvcmtmbG93cy53cml0ZSIsInRyaWdnZXJzLndyaXRlIl0sImxvY2F0aW9uSWQiOiJTcWJleGo1NG52c3hPSTRWN1NzRCJ9.PjHV5sqZ4ShbTf0JaWgRuBt--zRg2o4rqOGsXesDRBA', 'Content-Length': '1137'}
+2025-08-26 12:25:04,290 - INFO - 📦 Webhook payload received: 1137 characters
+2025-08-26 12:25:04,290 - INFO - 📊 Available fields: ['contactId', 'locationId', 'firstName', 'lastName', 'first_name', 'last_name', 'email', 'email_address', 'phone', 'phone_number']...
+2025-08-26 12:25:04,290 - INFO - 🔍 DEBUG - Complete webhook payload: {
+  "contactId": "0L8CuPLnCi5xQhbcuPUs",
+  "locationId": "Sqbexj54nvsxOI4V7SsD",
+  "firstName": "John",
+  "lastName": "Doe",
+  "first_name": "John",
+  "last_name": "Doe",
+  "email": "john.doe@test.com",
+  "email_address": "john.doe@test.com",
+  "phone": "+1234567890",
+  "phone_number": "+1234567890",
+  "dateOfBirth": "1990-01-01",
+  "date_of_birth": "1990-01-01",
+  "provider_name": "Cell Products",
+  "insurance_type": "Medicare",
+  "patient_first_name": "John",
+  "patient_last_name": "Doe",
+  "patient_date_of_birth": "1990-01-01",
+  "patient_phone": "+1234567890",
+  "patient_email": "john.doe@test.com",
+  "street_address": "123 Test Street",
+  "city": "Las Vegas",
+  "state": "NV",
+  "zip_code": "89101",
+  "wound_type": "Diabetic Foot Ulcer",
+  "wound_size": "2x3cm",
+  "product_biovance": "true",
+  "product_amniomaxx": "false",
+  "product_palingen": "false",
+  "primary_insurance_name": "MEDICARE PART B",
+  "primary_policy_number": "POL123456",
+  "secondary_insurance_name": "AARP MEDICARE SUPPLEMENT PLAN F",
+  "secondary_policy_number": "POL654321",
+  "icd_10_code": "E11.621",
+  "cpt_surgery_code": "12345",
+  "expected_date_of_service": "2023-04-01",
+  "facility_type": "Physician Office - 11"
+}
+2025-08-26 12:25:04,290 - INFO - 🧬 Product fields found: ['product_biovance', 'product_amniomaxx', 'product_palingen']
+2025-08-26 12:25:04,290 - INFO - ⏰ STEP 1: Auto-populating provider cache from GHL agency...
+2025-08-26 12:25:04,290 - INFO - 🔍 Querying GHL agency for all sub-accounts...
+2025-08-26 12:25:04,558 - ERROR - ❌ GHL locations API failed: 401 - {"msg":"Unauthorized, Switch to the new API token."}
+2025-08-26 12:25:04,558 - WARNING - ⚠️ Cache population failed (continuing anyway): GHL locations API failed: 401 - {"msg":"Unauthorized, Switch to the new API token."}
+2025-08-26 12:25:04,558 - INFO - 📅 Date fields found: ['dateOfBirth', 'date_of_birth', 'patient_date_of_birth']
+2025-08-26 12:25:04,559 - INFO - 📅 dateOfBirth: '1990-01-01'
+2025-08-26 12:25:04,559 - INFO - 📅 date_of_birth: '1990-01-01'
+2025-08-26 12:25:04,559 - INFO - 📅 patient_date_of_birth: '1990-01-01'
+2025-08-26 12:25:04,559 - INFO - 🚀 Starting complete GHL → RMBB Health → GHL workflow...
+2025-08-26 12:25:04,559 - INFO - 📝 Updating GHL contact 0L8CuPLnCi5xQhbcuPUs
+2025-08-26 12:25:04,559 - INFO - 🔗 PUT https://rest.gohighlevel.com/v1/locations/Sqbexj54nvsxOI4V7SsD/contacts/0L8CuPLnCi5xQhbcuPUs
+2025-08-26 12:25:04,816 - INFO - 📊 Status: 404
+2025-08-26 12:25:04,817 - ERROR - ❌ GHL contact update failed: 404 - {"msg":"Not found"}
+2025-08-26 12:25:05,316 - INFO - 🔍 DEBUG - Result type: <class 'dict'>
+2025-08-26 12:25:05,317 - INFO - 🔍 DEBUG - Result: {'success': False, 'error': 'RMBB Health case creation error: 1020'}
+2025-08-26 12:25:05,317 - ERROR - ❌ Workflow failed: RMBB Health case creation error: 1020
+2025-08-26 12:25:05,318 - INFO - 127.0.0.1 - - [26/Aug/2025 12:25:05] "[35m[1mPOST /webhook/ghl-rmbb-qualification HTTP/1.1[0m" 500 -
