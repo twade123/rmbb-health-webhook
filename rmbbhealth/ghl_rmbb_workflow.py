@@ -230,7 +230,6 @@ class GHLRMBBWorkflowHandler:
         
         # DEBUG: Print exact case data being sent to RMBB Health API
         print(f"🔍 DETAILED CASE DATA being sent to RMBB Health API:")
-        import json
         print(json.dumps(rmbb_case_data, indent=2))
         
         # Create case using real RMBB Health API
