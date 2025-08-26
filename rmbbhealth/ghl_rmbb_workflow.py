@@ -697,7 +697,7 @@ Effective Date: {ivr_data['effective_date']}
         if form_data.get("primary_insurance_name"):
             case_data["primary_insurance"] = {
                 "full_name": form_data.get("primary_insurance_name", ""),
-                "type": "ORIGINAL MEDICARE",  # Default, could be derived from insurance name
+                "type": form_data.get("primary_insurance_type", form_data.get("insurance_type", "")),
                 "mac": "",
                 "parent_company": "Insurance Co",  # Default, could be form field
                 "participating_status": "Participating",  # Default, could be form field
@@ -711,7 +711,7 @@ Effective Date: {ivr_data['effective_date']}
         if form_data.get("secondary_insurance_name"):
             case_data["secondary_insurance"] = {
                 "full_name": form_data.get("secondary_insurance_name", ""),
-                "type": "MEDICARE SUPPLEMENT",  # Default, could be derived from insurance name
+                "type": form_data.get("secondary_insurance_type", ""),
                 "mac": "",
                 "parent_company": "Another Insurance Co",  # Default, could be form field
                 "participating_status": "Non-participating",  # Default, could be form field
