@@ -123,6 +123,14 @@ class GHLRMBBWorkflowHandler:
         print(f"🔍 EXTRACTION CHECK: ICD-10 Code = '{icd_code}'")
         print(f"🔍 EXTRACTION CHECK: Facility Type = '{facility}'")
         
+        # ADDITIONAL DEBUG: Show what the case transformation method will receive
+        print(f"🔍 FORM DATA READY FOR CASE TRANSFORMATION:")
+        print(f"   📋 patient_form_data keys: {list(patient_form_data.keys())}")
+        print(f"   🔬 icd_10_code value: '{patient_form_data.get('icd_10_code', 'NOT FOUND')}'")
+        print(f"   📊 primary_insurance_name value: '{patient_form_data.get('primary_insurance_name', 'NOT FOUND')}'")
+        print(f"   📊 secondary_insurance_name value: '{patient_form_data.get('secondary_insurance_name', 'NOT FOUND')}'")
+        print(f"   🏢 facility_type value: '{patient_form_data.get('facility_type', 'NOT FOUND')}'")
+        
         # Create unique external ID for RMBB case linking
         external_id = f"ghl_contact_{contact_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         
@@ -239,6 +247,17 @@ class GHLRMBBWorkflowHandler:
             case_external_id = f"{external_id}_{product['product_id']}"  # Unique external ID per product
             rmbb_case_data = self.transform_case_data_for_product(patient_form_data, patient_response['id'], product)
             rmbb_case_data["external_id"] = case_external_id
+            
+            # DEBUG: Show what we're sending to RMBB Health API
+            print(f"🔍 CASE PAYLOAD DEBUG for {product_name}:")
+            print(f"   📋 Product ID: {rmbb_case_data.get('product_id')}")
+            print(f"   🏥 Account Location ID: {rmbb_case_data.get('account_location_id')}")
+            print(f"   👨‍⚕️ Physician ID: {rmbb_case_data.get('physician_id')}")
+            print(f"   🆔 Patient ID: {rmbb_case_data.get('patient_id')}")
+            print(f"   🔬 ICD-10 Code: {rmbb_case_data.get('icd_10_code')}")
+            print(f"   🏢 Place of Service: {rmbb_case_data.get('place_of_service')}")
+            print(f"   📊 Primary Insurance: {rmbb_case_data.get('primary_insurance', {}).get('full_name', 'MISSING')}")
+            print(f"   📊 Secondary Insurance: {rmbb_case_data.get('secondary_insurance', {}).get('full_name', 'MISSING')}")
             
             # Create case using real RMBB Health API
             try:
