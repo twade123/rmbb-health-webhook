@@ -898,7 +898,7 @@ Effective Date: {ivr_data['effective_date']}
         q_code = product["product_id"]
         numeric_product_id = q_code_to_product_id.get(q_code, 98)  # Default to Membrane Wrap (98) if not found
         
-        print(f"🧬 Converting Q-code {q_code} → numeric product_id {numeric_product_id} for {product['name']}")
+        # Reduced logging for Railway rate limit  
         return numeric_product_id
     
     def get_account_location_id(self, ghl_location_id):
@@ -906,7 +906,7 @@ Effective Date: {ivr_data['effective_date']}
         Get RMBB account_location_id from Railway environment variables
         """
         account_location_id = os.getenv('RMBB_ACCOUNT_LOCATION_ID', '8720')  # Railway env var, fallback to known working ID
-        print(f"🏥 Using RMBB account_location_id: {account_location_id} (from Railway env vars)")
+        # Reduced logging for Railway rate limit
         return int(account_location_id)
     
     def get_physician_id(self, provider_name):
@@ -914,7 +914,7 @@ Effective Date: {ivr_data['effective_date']}
         Get RMBB physician_id from Railway environment variables  
         """
         physician_id = os.getenv('RMBB_PHYSICIAN_ID', '15995')  # Railway env var, fallback to known working ID
-        print(f"👨‍⚕️ Using RMBB physician_id: {physician_id} (from Railway env vars)")
+        # Reduced logging for Railway rate limit
         return int(physician_id)
     
     
@@ -989,7 +989,7 @@ Effective Date: {ivr_data['effective_date']}
         q_code = product_info["primary_product"]["product_id"]
         numeric_product_id = q_code_to_product_id.get(q_code, 98)  # Default to Membrane Wrap (98) if not found
         
-        print(f"🧬 Converting Q-code {q_code} → numeric product_id {numeric_product_id}")
+        # Reduced logging for Railway rate limit
         return numeric_product_id
     
     def upload_additional_case_information(self, case_id, provider_name=None, facility_type=None, facility_npi=None, provider_npi=None):
