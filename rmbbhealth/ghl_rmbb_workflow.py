@@ -111,10 +111,17 @@ class GHLRMBBWorkflowHandler:
         
         print(f"📧 Contact ID: {contact_id}")
         print(f"📍 Location ID: {location_id}")
-        # DEBUG: Check if insurance data was extracted
-        print(f"🔍 Extracted Insurance: Primary='{patient_form_data.get('primary_insurance_name', 'MISSING')}', Secondary='{patient_form_data.get('secondary_insurance_name', 'MISSING')}'")
-        print(f"🔍 Extracted ICD-10: '{patient_form_data.get('icd_10_code', 'MISSING')}'")
-        print(f"🔍 Extracted Facility: '{patient_form_data.get('facility_type', 'MISSING')}')")
+        
+        # CRITICAL DEBUG: Check if insurance data was extracted
+        primary_ins = patient_form_data.get('primary_insurance_name', 'MISSING')
+        secondary_ins = patient_form_data.get('secondary_insurance_name', 'MISSING') 
+        icd_code = patient_form_data.get('icd_10_code', 'MISSING')
+        facility = patient_form_data.get('facility_type', 'MISSING')
+        
+        print(f"🔍 EXTRACTION CHECK: Primary Insurance = '{primary_ins}'")
+        print(f"🔍 EXTRACTION CHECK: Secondary Insurance = '{secondary_ins}'")
+        print(f"🔍 EXTRACTION CHECK: ICD-10 Code = '{icd_code}'")
+        print(f"🔍 EXTRACTION CHECK: Facility Type = '{facility}'")
         
         # Create unique external ID for RMBB case linking
         external_id = f"ghl_contact_{contact_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
