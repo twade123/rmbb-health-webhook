@@ -1164,7 +1164,7 @@ Effective Date: {ivr_data['effective_date']}
                 raise
             
             # Step 2: Submit to RMBB Health with external_id linking back to GHL
-            rmbb_result = self.submit_to_rmbb_health(external_id, contact_id, patient_data)
+            rmbb_result = self.submit_to_rmbb_health(external_id, contact_id, location_id, patient_data)
             if isinstance(rmbb_result, dict) and not rmbb_result.get("success", True):
                 # Case or patient creation failed
                 print(f"❌ RMBB Health submission failed: {rmbb_result['error']}")
