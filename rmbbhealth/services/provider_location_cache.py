@@ -284,29 +284,34 @@ class ProviderLocationCache:
                 
             provider_key = self._normalize_provider_name(business_name)
             
-            with self.lock:
-                if provider_key not in self.cache:
-                    # New provider - add it
+            # Check if provider exists (without lock first)
+            provider_exists = provider_key in self.cache
+            
+            if not provider_exists:
+                # New provider - add it (add_or_update_provider handles its own locking)
+                self.add_or_update_provider(
+                    provider_name=business_name,
+                    location_id=location_id,
+                    increment_submissions=False  # Don't increment for bulk updates
+                )
+                stats["new_providers"] += 1
+            else:
+                # Existing provider - check if location_id changed
+                needs_update = False
+                with self.lock:
+                    existing = self.cache[provider_key]
+                    if existing["location_id"] != location_id:
+                        needs_update = True
+                    else:
+                        stats["unchanged_providers"] += 1
+                
+                if needs_update:
                     self.add_or_update_provider(
                         provider_name=business_name,
                         location_id=location_id,
-                        increment_submissions=False  # Don't increment for bulk updates
+                        increment_submissions=False
                     )
-                    stats["new_providers"] += 1
-                else:
-                    # Existing provider - check if location_id changed
-                    existing = self.cache[provider_key]
-                    if existing["location_id"] != location_id:
-                        # Location changed - update it
-                        self.add_or_update_provider(
-                            provider_name=business_name,
-                            location_id=location_id,
-                            increment_submissions=False
-                        )
-                        stats["updated_providers"] += 1
-                    else:
-                        # No changes
-                        stats["unchanged_providers"] += 1
+                    stats["updated_providers"] += 1
         
         print(f"📊 Incremental update: +{stats['new_providers']} new, ~{stats['updated_providers']} updated, ={stats['unchanged_providers']} unchanged")
         return stats
