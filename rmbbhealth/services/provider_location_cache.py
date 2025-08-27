@@ -367,8 +367,10 @@ def get_provider_cache():
     if _cache_instance is None:
         with _cache_lock:
             if _cache_instance is None:
-                # Use Railway-friendly cache file path
-                cache_path = os.getenv('PROVIDER_CACHE_PATH', 'provider_locations.json')
+                # Use absolute path to GitHub repository file for persistence
+                # This ensures the cache persists in the repository where API keys can be manually added
+                default_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'provider_locations.json')
+                cache_path = os.getenv('PROVIDER_CACHE_PATH', default_path)
                 _cache_instance = ProviderLocationCache(cache_path)
     
     return _cache_instance
