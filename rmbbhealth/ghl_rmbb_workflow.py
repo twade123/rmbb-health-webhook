@@ -622,7 +622,7 @@ Effective Date: {ivr_data['effective_date']}
         # Biologic Product Fields - Using your exact field names from GHL webhook template
         amniomaxx_q4239 = (webhook_payload.get('amniomaxx_(q4239)_units/cm2') or '').strip()
         palingen_q4173 = (webhook_payload.get('palingen_(q4173)_units/cm2') or '').strip()
-        membrane_wrap_trilayer_q4344 = (webhook_payload.get('membrane_wrap_tri-layer_(q4344)_units/cm2') or '').strip()
+        membrane_wrap_trilayer_q4205 = (webhook_payload.get('membrane_wrap_tri-layer_(q4205)_units/cm2') or '').strip()
         amnioamp_mp_q4250 = (webhook_payload.get('amnioamp-mp_(q4250)_units/cm2') or '').strip()
         membrane_wrap_hydro_q4290 = (webhook_payload.get('membrane_wrap_hydro_(q4290)_units/cm2') or '').strip()
         biovance_q4154 = (webhook_payload.get('biovance_(q4154)_units/cm2') or '').strip()
@@ -682,7 +682,7 @@ Effective Date: {ivr_data['effective_date']}
             # Biologic Product Fields (units/cm2)
             "amniomaxx_q4239": amniomaxx_q4239,
             "palingen_q4173": palingen_q4173,
-            "membrane_wrap_trilayer_q4344": membrane_wrap_trilayer_q4344,
+            "membrane_wrap_trilayer_q4205": membrane_wrap_trilayer_q4205,
             "amnioamp_mp_q4250": amnioamp_mp_q4250,
             "membrane_wrap_hydro_q4290": membrane_wrap_hydro_q4290,
             "biovance_q4154": biovance_q4154,
@@ -774,7 +774,7 @@ Effective Date: {ivr_data['effective_date']}
             "cpt_surgery_code": form_data.get("cpt_surgery_code", ""),
             "surgery_date": form_data.get("expected_date_of_service", ""),  # Map expected_date_of_service to surgery_date
             "icd_10_code": form_data.get("icd_10_code", ""),
-            "product_cpt_code": "15271-8" if product_info["primary_product"] else "",
+            "product_cpt_code": self.RMBB_CPT_CODE if product_info["primary_product"] else "",
         }
         
         # Primary Insurance (matches rmbbhealth.txt structure) - using actual GHL payload fields
@@ -831,7 +831,7 @@ Effective Date: {ivr_data['effective_date']}
             "cpt_surgery_code": form_data.get("cpt_surgery_code", ""),
             "surgery_date": form_data.get("expected_date_of_service", ""),
             "icd_10_code": form_data.get("icd_10_code", ""),
-            "product_cpt_code": "15271-8"  # Default, could be product-specific
+            "product_cpt_code": self.RMBB_CPT_CODE  # All products use same CPT code
         }
         
         # Add insurance data (same for all products) - using actual GHL payload fields
@@ -865,22 +865,43 @@ Effective Date: {ivr_data['effective_date']}
         
         return case_data
     
+    # CPT Code constant - all products use the same CPT code
+    RMBB_CPT_CODE = "15271-8"
+    
     def get_product_id_for_product(self, product):
         """
         Get RMBB Health product_id for a specific product
+        Environment-specific mappings (Test vs Production have different IDs)
         """
-        q_code_to_product_id = {
-            "Q4239": 229,  # amniomaxx → Amnio-Maxx
-            "Q4250": 230,  # amnioamp-mp → AmnioAMP-MP
-            "Q4290": 99,   # membrane_wrap_hydro → Membrane Wrap-Hydro
-            "Q4344": 98,   # membrane_wrap_tri-layer → Membrane Wrap
-            "Q4154": 232,  # biovance → Biovance
-            "Q4280": 237,  # xcell_amnio_matrix → Xcell Amnio Matrix
-            # Products not available in RMBB Health - using default Membrane Wrap (ID 98)
-            "Q4173": 98,   # palingen → Default: Membrane Wrap
-            "Q4316": 98,   # amchoplast → Default: Membrane Wrap
-            "Q4164": 98    # helicoll → Default: Membrane Wrap
-        }
+        # Detect environment based on team_id
+        is_production = self.rmbb_team_id == 59  # Production team ID
+        
+        if is_production:
+            # PRODUCTION Environment (Team ID: 59) - Original IDs
+            q_code_to_product_id = {
+                "Q4239": 229,  # amniomaxx → Amnio-Maxx
+                "Q4250": 230,  # amnioamp-mp → AmnioAMP-MP
+                "Q4290": 99,   # membrane_wrap_hydro → Membrane Wrap-Hydro
+                "Q4205": 98,   # membrane_wrap_tri-layer → Membrane Wrap
+                "Q4154": 232,  # biovance → Biovance
+                "Q4280": 237,  # xcell_amnio_matrix → Xcell Amnio Matrix
+                "Q4173": 341,  # palingen → PalinGen
+                "Q4316": 343,  # amchoplast → AmchoPlast
+                "Q4164": 342   # helicoll → Helicoll
+            }
+        else:
+            # TEST/DEVELOPMENT Environment (Team ID: 85) - Updated IDs
+            q_code_to_product_id = {
+                "Q4239": 364,  # amniomaxx → Amnio-Maxx
+                "Q4250": 365,  # amnioamp-mp → AmnioAMP-MP
+                "Q4290": 362,  # membrane_wrap_hydro → Membrane Wrap-Hydro
+                "Q4205": 361,  # membrane_wrap_tri-layer → Membrane Wrap
+                "Q4154": 367,  # biovance → Biovance
+                "Q4280": 372,  # xcell_amnio_matrix → Xcell Amnio Matrix
+                "Q4173": 373,  # palingen → PalinGen
+                "Q4316": 375,  # amchoplast → AmchoPlast
+                "Q4164": 374   # helicoll → Helicoll
+            }
         
         q_code = product["product_id"]
         numeric_product_id = q_code_to_product_id.get(q_code, 98)  # Default to Membrane Wrap (98) if not found
@@ -892,19 +913,18 @@ Effective Date: {ivr_data['effective_date']}
         """
         Get HCPCS Q-code for a specific product - required by RMBB Health API
         Maps the Q-codes from GHL form to actual HCPCS codes for RMBB Health
+        Updated with correct HCPCS codes from RMBB API
         """
         q_code_to_hcpcs = {
             "Q4239": "Q4239",  # amniomaxx
             "Q4250": "Q4250",  # amnioamp-mp  
             "Q4290": "Q4290",  # membrane_wrap_hydro
-            "Q4344": "Q4344",  # membrane_wrap_tri-layer
+            "Q4205": "Q4205",  # membrane_wrap_tri-layer (corrected from Q4344)
             "Q4154": "Q4154",  # biovance
             "Q4280": "Q4280",  # xcell_amnio_matrix
             "Q4173": "Q4173",  # palingen
             "Q4316": "Q4316",  # amchoplast
             "Q4164": "Q4164",  # helicoll
-            # The test environment only has Q4301 (Activate Matrix)
-            "Q4301": "Q4301"   # activate_matrix → Only valid product in test environment
         }
         
         q_code = product["product_id"]  # This is the Q-code from GHL form (e.g., "Q4239")
@@ -937,7 +957,7 @@ Effective Date: {ivr_data['effective_date']}
         products = {
             "amniomaxx_q4239": {"name": "Amniomaxx", "product_id": "Q4239"},
             "palingen_q4173": {"name": "Palingen", "product_id": "Q4173"},
-            "membrane_wrap_trilayer_q4344": {"name": "Membrane Wrap Tri-Layer", "product_id": "Q4344"},
+            "membrane_wrap_trilayer_q4205": {"name": "Membrane Wrap Tri-Layer", "product_id": "Q4205"},
             "amnioamp_mp_q4250": {"name": "AmnioAmp-MP", "product_id": "Q4250"},
             "membrane_wrap_hydro_q4290": {"name": "Membrane Wrap Hydro", "product_id": "Q4290"},
             "biovance_q4154": {"name": "Biovance", "product_id": "Q4154"},
@@ -982,19 +1002,35 @@ Effective Date: {ivr_data['effective_date']}
             # No product selected, use default Membrane Wrap (ID 98)
             return int(os.getenv('RMBB_PRODUCT_ID', '98'))
         
-        # Map Q-codes to actual RMBB Health numeric product IDs
-        q_code_to_product_id = {
-            "Q4239": 229,  # amniomaxx → Amnio-Maxx
-            "Q4250": 230,  # amnioamp-mp → AmnioAMP-MP
-            "Q4290": 99,   # membrane_wrap_hydro → Membrane Wrap-Hydro
-            "Q4344": 98,   # membrane_wrap_tri-layer → Membrane Wrap
-            "Q4154": 232,  # biovance → Biovance
-            "Q4280": 237,  # xcell_amnio_matrix → Xcell Amnio Matrix
-            # Products not available in RMBB Health - using default Membrane Wrap (ID 98)
-            "Q4173": 98,   # palingen → Default: Membrane Wrap
-            "Q4316": 98,   # amchoplast → Default: Membrane Wrap
-            "Q4164": 98    # helicoll → Default: Membrane Wrap
-        }
+        # Environment-specific product ID mappings
+        is_production = self.rmbb_team_id == 59  # Production team ID
+        
+        if is_production:
+            # PRODUCTION Environment (Team ID: 59) - Original IDs
+            q_code_to_product_id = {
+                "Q4239": 229,  # amniomaxx → Amnio-Maxx
+                "Q4250": 230,  # amnioamp-mp → AmnioAMP-MP
+                "Q4290": 99,   # membrane_wrap_hydro → Membrane Wrap-Hydro
+                "Q4205": 98,   # membrane_wrap_tri-layer → Membrane Wrap
+                "Q4154": 232,  # biovance → Biovance
+                "Q4280": 237,  # xcell_amnio_matrix → Xcell Amnio Matrix
+                "Q4173": 341,  # palingen → PalinGen
+                "Q4316": 343,  # amchoplast → AmchoPlast
+                "Q4164": 342   # helicoll → Helicoll
+            }
+        else:
+            # TEST/DEVELOPMENT Environment (Team ID: 85) - Updated IDs
+            q_code_to_product_id = {
+                "Q4239": 364,  # amniomaxx → Amnio-Maxx
+                "Q4250": 365,  # amnioamp-mp → AmnioAMP-MP
+                "Q4290": 362,  # membrane_wrap_hydro → Membrane Wrap-Hydro
+                "Q4205": 361,  # membrane_wrap_tri-layer → Membrane Wrap
+                "Q4154": 367,  # biovance → Biovance
+                "Q4280": 372,  # xcell_amnio_matrix → Xcell Amnio Matrix
+                "Q4173": 373,  # palingen → PalinGen
+                "Q4316": 375,  # amchoplast → AmchoPlast
+                "Q4164": 374   # helicoll → Helicoll
+            }
         
         q_code = product_info["primary_product"]["product_id"]
         numeric_product_id = q_code_to_product_id.get(q_code, 98)  # Default to Membrane Wrap (98) if not found
