@@ -2,6 +2,8 @@
 import json
 import os
 import threading
+import requests
+import base64
 from datetime import datetime
 from pathlib import Path
 
@@ -46,6 +48,8 @@ class ProviderLocationCache:
             # Also save to GitHub-friendly location if we can detect we're in Railway
             if '/app' in str(self.cache_file):
                 self._save_to_github_format()
+                # Attempt automated GitHub commit if credentials are available
+                self._commit_to_github()
         except Exception as e:
             print(f"❌ Error saving cache: {e}")
     
@@ -58,13 +62,35 @@ class ProviderLocationCache:
                 "providers": {}
             }
             
+            # Get global case mappings for reference
+            global_case_mappings = self.cache.get("case_mappings", {})
+            
             for key, data in self.cache.items():
+                # Skip the global case_mappings entry
+                if key == "case_mappings":
+                    continue
+                    
+                # Build case mappings for this provider from global mappings
+                provider_case_mappings = {}
+                case_ids = data.get("case_ids", [])
+                
+                for case_id in case_ids:
+                    if str(case_id) in global_case_mappings:
+                        mapping = global_case_mappings[str(case_id)]
+                        provider_case_mappings[str(case_id)] = {
+                            "contact_id": mapping.get("contact_id"),
+                            "location_id": mapping.get("location_id"),
+                            "provider_name": mapping.get("provider_name"),
+                            "external_id": mapping.get("external_id"),
+                            "created": mapping.get("created")
+                        }
+                
                 github_format["providers"][key] = {
                     "original_name": data.get("original_name", key),
                     "location_id": data.get("location_id"),
                     "sub_account_api_key": data.get("sub_account_api_key"),
                     "api_key_status": data.get("api_key_status", "pending_manual_entry"),
-                    "case_mappings": data.get("case_mappings", {}),
+                    "case_mappings": provider_case_mappings,
                     "form_submissions": data.get("form_submissions", 0),
                     "first_seen": data.get("first_seen"),
                     "last_updated": data.get("last_updated")
@@ -79,6 +105,107 @@ class ProviderLocationCache:
             
         except Exception as e:
             print(f"⚠️ Error formatting for GitHub: {e}")
+    
+    def _commit_to_github(self):
+        """Automatically commit cache to GitHub repository if credentials are available"""
+        try:
+            # Check for required environment variables
+            github_token = os.getenv('GITHUB_TOKEN')
+            repo_owner = os.getenv('GITHUB_REPO_OWNER') 
+            repo_name = os.getenv('GITHUB_REPO_NAME')
+            file_path = 'provider_locations.json'  # Path in repository
+            
+            if not all([github_token, repo_owner, repo_name]):
+                print("📝 GitHub credentials not configured - using manual copy method")
+                return
+                
+            # Create the GitHub-ready content
+            github_format = {
+                "last_updated": datetime.now().isoformat(),
+                "providers": {}
+            }
+            
+            global_case_mappings = self.cache.get("case_mappings", {})
+            
+            for key, data in self.cache.items():
+                if key == "case_mappings":
+                    continue
+                    
+                provider_case_mappings = {}
+                case_ids = data.get("case_ids", [])
+                
+                for case_id in case_ids:
+                    if str(case_id) in global_case_mappings:
+                        mapping = global_case_mappings[str(case_id)]
+                        provider_case_mappings[str(case_id)] = {
+                            "contact_id": mapping.get("contact_id"),
+                            "location_id": mapping.get("location_id"),
+                            "provider_name": mapping.get("provider_name"),
+                            "external_id": mapping.get("external_id"),
+                            "created": mapping.get("created")
+                        }
+                
+                github_format["providers"][key] = {
+                    "original_name": data.get("original_name", key),
+                    "location_id": data.get("location_id"),
+                    "sub_account_api_key": data.get("sub_account_api_key"),
+                    "api_key_status": data.get("api_key_status", "pending_manual_entry"),
+                    "case_mappings": provider_case_mappings,
+                    "form_submissions": data.get("form_submissions", 0),
+                    "first_seen": data.get("first_seen"),
+                    "last_updated": data.get("last_updated")
+                }
+            
+            # Convert to JSON string
+            content_json = json.dumps(github_format, indent=2, default=str)
+            
+            # GitHub API setup
+            api_url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/contents/{file_path}"
+            headers = {
+                "Authorization": f"token {github_token}",
+                "Accept": "application/vnd.github.v3+json"
+            }
+            
+            # Get current file SHA (required for updates)
+            try:
+                response = requests.get(api_url, headers=headers)
+                if response.status_code == 200:
+                    current_file = response.json()
+                    current_sha = current_file['sha']
+                    print(f"🔍 Found existing file with SHA: {current_sha[:8]}...")
+                else:
+                    current_sha = None
+                    print(f"📝 File doesn't exist, will create new file")
+            except Exception as e:
+                print(f"⚠️ Could not check existing file: {e}")
+                current_sha = None
+            
+            # Prepare commit data
+            commit_data = {
+                "message": f"Update provider cache - {len(self.cache)} providers, {len(global_case_mappings)} cases",
+                "content": base64.b64encode(content_json.encode()).decode(),
+                "branch": "main"
+            }
+            
+            if current_sha:
+                commit_data["sha"] = current_sha
+            
+            # Commit to GitHub
+            response = requests.put(api_url, headers=headers, json=commit_data)
+            
+            if response.status_code in [200, 201]:
+                commit_info = response.json()
+                commit_sha = commit_info['commit']['sha'][:8]
+                print(f"✅ Successfully committed to GitHub!")
+                print(f"🔗 Commit: {commit_sha}")
+                print(f"📄 File: {file_path}")
+                print(f"📊 Data: {len(github_format['providers'])} providers")
+            else:
+                print(f"❌ GitHub commit failed: {response.status_code}")
+                print(f"📋 Response: {response.text}")
+                
+        except Exception as e:
+            print(f"⚠️ Error committing to GitHub: {e}")
     
     def add_or_update_provider(self, provider_name, location_id, contact_id=None, increment_submissions=True):
         """
