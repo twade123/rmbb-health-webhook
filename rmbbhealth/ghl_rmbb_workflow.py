@@ -936,9 +936,9 @@ Effective Date: {ivr_data['effective_date']}
         Get RMBB account_location_id from Railway environment variables
         No fallback - must be set in Railway environment
         """
-        account_location_id = os.getenv('RMBB_ACCOUNT_LOCATION_ID')
+        account_location_id = os.getenv('RMBB_LOCATION_ID')
         if not account_location_id:
-            raise ValueError("RMBB_ACCOUNT_LOCATION_ID environment variable is required")
+            raise ValueError("RMBB_LOCATION_ID environment variable is required")
         return int(account_location_id)
     
     def get_physician_id(self, provider_name):
