@@ -113,7 +113,7 @@ class ProviderLocationCache:
             github_token = os.getenv('GITHUB_TOKEN')
             repo_owner = os.getenv('GITHUB_REPO_OWNER') 
             repo_name = os.getenv('GITHUB_REPO_NAME')
-            file_path = 'provider_locations.json'  # Path in repository
+            file_path = 'rmbbhealth/provider_locations.json'  # Path in repository
             
             if not all([github_token, repo_owner, repo_name]):
                 print("📝 GitHub credentials not configured - using manual copy method")
