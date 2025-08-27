@@ -42,9 +42,43 @@ class ProviderLocationCache:
             with open(self.cache_file, 'w') as f:
                 json.dump(self.cache, f, indent=2, default=str)
             print(f"💾 Saved provider cache with {len(self.cache)} providers")
-            print(f"📁 Cache file saved to: {self.cache_file.absolute()}")
+            
+            # Also save to GitHub-friendly location if we can detect we're in Railway
+            if '/app' in str(self.cache_file):
+                self._save_to_github_format()
         except Exception as e:
             print(f"❌ Error saving cache: {e}")
+    
+    def _save_to_github_format(self):
+        """Save cache in a format that can be manually copied to GitHub"""
+        try:
+            # Create a formatted version for manual copying
+            github_format = {
+                "last_updated": datetime.now().isoformat(),
+                "providers": {}
+            }
+            
+            for key, data in self.cache.items():
+                github_format["providers"][key] = {
+                    "original_name": data.get("original_name", key),
+                    "location_id": data.get("location_id"),
+                    "sub_account_api_key": data.get("sub_account_api_key"),
+                    "api_key_status": data.get("api_key_status", "pending_manual_entry"),
+                    "case_mappings": data.get("case_mappings", {}),
+                    "form_submissions": data.get("form_submissions", 0),
+                    "first_seen": data.get("first_seen"),
+                    "last_updated": data.get("last_updated")
+                }
+            
+            # Print formatted JSON for manual copying
+            print("🔗 GITHUB CACHE UPDATE REQUIRED:")
+            print("📋 Copy the following to your GitHub provider_locations.json file:")
+            print("=" * 60)
+            print(json.dumps(github_format, indent=2, default=str))
+            print("=" * 60)
+            
+        except Exception as e:
+            print(f"⚠️ Error formatting for GitHub: {e}")
     
     def add_or_update_provider(self, provider_name, location_id, contact_id=None, increment_submissions=True):
         """
@@ -372,9 +406,6 @@ def get_provider_cache():
                 # This ensures the cache persists in the repository where API keys can be manually added
                 default_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'provider_locations.json')
                 cache_path = os.getenv('PROVIDER_CACHE_PATH', default_path)
-                print(f"🔍 DEBUG - Cache file path: {cache_path}")
-                print(f"🔍 DEBUG - Working directory: {os.getcwd()}")
-                print(f"🔍 DEBUG - __file__ location: {__file__}")
                 _cache_instance = ProviderLocationCache(cache_path)
     
     return _cache_instance
