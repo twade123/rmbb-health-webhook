@@ -42,6 +42,7 @@ class ProviderLocationCache:
             with open(self.cache_file, 'w') as f:
                 json.dump(self.cache, f, indent=2, default=str)
             print(f"💾 Saved provider cache with {len(self.cache)} providers")
+            print(f"📁 Cache file saved to: {self.cache_file.absolute()}")
         except Exception as e:
             print(f"❌ Error saving cache: {e}")
     
@@ -371,6 +372,9 @@ def get_provider_cache():
                 # This ensures the cache persists in the repository where API keys can be manually added
                 default_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'provider_locations.json')
                 cache_path = os.getenv('PROVIDER_CACHE_PATH', default_path)
+                print(f"🔍 DEBUG - Cache file path: {cache_path}")
+                print(f"🔍 DEBUG - Working directory: {os.getcwd()}")
+                print(f"🔍 DEBUG - __file__ location: {__file__}")
                 _cache_instance = ProviderLocationCache(cache_path)
     
     return _cache_instance
