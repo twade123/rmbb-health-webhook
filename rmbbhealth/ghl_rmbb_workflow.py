@@ -1169,26 +1169,44 @@ Effective Date: {ivr_data['effective_date']}
         return self.ghl_headers, location_id
 
     def verify_ghl_contact_exists(self, contact_id, location_id=None, provider_name=None):
-        """Verify GHL contact exists before trying to update it"""
-        # Get provider-specific headers and location
+        """Verify GHL contact exists using non-location-scoped endpoint (V1 API limitation)"""
+        # Get provider-specific headers for API key
         headers_result = self._get_provider_headers(provider_name, location_id)
         if isinstance(headers_result, tuple):
-            headers, location_id = headers_result
+            headers, cached_location_id = headers_result
+            # Use cached location_id if we didn't have one
+            location_id = location_id or cached_location_id
         else:
             headers = headers_result
         
-        if location_id:
-            url = f"{self.ghl_base_url}/locations/{location_id}/contacts/{contact_id}"
-        else:
-            url = f"{self.ghl_base_url}/contacts/{contact_id}"
+        # Use non-location-scoped endpoint for verification (V1 API doesn't support location-scoped GET)
+        url = f"{self.ghl_base_url}/contacts/{contact_id}"
         
         try:
             response = requests.get(url, headers=headers)
             if response.status_code == 200:
-                logging.info(f"✅ Contact {contact_id} exists in location {location_id}")
-                return {"exists": True, "data": response.json()}
+                contact_data = response.json()
+                
+                # Extract the actual location from response
+                if 'contact' in contact_data:
+                    actual_location_id = contact_data['contact'].get('locationId')
+                    logging.info(f"✅ Contact {contact_id} exists in location {actual_location_id}")
+                    
+                    # Verify it's in the expected location if we have one
+                    if location_id and actual_location_id != location_id:
+                        logging.warning(f"⚠️ Contact found but in different location. Expected: {location_id}, Actual: {actual_location_id}")
+                    
+                    return {
+                        "exists": True, 
+                        "data": contact_data,
+                        "actual_location_id": actual_location_id
+                    }
+                else:
+                    logging.info(f"✅ Contact {contact_id} exists")
+                    return {"exists": True, "data": contact_data}
+                    
             elif response.status_code == 404:
-                logging.warning(f"⚠️ Contact {contact_id} not found in location {location_id}")
+                logging.warning(f"⚠️ Contact {contact_id} not found")
                 return {"exists": False, "error": "Contact not found"}
             else:
                 logging.error(f"❌ Error verifying contact: {response.status_code} - {response.text}")
