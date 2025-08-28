@@ -1087,12 +1087,43 @@ Effective Date: {ivr_data['effective_date']}
             print(f"❌ {error_msg}")
             return {"success": False, "error": error_msg}
     
-    def update_ghl_contact(self, contact_id, update_data, location_id=None):
-        """Update GHL contact using V1 API - based on complete_subaccount_creation.py patterns"""
+    def verify_ghl_contact_exists(self, contact_id, location_id=None):
+        """Verify GHL contact exists before trying to update it"""
         if location_id:
             url = f"{self.ghl_base_url}/locations/{location_id}/contacts/{contact_id}"
         else:
-            # Fallback to old format if no location_id provided (may still fail)
+            url = f"{self.ghl_base_url}/contacts/{contact_id}"
+        
+        try:
+            response = requests.get(url, headers=self.ghl_headers)
+            if response.status_code == 200:
+                logging.info(f"✅ Contact {contact_id} exists in location {location_id}")
+                return {"exists": True, "data": response.json()}
+            elif response.status_code == 404:
+                logging.warning(f"⚠️ Contact {contact_id} not found in location {location_id}")
+                return {"exists": False, "error": "Contact not found"}
+            else:
+                logging.error(f"❌ Error verifying contact: {response.status_code} - {response.text}")
+                return {"exists": False, "error": f"API error: {response.status_code}"}
+        except Exception as e:
+            logging.error(f"❌ Exception verifying contact: {str(e)}")
+            return {"exists": False, "error": str(e)}
+
+    def update_ghl_contact(self, contact_id, update_data, location_id=None):
+        """Update GHL contact using V1 API with verification first"""
+        
+        # First verify the contact exists
+        verification = self.verify_ghl_contact_exists(contact_id, location_id)
+        if not verification["exists"]:
+            # If contact doesn't exist, log but continue workflow (non-critical error)
+            logging.warning(f"⚠️ Cannot update contact {contact_id}: {verification['error']}")
+            logging.info(f"🔄 Workflow will continue - contact update is not critical for RMBB processing")
+            return {"success": False, "error": f"Contact verification failed: {verification['error']}", "non_critical": True}
+        
+        # Contact exists, proceed with update
+        if location_id:
+            url = f"{self.ghl_base_url}/locations/{location_id}/contacts/{contact_id}"
+        else:
             url = f"{self.ghl_base_url}/contacts/{contact_id}"
         
         logging.info(f"📝 Updating GHL contact {contact_id}")
