@@ -318,7 +318,7 @@ RMBB_API_KEY=b6XGPVd0MpxXOAtvqZqEdP5gwoa7wha0  # Development
 RMBB_TEAM_ID=85                                   # Development  
 RMBB_PHYSICIAN_ID=8077
 RMBB_ACCOUNT_ID=2921
-RMBB_ACCOUNT_LOCATION_ID=4195
+RMBB_LOCATION_ID=4195
 
 # GHL API Configuration (Dual Token Architecture)
 GHL_AGENCY_API_KEY=your_agency_token_here         # Sub-account discovery
