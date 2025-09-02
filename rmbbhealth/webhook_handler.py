@@ -1108,12 +1108,12 @@ def handle_rmbb_status_webhook():
         # Check for manually entered sub account API key first
         from services.provider_location_cache import get_provider_cache
         provider_cache = get_provider_cache()
-        sub_account_api_key = provider_cache.get_sub_account_api_key_by_location_id(ghl_location_id)
+        sub_account_api_key = provider_cache.get_sub_account_api_key_by_location_id(location_id)
         
         if sub_account_api_key:
             # Use direct GHL API v1 call with sub account API key
-            logging.info(f"🔑 Using manually entered sub account API key for location {ghl_location_id}")
-            contact_update_result = update_ghl_contact_direct(ghl_contact_id, ghl_location_id, sub_account_api_key, ivr_tracking_update)
+            logging.info(f"🔑 Using manually entered sub account API key for location {location_id}")
+            contact_update_result = update_ghl_contact_direct(ghl_contact_id, location_id, sub_account_api_key, ivr_tracking_update)
         else:
             # Fallback to current agency-level API
             logging.info(f"⚠️ No sub account API key found - using agency-level API fallback")
@@ -1139,7 +1139,7 @@ def handle_rmbb_status_webhook():
                 # Use the _add_contact_tag method from workflow handler
                 tag_success = workflow_handler._add_contact_tag(
                     contact_id=ghl_contact_id,
-                    location_id=ghl_location_id, 
+                    location_id=location_id, 
                     api_key=sub_account_api_key,
                     tag_name=tag
                 )
