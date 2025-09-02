@@ -1606,6 +1606,8 @@ if __name__ == '__main__':
     logging.info(f"⚙️ Server binding: {WebhookConfig.HOST}:{WebhookConfig.PORT}")
     logging.info("📡 Listening for GHL qualification webhooks")
     logging.info(f"🔗 Main endpoint: http://{WebhookConfig.HOST}:{WebhookConfig.PORT}/webhook/ghl-rmbb-qualification")
+    logging.info(f"📋 RMBB status update: http://{WebhookConfig.HOST}:{WebhookConfig.PORT}/webhook/rmbb-status-update")
+    logging.info(f"🔄 GHL reorder: http://{WebhookConfig.HOST}:{WebhookConfig.PORT}/webhook/ghl-reorder")
     logging.info(f"🧪 Test endpoint: http://{WebhookConfig.HOST}:{WebhookConfig.PORT}/webhook/test")
     logging.info(f"❤️ Health check: http://{WebhookConfig.HOST}:{WebhookConfig.PORT}/health")
     logging.info("=" * 60)
