@@ -175,9 +175,6 @@ class GHLRMBBWorkflowHandler:
             print(f"⚠️ WARNING: Missing provider_name or location_id - RMBB response routing will fail!")
             print(f"   provider_name: {provider_name}, location_id: {location_id}")
         
-        # Extract wound size cm² from selected product in webhook payload
-        wound_size_cm2 = product_info.get('total_cm2', 0) if product_info.get('primary_product') else 0
-        wound_size_data = f"{wound_size_cm2} cm²" if wound_size_cm2 > 0 else ""
         
         # Store initial tracking data in GHL contact custom fields
         initial_tracking_data = {
@@ -187,8 +184,7 @@ class GHLRMBBWorkflowHandler:
                 {"id": "drfCODR4HhoKeI3eoH6J", "value": datetime.now().isoformat()},  # rmbb_submission_date
                 {"id": "XueHehokZYjJSvWGzjfk", "value": f"{patient_form_data.get('first_name', '')} {patient_form_data.get('last_name', '')}"},  # rmbb_patient_name
                 {"id": "tLNZ4EYxxXUO9HrDpkl5", "value": patient_form_data.get('wound_type', '')},  # rmbb_wound_type
-                {"id": "FoqW1DyrjW6WtsoPflFZ", "value": patient_form_data.get('primary_insurance_name', '')},  # rmbb_primary_insurance
-                {"id": "XQLSYwSOodHOBrqv8oz0", "value": wound_size_data}  # rmbb_wound_size_coverage_calculator (initial wound size)
+                {"id": "FoqW1DyrjW6WtsoPflFZ", "value": patient_form_data.get('primary_insurance_name', '')}  # rmbb_primary_insurance
             ]
         }
         
@@ -271,6 +267,24 @@ class GHLRMBBWorkflowHandler:
         # Extract selected products
         product_info = self.extract_selected_biologic_product(patient_form_data)
         selected_products = product_info["selected_products"]
+        
+        # Save wound size to GHL custom field for later use during APPROVED status
+        wound_size_cm2 = product_info.get('total_cm2', 0) if product_info.get('primary_product') else 0
+        wound_size_data = f"{wound_size_cm2} cm²" if wound_size_cm2 > 0 else ""
+        
+        if wound_size_data:
+            wound_size_update = {
+                "customField": [
+                    {"id": "XQLSYwSOodHOBrqv8oz0", "value": wound_size_data}  # rmbb_wound_size_coverage_calculator
+                ]
+            }
+            
+            # Update contact with wound size data
+            wound_size_update_result = self.update_ghl_contact(contact_id, wound_size_update)
+            if wound_size_update_result["success"]:
+                print(f"✅ Saved wound size ({wound_size_data}) to rmbb_wound_size_coverage_calculator field")
+            else:
+                print(f"⚠️ Warning: Failed to save wound size: {wound_size_update_result.get('error')}")
         
         print(f"\n🔗 Creating {len(selected_products)} cases for selected products...")
         print(f"🔗 Case external_id base: {external_id} (links to GHL contact {contact_id})")
