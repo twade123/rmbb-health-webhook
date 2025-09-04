@@ -1,61 +1,50 @@
 {
-  "cell products": {
-    "original_name": "Cell Products",
-    "location_id": "8TqOPAp8LsoumOck7phX",
-    "sub_account_api_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsb2NhdGlvbl9pZCI6IlNxYmV4ajU0bnZzeE9JNFY3U3NEIiwidmVyc2lvbiI6MSwiaWF0IjoxNzUzMDI5MTMxMjU1LCJzdWIiOiI3MTJEQzhBY2NGaUo5Vmt5aFJqWCJ9.1JSN3gbOtcGBEvs-shLfBqbTKil-xXQCgMZarjBDyIU",
-    "api_key_status": "entered",
-    "case_mappings": {
-      "53330": {
-        "contact_id": "5Qk42EBFVX3OJaxmYKOK",
-        "location_id": "Sqbexj54nvsxOI4V7SsD",
-        "provider_name": "Cell Products",
-        "external_id": "ghl_contact_5Qk42EBFVX3OJaxmYKOK_20250827_183035_Q4239",
-        "created": "2025-08-27T18:30:37.485680"
-      }
+  "last_updated": "2025-09-04T15:36:41.058828",
+  "providers": {
+    "cell products": {
+      "original_name": "Cell Products",
+      "location_id": "8TqOPAp8LsoumOck7phX",
+      "sub_account_api_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsb2NhdGlvbl9pZCI6IlNxYmV4ajU0bnZzeE9JNFY3U3NEIiwidmVyc2lvbiI6MSwiaWF0IjoxNzUzMDI5MTMxMjU1LCJzdWIiOiI3MTJEQzhBY2NGaUo5Vmt5aFJqWCJ9.1JSN3gbOtcGBEvs-shLfBqbTKil-xXQCgMZarjBDyIU",
+      "api_key_status": "entered",
+      "case_mappings": {
+        "53330": {
+          "contact_id": "9ycwwscO60MGHiTTBDzo",
+          "location_id": "Sqbexj54nvsxOI4V7SsD",
+          "provider_name": "Cell Products",
+          "external_id": "ghl_contact_5Qk42EBFVX3OJaxmYKOK_20250827_183035_Q4239",
+          "created": "2025-08-28T11:05:46.980678"
+        },
+        "53270": {
+          "contact_id": "9ycwwscO60MGHiTTBDzo",
+          "location_id": "Sqbexj54nvsxOI4V7SsD",
+          "provider_name": "Cell Products",
+          "external_id": "ghl_contact_QPRoC5cRrXs8EMVFNGdX_20250827_153344_Q4316",
+          "created": "2025-08-29T16:00:00.000000"
+        }
+      },
+      "form_submissions": 2,
+      "first_seen": "2025-08-27T18:30:33.408240",
+      "last_updated": "2025-08-28T12:55:24.206175"
     },
-    "form_submissions": 2,
-    "first_seen": "2025-08-27T18:30:33.408240",
-    "last_updated": "2025-08-28T12:55:24.206175",
-    "case_ids": [
-      "53330",
-      "53270"
-    ],
-    "sample_contact_id": "9ycwwscO60MGHiTTBDzo"
-  },
-  "cell products agency account": {
-    "original_name": "Cell Products Agency Account ",
-    "location_id": "10SapwdFnQK3Kwqp5ecv",
-    "sub_account_api_key": null,
-    "api_key_status": "pending_manual_entry",
-    "case_mappings": {},
-    "form_submissions": 0,
-    "first_seen": "2025-08-27T18:30:34.238454",
-    "last_updated": "2025-08-27T18:30:34.238467"
-  },
-  "case_mappings": {
-    "53330": {
-      "case_id": "53330",
-      "provider_name": "Cell Products",
-      "provider_key": "cell products",
-      "contact_id": "9ycwwscO60MGHiTTBDzo",
-      "location_id": "Sqbexj54nvsxOI4V7SsD",
-      "external_id": "ghl_contact_5Qk42EBFVX3OJaxmYKOK_20250827_183035_Q4239",
-      "created": "2025-08-28T11:05:46.980678"
+    "cell products agency account": {
+      "original_name": "Cell Products Agency Account ",
+      "location_id": "10SapwdFnQK3Kwqp5ecv",
+      "sub_account_api_key": null,
+      "api_key_status": "pending_manual_entry",
+      "case_mappings": {},
+      "form_submissions": 0,
+      "first_seen": "2025-08-27T18:30:34.238454",
+      "last_updated": "2025-08-27T18:30:34.238467"
     },
-    "53270": {
-      "case_id": "53270",
-      "provider_name": "Cell Products",
-      "provider_key": "cell products",
-      "contact_id": "9ycwwscO60MGHiTTBDzo",
-      "location_id": "Sqbexj54nvsxOI4V7SsD",
-      "external_id": "ghl_contact_QPRoC5cRrXs8EMVFNGdX_20250827_153344_Q4316",
-      "created": "2025-08-29T16:00:00.000000",
-      "approved_product": {
-        "name": "PalinGen",
-        "product_id": 341,
-        "q_code": "Q4173",
-        "saved_at": "2025-09-02T12:00:00.000000"
-      }
+    "cell prodcuts": {
+      "original_name": "Cell Prodcuts",
+      "location_id": "default_location",
+      "sub_account_api_key": null,
+      "api_key_status": "pending_manual_entry",
+      "case_mappings": {},
+      "form_submissions": 1,
+      "first_seen": "2025-09-04T15:36:41.056950",
+      "last_updated": "2025-09-04T15:36:41.056955"
     }
   }
 }
