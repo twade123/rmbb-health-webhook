@@ -1,5 +1,5 @@
 {
-  "last_updated": "2025-09-05T18:55:02.194520",
+  "last_updated": "2025-09-05T19:03:30.690692",
   "providers": {
     "cell products": {
       "original_name": "Cell Products",
@@ -20,6 +20,16 @@
       "form_submissions": 0,
       "first_seen": "2025-08-27T18:30:34.238454",
       "last_updated": "2025-08-27T18:30:34.238467"
+    },
+    "waregemhdt": {
+      "original_name": "waregemhdt",
+      "location_id": "default_location",
+      "sub_account_api_key": null,
+      "api_key_status": "pending_manual_entry",
+      "case_mappings": {},
+      "form_submissions": 1,
+      "first_seen": "2025-09-05T19:03:30.688641",
+      "last_updated": "2025-09-05T19:03:30.688647"
     }
   }
 }
