@@ -1061,8 +1061,13 @@ Effective Date: {ivr_data['effective_date']}
                 try:
                     cm2_float = float(cm2_value)
                     if cm2_float > 0:
+                        # Get environment-specific numeric product ID using existing method
+                        temp_product_info = {"primary_product": {"q_code": product_info["q_code"]}}
+                        numeric_product_id = self.get_product_id_from_biologic(temp_product_info)
+                        
                         selected_products.append({
                             "name": product_info["name"],
+                            "product_id": numeric_product_id,
                             "q_code": product_info["q_code"],
                             "cm2": cm2_float,
                             "field_name": field_name
