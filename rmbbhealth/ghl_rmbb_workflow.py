@@ -1038,16 +1038,16 @@ Effective Date: {ivr_data['effective_date']}
         # List of all biologic products with RMBB Health environment-specific IDs and GHL custom field IDs
         # Verified against RMBB Health API and GHL API on 2025-08-31 for both dev and prod environments
         products = {
-            "amniomaxx_(q4239)_units/cm2": {"name": "Amnio-Maxx", "q_code": "Q4239", "ghl_field_id": "tOGJkZFd2ymaHGKYrVU2"},
-            "palingen_(q4173)_units/cm2": {"name": "PalinGen", "q_code": "Q4173", "ghl_field_id": "gN96ValY4BEEzUFBD6Z0"},
-            "membrane_wrap_tri-layer_(q4205)_units/cm2": {"name": "Membrane Wrap", "q_code": "Q4205", "ghl_field_id": "1hvUvoGbO7rMLSgEFoDz"},
-            "amnioamp-mp_(q4250)_units/cm2": {"name": "AmnioAMP-MP", "q_code": "Q4250", "ghl_field_id": "f2ahSKCm3LRuN0djazBg"},
-            "membrane_wrap_hydro_(q4290)_units/cm2": {"name": "Membrane Wrap-Hydro", "q_code": "Q4290", "ghl_field_id": "TIjFjavn2llFCwGizWj2"},
-            "biovance_(q4154)_units/cm2": {"name": "Biovance", "q_code": "Q4154", "ghl_field_id": "nS8MzgEAKuaGNjxdPGe7"},
-            "amchoplast_(q4316)_units/cm2": {"name": "AmchoPlast", "q_code": "Q4316", "ghl_field_id": "b5h4W8FSMO1E8KSleixD"},
-            "helicoll_(q4164)_units/cm2": {"name": "Helicoll", "q_code": "Q4164", "ghl_field_id": "lqdbhafh2zTeM23u0OMe"},
-            "xcell_amnio_matrix_(q4280)_units/cm2": {"name": "Xcell Amnio Matrix", "q_code": "Q4280", "ghl_field_id": "49vxcOnMCVYPyDdDuH80"},
-            "membrane_wrap_tri-layer_(q4344)_units/cm2": {"name": "Membrane Wrap Tri-Layer", "q_code": "Q4344", "ghl_field_id": "TBD"}
+            "amniomaxx_q4239": {"name": "Amnio-Maxx", "q_code": "Q4239", "ghl_field_id": "tOGJkZFd2ymaHGKYrVU2"},
+            "palingen_q4173": {"name": "PalinGen", "q_code": "Q4173", "ghl_field_id": "gN96ValY4BEEzUFBD6Z0"},
+            "membrane_wrap_trilayer_q4205": {"name": "Membrane Wrap", "q_code": "Q4205", "ghl_field_id": "1hvUvoGbO7rMLSgEFoDz"},
+            "amnioamp_mp_q4250": {"name": "AmnioAMP-MP", "q_code": "Q4250", "ghl_field_id": "f2ahSKCm3LRuN0djazBg"},
+            "membrane_wrap_hydro_q4290": {"name": "Membrane Wrap-Hydro", "q_code": "Q4290", "ghl_field_id": "TIjFjavn2llFCwGizWj2"},
+            "biovance_q4154": {"name": "Biovance", "q_code": "Q4154", "ghl_field_id": "nS8MzgEAKuaGNjxdPGe7"},
+            "amchoplast_q4316": {"name": "AmchoPlast", "q_code": "Q4316", "ghl_field_id": "b5h4W8FSMO1E8KSleixD"},
+            "helicoll_q4164": {"name": "Helicoll", "q_code": "Q4164", "ghl_field_id": "lqdbhafh2zTeM23u0OMe"},
+            "xcell_amnio_matrix_q4280": {"name": "Xcell Amnio Matrix", "q_code": "Q4280", "ghl_field_id": "49vxcOnMCVYPyDdDuH80"},
+            "membrane_wrap_trilayer_q4344": {"name": "Membrane Wrap Tri-Layer", "q_code": "Q4344", "ghl_field_id": "TBD"}
         }
         
         selected_products = []
