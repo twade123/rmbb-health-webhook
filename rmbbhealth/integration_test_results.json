@@ -1,0 +1,10 @@
+[
+  {
+    "test_name": "Real RMBB Case 53270",
+    "result": {
+      "success": false,
+      "error": "Wound calculation failed",
+      "step": "wound_calculation"
+    }
+  }
+]

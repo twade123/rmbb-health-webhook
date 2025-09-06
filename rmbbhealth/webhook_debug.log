@@ -1,0 +1,10 @@
+2025-08-26 06:47:47,666 - ERROR - ❌ Missing required environment variables: ['RMBB_API_KEY', 'RMBB_TEAM_ID', 'GHL_AGENCY_API_KEY and GHL_LOCATION_API_KEY (or GHL_API_KEY for legacy)']
+2025-08-26 06:47:47,666 - ERROR - Set these variables before starting the server:
+2025-08-26 06:47:47,666 - ERROR -   export RMBB_API_KEY='your_value_here'
+2025-08-26 06:47:47,666 - ERROR -   export RMBB_TEAM_ID='your_value_here'
+2025-08-26 06:47:47,666 - ERROR -   # Dual token mode (recommended):
+2025-08-26 06:47:47,666 - ERROR -   export GHL_AGENCY_API_KEY='agency_token_here'
+2025-08-26 06:47:47,666 - ERROR -   export GHL_LOCATION_API_KEY='location_token_here'
+2025-08-26 06:47:47,666 - ERROR -   # OR legacy single token mode:
+2025-08-26 06:47:47,666 - ERROR -   export GHL_API_KEY='single_token_here'
+2025-08-26 06:47:47,666 - ERROR - ❌ Configuration validation failed - server not started
