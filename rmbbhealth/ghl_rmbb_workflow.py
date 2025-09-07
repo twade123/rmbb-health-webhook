@@ -270,7 +270,8 @@ class GHLRMBBWorkflowHandler:
         selected_products = product_info["selected_products"]
         
         # Save wound size to GHL custom field for later use during APPROVED status
-        wound_size_cm2 = product_info.get('total_cm2', 0) if product_info.get('primary_product') else 0
+        # Use primary product's cm2 (same wound size for all products treating the same wound)
+        wound_size_cm2 = product_info.get('primary_product', {}).get('cm2', 0) if product_info.get('primary_product') else 0
         wound_size_data = f"{wound_size_cm2} cm²" if wound_size_cm2 > 0 else ""
         
         if wound_size_data:
