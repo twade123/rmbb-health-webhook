@@ -1,5 +1,5 @@
 {
-  "last_updated": "2025-09-07T14:46:54.326975",
+  "last_updated": "2025-09-07T14:47:00.411820",
   "providers": {
     "cell products agency account": {
       "original_name": "Cell Products Agency Account",
@@ -16,7 +16,15 @@
       "location_id": "Sqbexj54nvsxOI4V7SsD",
       "sub_account_api_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsb2NhdGlvbl9pZCI6IlNxYmV4ajU0bnZzeE9JNFY3U3NEIiwidmVyc2lvbiI6MSwiaWF0IjoxNzUzMDI5MTMxMjU1LCJzdWIiOiI3MTJEQzhBY2NGaUo5Vmt5aFJqWCJ9.1JSN3gbOtcGBEvs-shLfBqbTKil-xXQCgMZarjBDyIU",
       "api_key_status": "entered",
-      "case_mappings": {},
+      "case_mappings": {
+        "54724": {
+          "contact_id": "bCBGAm4bk3R6RVLWvnQE",
+          "location_id": "Sqbexj54nvsxOI4V7SsD",
+          "provider_name": "Cell Products",
+          "external_id": "ghl_contact_bCBGAm4bk3R6RVLWvnQE_20250907_144654_373",
+          "created": "2025-09-07T14:47:00.410751"
+        }
+      },
       "form_submissions": 5,
       "first_seen": "2025-08-27T18:30:33.408240",
       "last_updated": "2025-09-07T14:46:54.324948"
@@ -105,6 +113,21 @@
         "product_id": 374,
         "q_code": "Q4164",
         "saved_at": "2025-09-07T14:29:43.094092"
+      }
+    },
+    "54724": {
+      "case_id": "54724",
+      "provider_name": "Cell Products",
+      "provider_key": "cell products",
+      "contact_id": "bCBGAm4bk3R6RVLWvnQE",
+      "location_id": "Sqbexj54nvsxOI4V7SsD",
+      "external_id": "ghl_contact_bCBGAm4bk3R6RVLWvnQE_20250907_144654_373",
+      "created": "2025-09-07T14:47:00.410751",
+      "approved_product": {
+        "name": "PalinGen",
+        "product_id": 373,
+        "q_code": "Q4173",
+        "saved_at": "2025-09-07T14:47:00.410764"
       }
     }
   }
