@@ -1,0 +1,60 @@
+2025-08-25 20:01:42,713 - INFO - ✅ Using dual token mode (agency + location tokens)
+2025-08-25 20:01:42,713 - INFO - ✅ All required environment variables are configured
+2025-08-25 20:01:42,713 - INFO - 🚀 Starting RMBB Health Webhook Handler
+2025-08-25 20:01:42,713 - INFO - ============================================================
+2025-08-25 20:01:42,713 - INFO - 💻 Running in local development mode
+2025-08-25 20:01:42,713 - INFO - 🏥 RMBB Health Team ID: 85
+2025-08-25 20:01:42,713 - INFO - 🔗 GHL V1 API Base: https://rest.gohighlevel.com/v1
+2025-08-25 20:01:42,713 - INFO - ⚙️ Server binding: 0.0.0.0:8080
+2025-08-25 20:01:42,713 - INFO - 📡 Listening for GHL qualification webhooks
+2025-08-25 20:01:42,713 - INFO - 🔗 Main endpoint: http://0.0.0.0:8080/webhook/ghl-rmbb-qualification
+2025-08-25 20:01:42,713 - INFO - 🧪 Test endpoint: http://0.0.0.0:8080/webhook/test
+2025-08-25 20:01:42,713 - INFO - ❤️ Health check: http://0.0.0.0:8080/health
+2025-08-25 20:01:42,713 - INFO - ============================================================
+ * Serving Flask app 'webhook_handler'
+ * Debug mode: off
+2025-08-25 20:01:42,770 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8080
+ * Running on http://192.168.1.226:8080
+2025-08-25 20:01:42,770 - INFO - [33mPress CTRL+C to quit[0m
+2025-08-25 20:02:19,285 - INFO - 📝 GHL → RMBB Health qualification webhook received
+2025-08-25 20:02:19,285 - INFO - 🔗 Headers: {'Host': 'localhost:8080', 'User-Agent': 'python-requests/2.32.3', 'Accept-Encoding': 'gzip, deflate', 'Accept': '*/*', 'Connection': 'keep-alive', 'Content-Type': 'application/json', 'Content-Length': '262'}
+2025-08-25 20:02:19,285 - INFO - 📦 Webhook payload received: 262 characters
+2025-08-25 20:02:19,285 - INFO - 📊 Available fields: ['contactId', 'locationId', 'firstName', 'lastName', 'email', 'phone', 'dateOfBirth', 'provider_name', 'insurance_type']...
+2025-08-25 20:02:19,285 - INFO - 🔍 DEBUG - Complete webhook payload: {
+  "contactId": "0L8CuPLnCi5xQhbcuPUs",
+  "locationId": "Sqbexj54nvsxOI4V7SsD",
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "john.doe@test.com",
+  "phone": "+1234567890",
+  "dateOfBirth": "1990-01-01",
+  "provider_name": "Cell Products",
+  "insurance_type": "Medicare"
+}
+2025-08-25 20:02:19,285 - INFO - 🧬 Product fields found: []
+2025-08-25 20:02:19,285 - INFO - ⏰ STEP 1: Auto-populating provider cache from GHL agency...
+2025-08-25 20:02:19,285 - INFO - 🔍 Querying GHL agency for all sub-accounts...
+2025-08-25 20:02:19,504 - INFO - 📊 Found 2 sub-accounts under agency
+2025-08-25 20:02:19,505 - INFO - ✅ Incremental sub-account cache update completed:
+2025-08-25 20:02:19,505 - INFO -    🆕 New providers: 0
+2025-08-25 20:02:19,505 - INFO -    🔄 Updated providers: 0
+2025-08-25 20:02:19,505 - INFO -    ⏸️ Unchanged providers: 2
+2025-08-25 20:02:19,505 - INFO -    📊 Total cached: 3 providers, 1 cases
+2025-08-25 20:02:19,505 - INFO - ✅ Provider cache refreshed: 0 new, 0 updated, 3 total providers
+2025-08-25 20:02:19,506 - INFO - 📅 Date fields found: ['dateOfBirth']
+2025-08-25 20:02:19,506 - INFO - 📅 dateOfBirth: '1990-01-01'
+2025-08-25 20:02:19,506 - INFO - 🚀 Starting complete GHL → RMBB Health → GHL workflow...
+2025-08-25 20:02:19,507 - INFO - 📝 Updating GHL contact 0L8CuPLnCi5xQhbcuPUs
+2025-08-25 20:02:19,507 - INFO - 🔗 PUT https://rest.gohighlevel.com/v1/locations/Sqbexj54nvsxOI4V7SsD/contacts/0L8CuPLnCi5xQhbcuPUs
+2025-08-25 20:02:19,793 - INFO - 📊 Status: 404
+2025-08-25 20:02:19,793 - ERROR - ❌ GHL contact update failed: 404 - {"msg":"Not found"}
+2025-08-25 20:02:20,284 - INFO - 📝 Updating GHL contact 0L8CuPLnCi5xQhbcuPUs
+2025-08-25 20:02:20,284 - INFO - 🔗 PUT https://rest.gohighlevel.com/v1/contacts/0L8CuPLnCi5xQhbcuPUs
+2025-08-25 20:02:20,682 - INFO - 📊 Status: 200
+2025-08-25 20:02:20,682 - INFO - ✅ GHL contact updated successfully
+2025-08-25 20:02:20,683 - INFO - 🔍 DEBUG - Result type: <class 'dict'>
+2025-08-25 20:02:20,683 - INFO - 🔍 DEBUG - Result: {'success': False, 'error': 'string indices must be integers'}
+2025-08-25 20:02:20,683 - ERROR - ❌ Workflow failed: string indices must be integers
+2025-08-25 20:02:20,684 - INFO - 127.0.0.1 - - [25/Aug/2025 20:02:20] "[35m[1mPOST /webhook/ghl-rmbb-qualification HTTP/1.1[0m" 500 -
