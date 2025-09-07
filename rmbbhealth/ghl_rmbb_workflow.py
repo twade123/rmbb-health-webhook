@@ -33,10 +33,11 @@ class GHLRMBBWorkflowHandler:
     
     # GHL Custom Field Mappings - Document Processing Fields (IVR Results & Document Extraction)
     DOCUMENT_PROCESSING_FIELDS = {
-        # Current Status Fields (5 fields)
+        # Current Status Fields (6 fields)
         "rmbb_current_patient_info": "XueHehokZYjJSvWGzjfk",
         "rmbb_current_insurance_info": "FoqW1DyrjW6WtsoPflFZ", 
-        "rmbb_wound_size_coverage_calculator": "XQLSYwSOodHOBrqv8oz0",
+        "rmbb_wound_size_coverage_calculator": "XQLSYwSOodHOBrqv8oz0",  # WOUND SIZE ONLY - DO NOT USE FOR OTHER DATA
+        "rmbb_current_decision_summary": "KmP9XzT5vUqW8eN2jLsF",  # NEW UNIQUE FIELD for case status/decision summary
         "rmbb_current_notes": "tLNZ4EYxxXUO9HrDpkl5",
         "rmbb_current_status": "CWCMdJsRU4hMEDS32U4s",
         
@@ -1817,10 +1818,10 @@ Effective Date: {ivr_data['effective_date']}
             'rmbb_secondary_insurance_result': '0viEC6QFPlBZIm75N0fE',  # EXISTING - do not change
             
             # NEW HYBRID DOCUMENT FIELDS (REAL GHL FIELD IDs FROM DOCUMENT_PROCESSING_FIELDS)
-            # VISUAL UNDERSTANDING FIELDS (5 fields - for provider viewing)
+            # VISUAL UNDERSTANDING FIELDS (6 fields - for provider viewing)
             'rmbb_current_patient_info': 'XueHehokZYjJSvWGzjfk',
             'rmbb_current_insurance_info': 'FoqW1DyrjW6WtsoPflFZ', 
-            'rmbb_current_decision_summary': 'XQLSYwSOodHOBrqv8oz0',
+            'rmbb_current_decision_summary': 'KmP9XzT5vUqW8eN2jLsF',  # FIXED: Now uses unique field ID for case status
             'rmbb_current_notes': 'tLNZ4EYxxXUO9HrDpkl5',
             'rmbb_current_status': 'CWCMdJsRU4hMEDS32U4s',
             
