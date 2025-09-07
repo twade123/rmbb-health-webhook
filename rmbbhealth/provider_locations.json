@@ -1,5 +1,5 @@
 {
-  "last_updated": "2025-09-07T17:30:23.375561",
+  "last_updated": "2025-09-07T17:30:29.426447",
   "providers": {
     "cell products agency account": {
       "original_name": "Cell Products Agency Account",
@@ -16,7 +16,15 @@
       "location_id": "Sqbexj54nvsxOI4V7SsD",
       "sub_account_api_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsb2NhdGlvbl9pZCI6IlNxYmV4ajU0bnZzeE9JNFY3U3NEIiwidmVyc2lvbiI6MSwiaWF0IjoxNzUzMDI5MTMxMjU1LCJzdWIiOiI3MTJEQzhBY2NGaUo5Vmt5aFJqWCJ9.1JSN3gbOtcGBEvs-shLfBqbTKil-xXQCgMZarjBDyIU",
       "api_key_status": "entered",
-      "case_mappings": {},
+      "case_mappings": {
+        "54725": {
+          "contact_id": "5Qk42EBFVX3OJaxmYKOK",
+          "location_id": "Sqbexj54nvsxOI4V7SsD",
+          "provider_name": "Cell Products",
+          "external_id": "ghl_contact_5Qk42EBFVX3OJaxmYKOK_20250907_173023_364",
+          "created": "2025-09-07T17:30:29.424654"
+        }
+      },
       "form_submissions": 6,
       "first_seen": "2025-08-27T18:30:33.408240",
       "last_updated": "2025-09-07T17:30:23.373184"
@@ -120,6 +128,21 @@
         "product_id": 373,
         "q_code": "Q4173",
         "saved_at": "2025-09-07T14:47:00.410764"
+      }
+    },
+    "54725": {
+      "case_id": "54725",
+      "provider_name": "Cell Products",
+      "provider_key": "cell products",
+      "contact_id": "5Qk42EBFVX3OJaxmYKOK",
+      "location_id": "Sqbexj54nvsxOI4V7SsD",
+      "external_id": "ghl_contact_5Qk42EBFVX3OJaxmYKOK_20250907_173023_364",
+      "created": "2025-09-07T17:30:29.424654",
+      "approved_product": {
+        "name": "Amnio-Maxx",
+        "product_id": 364,
+        "q_code": "Q4239",
+        "saved_at": "2025-09-07T17:30:29.424666"
       }
     }
   }
