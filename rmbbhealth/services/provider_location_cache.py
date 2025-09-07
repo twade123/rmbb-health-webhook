@@ -30,9 +30,14 @@ class ProviderLocationCache:
                     
                 # Handle GitHub format vs direct cache format
                 if 'providers' in data:
-                    # GitHub format: {"providers": {...}, "last_updated": "..."}
+                    # GitHub format: {"providers": {...}, "case_mappings": {...}, "last_updated": "..."}
                     self.cache = data['providers']
-                    print(f"✅ Loaded GitHub format cache with {len(self.cache)} providers")
+                    # CRITICAL FIX: Also load case_mappings from GitHub format
+                    if 'case_mappings' in data:
+                        self.cache['case_mappings'] = data['case_mappings']
+                        print(f"✅ Loaded GitHub format cache with {len(self.cache)} providers and {len(data['case_mappings'])} case mappings")
+                    else:
+                        print(f"✅ Loaded GitHub format cache with {len(self.cache)} providers (no case mappings)")
                 else:
                     # Direct cache format: {...providers directly...}
                     self.cache = data
