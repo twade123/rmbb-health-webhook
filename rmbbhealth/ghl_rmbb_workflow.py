@@ -279,8 +279,14 @@ class GHLRMBBWorkflowHandler:
                 ]
             }
             
-            # Update contact with wound size data
-            wound_size_update_result = self.update_ghl_contact(contact_id, wound_size_update)
+            # Update contact with wound size data (pass provider info for correct API key)
+            provider_name = patient_form_data.get('provider_name')
+            wound_size_update_result = self.update_ghl_contact(
+                contact_id, 
+                wound_size_update, 
+                location_id=location_id,
+                provider_name=provider_name
+            )
             if wound_size_update_result["success"]:
                 print(f"✅ Saved wound size ({wound_size_data}) to rmbb_wound_size_coverage_calculator field")
             else:
