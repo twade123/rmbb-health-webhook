@@ -1,5 +1,5 @@
 {
-  "last_updated": "2025-09-09T07:08:35.601365",
+  "last_updated": "2025-09-09T07:13:42.352929",
   "providers": {
     "cell products agency account": {
       "original_name": "Cell Products Agency Account",
@@ -37,9 +37,9 @@
       "sub_account_api_key": null,
       "api_key_status": "pending_manual_entry",
       "case_mappings": {},
-      "form_submissions": 1,
+      "form_submissions": 2,
       "first_seen": "2025-09-09T07:08:35.598494",
-      "last_updated": "2025-09-09T07:08:35.598503"
+      "last_updated": "2025-09-09T07:13:42.350208"
     }
   },
   "case_mappings": {
