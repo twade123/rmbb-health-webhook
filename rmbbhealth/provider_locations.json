@@ -1,5 +1,5 @@
 {
-  "last_updated": "2025-09-09T14:17:28.527913",
+  "last_updated": "2025-09-09T14:42:09.151415",
   "providers": {
     "cell products agency account": {
       "original_name": "Cell Products Agency Account",
@@ -17,9 +17,9 @@
       "sub_account_api_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsb2NhdGlvbl9pZCI6IlNxYmV4ajU0bnZzeE9JNFY3U3NEIiwidmVyc2lvbiI6MSwiaWF0IjoxNzUzMDI5MTMxMjU1LCJzdWIiOiI3MTJEQzhBY2NGaUo5Vmt5aFJqWCJ9.1JSN3gbOtcGBEvs-shLfBqbTKil-xXQCgMZarjBDyIU",
       "api_key_status": "entered",
       "case_mappings": {},
-      "form_submissions": 6,
+      "form_submissions": 7,
       "first_seen": "2025-08-27T18:30:33.408240",
-      "last_updated": "2025-09-07T17:30:23.373184"
+      "last_updated": "2025-09-09T14:42:09.149190"
     },
     "ghl": {
       "original_name": "GHL",
@@ -66,92 +66,7 @@
       "location_id": "default_location",
       "sub_account_api_key": null,
       "api_key_status": "pending_manual_entry",
-      "case_mappings": {
-        "55025": {
-          "contact_id": "QPRoC5cRrXs8EMVFNGdX",
-          "location_id": "default_location",
-          "provider_name": "erjrydkjsezhs",
-          "external_id": "ghl_contact_QPRoC5cRrXs8EMVFNGdX_20250909_141604_364",
-          "created": "2025-09-09T14:16:10.426407"
-        },
-        "55026": {
-          "contact_id": "QPRoC5cRrXs8EMVFNGdX",
-          "location_id": "default_location",
-          "provider_name": "erjrydkjsezhs",
-          "external_id": "ghl_contact_QPRoC5cRrXs8EMVFNGdX_20250909_141604_373",
-          "created": "2025-09-09T14:16:13.548731"
-        },
-        "55027": {
-          "contact_id": "QPRoC5cRrXs8EMVFNGdX",
-          "location_id": "default_location",
-          "provider_name": "erjrydkjsezhs",
-          "external_id": "ghl_contact_QPRoC5cRrXs8EMVFNGdX_20250909_141604_365",
-          "created": "2025-09-09T14:16:16.615006"
-        },
-        "55028": {
-          "contact_id": "QPRoC5cRrXs8EMVFNGdX",
-          "location_id": "default_location",
-          "provider_name": "erjrydkjsezhs",
-          "external_id": "ghl_contact_QPRoC5cRrXs8EMVFNGdX_20250909_141604_362",
-          "created": "2025-09-09T14:16:19.531366"
-        },
-        "55029": {
-          "contact_id": "QPRoC5cRrXs8EMVFNGdX",
-          "location_id": "default_location",
-          "provider_name": "erjrydkjsezhs",
-          "external_id": "ghl_contact_QPRoC5cRrXs8EMVFNGdX_20250909_141604_367",
-          "created": "2025-09-09T14:16:22.484335"
-        },
-        "55030": {
-          "contact_id": "QPRoC5cRrXs8EMVFNGdX",
-          "location_id": "default_location",
-          "provider_name": "erjrydkjsezhs",
-          "external_id": "ghl_contact_QPRoC5cRrXs8EMVFNGdX_20250909_141604_375",
-          "created": "2025-09-09T14:16:25.420718"
-        },
-        "55031": {
-          "contact_id": "QPRoC5cRrXs8EMVFNGdX",
-          "location_id": "default_location",
-          "provider_name": "erjrydkjsezhs",
-          "external_id": "ghl_contact_QPRoC5cRrXs8EMVFNGdX_20250909_141604_374",
-          "created": "2025-09-09T14:16:28.519977"
-        },
-        "55032": {
-          "contact_id": "QPRoC5cRrXs8EMVFNGdX",
-          "location_id": "default_location",
-          "provider_name": "erjrydkjsezhs",
-          "external_id": "ghl_contact_QPRoC5cRrXs8EMVFNGdX_20250909_141604_372",
-          "created": "2025-09-09T14:16:31.518476"
-        },
-        "55033": {
-          "contact_id": "QPRoC5cRrXs8EMVFNGdX",
-          "location_id": "default_location",
-          "provider_name": "erjrydkjsezhs",
-          "external_id": "ghl_contact_QPRoC5cRrXs8EMVFNGdX_20250909_141713_364",
-          "created": "2025-09-09T14:17:19.328979"
-        },
-        "55034": {
-          "contact_id": "QPRoC5cRrXs8EMVFNGdX",
-          "location_id": "default_location",
-          "provider_name": "erjrydkjsezhs",
-          "external_id": "ghl_contact_QPRoC5cRrXs8EMVFNGdX_20250909_141713_373",
-          "created": "2025-09-09T14:17:22.252037"
-        },
-        "55035": {
-          "contact_id": "QPRoC5cRrXs8EMVFNGdX",
-          "location_id": "default_location",
-          "provider_name": "erjrydkjsezhs",
-          "external_id": "ghl_contact_QPRoC5cRrXs8EMVFNGdX_20250909_141713_365",
-          "created": "2025-09-09T14:17:25.368780"
-        },
-        "55036": {
-          "contact_id": "QPRoC5cRrXs8EMVFNGdX",
-          "location_id": "default_location",
-          "provider_name": "erjrydkjsezhs",
-          "external_id": "ghl_contact_QPRoC5cRrXs8EMVFNGdX_20250909_141713_362",
-          "created": "2025-09-09T14:17:28.526136"
-        }
-      },
+      "case_mappings": {},
       "form_submissions": 2,
       "first_seen": "2025-09-09T14:16:04.644725",
       "last_updated": "2025-09-09T14:17:13.546305"
@@ -435,66 +350,6 @@
         "product_id": 372,
         "q_code": "Q4280",
         "saved_at": "2025-09-09T14:16:31.518488"
-      }
-    },
-    "55033": {
-      "case_id": "55033",
-      "provider_name": "erjrydkjsezhs",
-      "provider_key": "erjrydkjsezhs",
-      "contact_id": "QPRoC5cRrXs8EMVFNGdX",
-      "location_id": "default_location",
-      "external_id": "ghl_contact_QPRoC5cRrXs8EMVFNGdX_20250909_141713_364",
-      "created": "2025-09-09T14:17:19.328979",
-      "approved_product": {
-        "name": "Amnio-Maxx",
-        "product_id": 364,
-        "q_code": "Q4239",
-        "saved_at": "2025-09-09T14:17:19.328995"
-      }
-    },
-    "55034": {
-      "case_id": "55034",
-      "provider_name": "erjrydkjsezhs",
-      "provider_key": "erjrydkjsezhs",
-      "contact_id": "QPRoC5cRrXs8EMVFNGdX",
-      "location_id": "default_location",
-      "external_id": "ghl_contact_QPRoC5cRrXs8EMVFNGdX_20250909_141713_373",
-      "created": "2025-09-09T14:17:22.252037",
-      "approved_product": {
-        "name": "PalinGen",
-        "product_id": 373,
-        "q_code": "Q4173",
-        "saved_at": "2025-09-09T14:17:22.252048"
-      }
-    },
-    "55035": {
-      "case_id": "55035",
-      "provider_name": "erjrydkjsezhs",
-      "provider_key": "erjrydkjsezhs",
-      "contact_id": "QPRoC5cRrXs8EMVFNGdX",
-      "location_id": "default_location",
-      "external_id": "ghl_contact_QPRoC5cRrXs8EMVFNGdX_20250909_141713_365",
-      "created": "2025-09-09T14:17:25.368780",
-      "approved_product": {
-        "name": "AmnioAMP-MP",
-        "product_id": 365,
-        "q_code": "Q4250",
-        "saved_at": "2025-09-09T14:17:25.368793"
-      }
-    },
-    "55036": {
-      "case_id": "55036",
-      "provider_name": "erjrydkjsezhs",
-      "provider_key": "erjrydkjsezhs",
-      "contact_id": "QPRoC5cRrXs8EMVFNGdX",
-      "location_id": "default_location",
-      "external_id": "ghl_contact_QPRoC5cRrXs8EMVFNGdX_20250909_141713_362",
-      "created": "2025-09-09T14:17:28.526136",
-      "approved_product": {
-        "name": "Membrane Wrap-Hydro",
-        "product_id": 362,
-        "q_code": "Q4290",
-        "saved_at": "2025-09-09T14:17:28.526149"
       }
     }
   }
