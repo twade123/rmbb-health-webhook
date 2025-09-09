@@ -874,8 +874,8 @@ Effective Date: {ivr_data['effective_date']}
                 "parent_company": primary_insurance_name,  # Use actual insurance name from GHL payload
                 "participating_status": form_data.get("primary_participating_status", ""),
                 "policy_number": form_data.get("primary_policy_number", ""),
-                "preferred_provider_organization": "Yes",  # Default
-                "health_maintenance_organization": "No",  # Default
+                "preferred_provider_organization": form_data.get("concact.ppo", form_data.get("contact.ppo", "Yes")),  # Extract PPO from GHL payload (note typo in GHL field name)
+                "health_maintenance_organization": form_data.get("contact.hmo", "No"),  # Extract HMO from GHL payload
                 "prior_authorization": ""  # Could be form field
             }
         
@@ -889,8 +889,8 @@ Effective Date: {ivr_data['effective_date']}
                 "parent_company": secondary_insurance_name,  # Use actual insurance name from GHL payload
                 "participating_status": form_data.get("secondary_participating_status", ""),
                 "policy_number": form_data.get("secondary_policy_number", ""),
-                "preferred_provider_organization": "No",  # Default
-                "health_maintenance_organization": "Yes",  # Default
+                "preferred_provider_organization": form_data.get("concact.ppo", form_data.get("contact.ppo", "No")),  # Extract PPO from GHL payload (note typo in GHL field name)
+                "health_maintenance_organization": form_data.get("contact.hmo", "Yes"),  # Extract HMO from GHL payload
                 "prior_authorization": ""  # Could be form field
             }
         
@@ -930,8 +930,8 @@ Effective Date: {ivr_data['effective_date']}
                 "parent_company": primary_insurance_name,  # Use actual insurance name from GHL payload
                 "participating_status": form_data.get("primary_participating_status", ""),
                 "policy_number": form_data.get("primary_policy_number", ""),
-                "preferred_provider_organization": "Yes",  # Default
-                "health_maintenance_organization": "No",  # Default
+                "preferred_provider_organization": form_data.get("concact.ppo", form_data.get("contact.ppo", "Yes")),  # Extract PPO from GHL payload (note typo in GHL field name)
+                "health_maintenance_organization": form_data.get("contact.hmo", "No"),  # Extract HMO from GHL payload
                 "prior_authorization": ""  # Could be form field
             }
         
@@ -944,8 +944,8 @@ Effective Date: {ivr_data['effective_date']}
                 "parent_company": secondary_insurance_name,  # Use actual insurance name from GHL payload
                 "participating_status": form_data.get("secondary_participating_status", ""),
                 "policy_number": form_data.get("secondary_policy_number", ""),
-                "preferred_provider_organization": "No",  # Default
-                "health_maintenance_organization": "Yes",  # Default
+                "preferred_provider_organization": form_data.get("concact.ppo", form_data.get("contact.ppo", "No")),  # Extract PPO from GHL payload (note typo in GHL field name)
+                "health_maintenance_organization": form_data.get("contact.hmo", "Yes"),  # Extract HMO from GHL payload
                 "prior_authorization": ""  # Could be form field
             }
         
@@ -974,7 +974,7 @@ Effective Date: {ivr_data['effective_date']}
                 "Q4173": 341,  # palingen → PalinGen
                 "Q4316": 343,  # amchoplast → AmchoPlast
                 "Q4164": 342,  # helicoll → Helicoll
-                "Q4344": 394   # membrane_wrap_tri_layer → PLACEHOLDER (requested from RMBB support)
+                "Q4344": 999   # membrane_wrap_tri_layer → PLACEHOLDER (requested from RMBB support)
             }
         else:
             # TEST/DEVELOPMENT Environment (Team ID: 85) - Updated IDs
