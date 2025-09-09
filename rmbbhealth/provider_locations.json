@@ -1,5 +1,5 @@
 {
-  "last_updated": "2025-09-07T17:30:35.067222",
+  "last_updated": "2025-09-09T07:00:56.182230",
   "providers": {
     "cell products agency account": {
       "original_name": "Cell Products Agency Account",
@@ -16,32 +16,20 @@
       "location_id": "Sqbexj54nvsxOI4V7SsD",
       "sub_account_api_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsb2NhdGlvbl9pZCI6IlNxYmV4ajU0bnZzeE9JNFY3U3NEIiwidmVyc2lvbiI6MSwiaWF0IjoxNzUzMDI5MTMxMjU1LCJzdWIiOiI3MTJEQzhBY2NGaUo5Vmt5aFJqWCJ9.1JSN3gbOtcGBEvs-shLfBqbTKil-xXQCgMZarjBDyIU",
       "api_key_status": "entered",
-      "case_mappings": {
-        "54725": {
-          "contact_id": "5Qk42EBFVX3OJaxmYKOK",
-          "location_id": "Sqbexj54nvsxOI4V7SsD",
-          "provider_name": "Cell Products",
-          "external_id": "ghl_contact_5Qk42EBFVX3OJaxmYKOK_20250907_173023_364",
-          "created": "2025-09-07T17:30:29.424654"
-        },
-        "54726": {
-          "contact_id": "5Qk42EBFVX3OJaxmYKOK",
-          "location_id": "Sqbexj54nvsxOI4V7SsD",
-          "provider_name": "Cell Products",
-          "external_id": "ghl_contact_5Qk42EBFVX3OJaxmYKOK_20250907_173023_373",
-          "created": "2025-09-07T17:30:32.309450"
-        },
-        "54727": {
-          "contact_id": "5Qk42EBFVX3OJaxmYKOK",
-          "location_id": "Sqbexj54nvsxOI4V7SsD",
-          "provider_name": "Cell Products",
-          "external_id": "ghl_contact_5Qk42EBFVX3OJaxmYKOK_20250907_173023_374",
-          "created": "2025-09-07T17:30:35.066365"
-        }
-      },
+      "case_mappings": {},
       "form_submissions": 6,
       "first_seen": "2025-08-27T18:30:33.408240",
       "last_updated": "2025-09-07T17:30:23.373184"
+    },
+    "ghl": {
+      "original_name": "GHL",
+      "location_id": "default_location",
+      "sub_account_api_key": null,
+      "api_key_status": "pending_manual_entry",
+      "case_mappings": {},
+      "form_submissions": 1,
+      "first_seen": "2025-09-09T07:00:56.178156",
+      "last_updated": "2025-09-09T07:00:56.178166"
     }
   },
   "case_mappings": {
