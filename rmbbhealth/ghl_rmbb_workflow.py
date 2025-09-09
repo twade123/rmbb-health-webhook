@@ -974,7 +974,7 @@ Effective Date: {ivr_data['effective_date']}
                 "Q4173": 341,  # palingen → PalinGen
                 "Q4316": 343,  # amchoplast → AmchoPlast
                 "Q4164": 342,  # helicoll → Helicoll
-                "Q4344": 999   # membrane_wrap_tri_layer → PLACEHOLDER (requested from RMBB support)
+                "Q4344": 394   # membrane_wrap_tri_layer → PLACEHOLDER (requested from RMBB support)
             }
         else:
             # TEST/DEVELOPMENT Environment (Team ID: 85) - Updated IDs
