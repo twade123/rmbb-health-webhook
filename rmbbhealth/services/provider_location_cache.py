@@ -35,15 +35,18 @@ class ProviderLocationCache:
                     # CRITICAL FIX: Also load case_mappings from GitHub format
                     if 'case_mappings' in data:
                         self.cache['case_mappings'] = data['case_mappings']
-                        print(f"✅ Loaded GitHub format cache with {len(self.cache)} providers and {len(data['case_mappings'])} case mappings")
+                        # Reduced logging for Railway rate limits
+                        pass  
                     else:
-                        print(f"✅ Loaded GitHub format cache with {len(self.cache)} providers (no case mappings)")
+                        # Reduced logging for Railway rate limits
+                        pass
                 else:
                     # Direct cache format: {...providers directly...}
                     self.cache = data
-                    print(f"✅ Loaded direct format cache with {len(self.cache)} providers")
+                    # Reduced logging for Railway rate limits
+                    pass
             else:
-                print("📝 Creating new provider location cache")
+                # Reduced logging for Railway rate limits
                 self.cache = {}
         except Exception as e:
             print(f"⚠️ Error loading cache, starting fresh: {e}")
@@ -57,7 +60,7 @@ class ProviderLocationCache:
             
             with open(self.cache_file, 'w') as f:
                 json.dump(self.cache, f, indent=2, default=str)
-            print(f"💾 Saved provider cache with {len(self.cache)} providers")
+            # Reduced logging for Railway rate limits
             
             # Also save to GitHub-friendly location if we can detect we're in Railway
             if '/app' in str(self.cache_file):
@@ -273,7 +276,7 @@ class ProviderLocationCache:
                     "case_ids": [],  # Track all RMBB Health case IDs for this provider
                     "sample_contact_id": contact_id
                 }
-                print(f"➕ Added NEW provider: {provider_name} → {location_id}")
+                # Reduced logging for Railway rate limits
                 
             else:
                 # Existing provider - INCREMENTAL update only
@@ -306,7 +309,7 @@ class ProviderLocationCache:
                 
                 submissions = existing.get("form_submissions", 0)
                 cases = len(existing.get("case_ids", []))
-                print(f"🔄 Updated provider: {provider_name} ({submissions} submissions, {cases} cases)")
+                # Reduced logging for Railway rate limits
             
             self._save_cache()
             return True
@@ -343,9 +346,10 @@ class ProviderLocationCache:
             case_ids = self.cache[provider_key]["case_ids"]
             if str(case_id) not in case_ids:
                 case_ids.append(str(case_id))
-                print(f"📋 Added case {case_id} to provider {provider_name} (total: {len(case_ids)} cases)")
+                # Reduced logging for Railway rate limits
             else:
-                print(f"⚠️ Case {case_id} already exists for provider {provider_name}")
+                # Reduced logging for Railway rate limits
+                pass
             
             # Store detailed case mapping in separate section
             if "case_mappings" not in self.cache:
@@ -417,7 +421,7 @@ class ProviderLocationCache:
                 if provider_key and provider_key in self.cache:
                     mapping["location_id"] = self.cache[provider_key]["location_id"]
                 
-                print(f"🔍 Found case mapping (global): {case_id} → {mapping['provider_name']} → {mapping.get('location_id')}")
+                # Reduced logging for Railway rate limits
                 return mapping
             
             # Search through provider-specific case mappings (GitHub format)
@@ -430,7 +434,7 @@ class ProviderLocationCache:
                         if "location_id" not in mapping:
                             mapping["location_id"] = provider_data.get("location_id")
                         
-                        print(f"🔍 Found case mapping (provider): {case_id} → {mapping.get('provider_name')} → {mapping.get('location_id')}")
+                        # Reduced logging for Railway rate limits
                         return mapping
             
             print(f"❌ Case mapping not found: {case_id}")
@@ -454,11 +458,11 @@ class ProviderLocationCache:
         with self.lock:
             if provider_key in self.cache:
                 location_id = self.cache[provider_key]["location_id"]
-                print(f"🔍 Found provider {provider_name} → {location_id}")
+                # Reduced logging for Railway rate limits
                 return location_id
             else:
-                print(f"❌ Provider not found in cache: {provider_name}")
-                print(f"📋 Available providers: {list(self.cache.keys())}")
+                # Only log critical errors
+                print(f"❌ Provider not found: {provider_name}")
                 return None
 
     def get_sub_account_api_key_by_location_id(self, location_id):
@@ -556,7 +560,7 @@ class ProviderLocationCache:
                     )
                     stats["updated_providers"] += 1
         
-        print(f"📊 Incremental update: +{stats['new_providers']} new, ~{stats['updated_providers']} updated, ={stats['unchanged_providers']} unchanged")
+        # Reduced logging for Railway rate limits
         return stats
 
     def get_cache_stats(self):
