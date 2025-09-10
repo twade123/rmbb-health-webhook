@@ -2321,7 +2321,7 @@ Case: {case_id}"""
             logging.info(f"🧹 Dynamically finding and clearing product size custom fields for contact {contact_id}")
             
             # Get sub-account API key for this location
-            api_key = self._get_subaccount_api_key(location_id)
+            api_key = self.provider_cache.get_sub_account_api_key_by_location_id(location_id)
             if not api_key:
                 return {
                     "success": False,
@@ -2498,7 +2498,7 @@ Case: {case_id}"""
             logging.info(f"🏷️ Adding reorder tag to contact {contact_id}")
             
             # Get sub-account API key for this location
-            api_key = self._get_subaccount_api_key(location_id)
+            api_key = self.provider_cache.get_sub_account_api_key_by_location_id(location_id)
             if not api_key:
                 return {
                     "success": False,
