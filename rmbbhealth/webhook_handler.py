@@ -1606,7 +1606,19 @@ def handle_ghl_reorder():
                 logging.warning(f"⚠️ Failed to update wound calculation field: {field_update_result.get('error')}")
             
             # Step 6: Create GHL invoice estimate (since already approved)
-            estimate_manager = GHLInvoiceEstimateManager()
+            # Get the API key and location info for this case
+            case_location_id = case_mapping.get("location_id")
+            case_api_key = provider_cache.get_sub_account_api_key_by_location_id(case_location_id)
+            
+            if not case_api_key:
+                logging.error(f"❌ No API key found for location {case_location_id}")
+                return jsonify({
+                    "status": "error",
+                    "message": f"No API key found for case location {case_location_id}",
+                    "case_id": case_id
+                }), 500
+            
+            estimate_manager = GHLInvoiceEstimateManager(api_key=case_api_key, sub_account_id=case_location_id, location_id=case_location_id)
             estimate_result = estimate_manager.create_reorder_estimate(reorder_case_data, reorder_result)
             
             if estimate_result.get("success"):
