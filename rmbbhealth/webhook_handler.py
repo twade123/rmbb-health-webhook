@@ -1566,7 +1566,7 @@ def handle_ghl_reorder():
         # Step 4: Process using existing wound calculation integration (with field clearing)
         from wound_calculation_integration import WoundCalculationIntegration
         from ghl_rmbb_workflow import GHLRMBBWorkflowHandler
-        from ghl_invoice_estimate_manager import GHLInvoiceEstimateManager
+        from ghl_opportunity_estimate_manager import GHLOpportunityEstimateManager
         
         # Initialize workflow handler for GHL operations
         workflow_handler = GHLRMBBWorkflowHandler(
@@ -1621,13 +1621,13 @@ def handle_ghl_reorder():
                     "case_id": case_id
                 }), 500
             
-            estimate_manager = GHLInvoiceEstimateManager(api_key=case_api_key, sub_account_id=case_location_id, location_id=case_location_id)
-            estimate_result = estimate_manager.create_reorder_estimate(reorder_case_data, reorder_result)
+            estimate_manager = GHLOpportunityEstimateManager(api_key=case_api_key, sub_account_id=case_location_id, location_id=case_location_id)
+            estimate_result = estimate_manager.create_wound_product_estimate(reorder_case_data, reorder_result)
             
             if estimate_result.get("success"):
-                logging.info(f"📄 Created reorder estimate successfully: {estimate_result.get('estimate_id')}")
+                logging.info(f"📄 Created reorder opportunity estimate successfully: {estimate_result.get('opportunity_id')}")
             else:
-                logging.warning(f"⚠️ Failed to create reorder estimate: {estimate_result.get('error')}")
+                logging.warning(f"⚠️ Failed to create reorder opportunity estimate: {estimate_result.get('error')}")
             
             # Step 7: Apply reorder tag to trigger downstream workflows
             tag_result = workflow_handler.add_reorder_tag(
