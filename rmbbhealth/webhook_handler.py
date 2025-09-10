@@ -1426,9 +1426,9 @@ def handle_ghl_reorder():
         # Extract required fields (updated to match GHL payload structure)
         contact_id = payload.get('id')  # GHL sends contact.id as 'id'
         case_id = payload.get('rmbb_case_id')  # GHL sends contact.rmbb_case_id 
-        new_wound_size = payload.get('contactnew_wound_size')  # GHL sends contact.contactnew_wound_size
+        new_wound_size = payload.get('new_wound_size')  # GHL sends new_wound_size
         provider_name = payload.get('provider_name')  # New field: contact.provider_name
-        product_selection = payload.get('product_selection')  # New field (note: currently mapped wrong in GHL)
+        product_selection = payload.get('product_selection')  # New field
         
         # Validate required fields
         missing_fields = []
@@ -1437,13 +1437,13 @@ def handle_ghl_reorder():
         if not contact_id:
             missing_fields.append('id')
         if not new_wound_size:
-            missing_fields.append('contactnew_wound_size')
+            missing_fields.append('new_wound_size')
             
         if missing_fields:
             return jsonify({
                 "error": "Missing required fields",
                 "missing_fields": missing_fields,
-                "required_fields": ["id", "rmbb_case_id", "contactnew_wound_size"]
+                "required_fields": ["id", "rmbb_case_id", "new_wound_size"]
             }), 400
         
         # Validate wound size is numeric
