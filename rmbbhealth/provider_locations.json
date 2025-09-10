@@ -1,5 +1,5 @@
 {
-  "last_updated": "2025-09-10T12:50:42.506205",
+  "last_updated": "2025-09-10T12:50:48.573333",
   "providers": {
     "cell products agency account": {
       "original_name": "Cell Products Agency Account",
@@ -23,6 +23,13 @@
           "provider_name": "Cell Products",
           "external_id": "ghl_contact_5Qk42EBFVX3OJaxmYKOK_20250910_124958_367",
           "created": "2025-09-10T12:50:04.917427"
+        },
+        "55235": {
+          "contact_id": "VaoijIInQ7lYbkY0Yl3Y",
+          "location_id": "Sqbexj54nvsxOI4V7SsD",
+          "provider_name": "Cell Products",
+          "external_id": "ghl_contact_VaoijIInQ7lYbkY0Yl3Y_20250910_125042_367",
+          "created": "2025-09-10T12:50:48.571220"
         }
       },
       "form_submissions": 13,
@@ -458,6 +465,21 @@
         "product_id": 367,
         "q_code": "Q4154",
         "saved_at": "2025-09-10T12:50:04.917443"
+      }
+    },
+    "55235": {
+      "case_id": "55235",
+      "provider_name": "Cell Products",
+      "provider_key": "cell products",
+      "contact_id": "VaoijIInQ7lYbkY0Yl3Y",
+      "location_id": "Sqbexj54nvsxOI4V7SsD",
+      "external_id": "ghl_contact_VaoijIInQ7lYbkY0Yl3Y_20250910_125042_367",
+      "created": "2025-09-10T12:50:48.571220",
+      "approved_product": {
+        "name": "Biovance",
+        "product_id": 367,
+        "q_code": "Q4154",
+        "saved_at": "2025-09-10T12:50:48.571258"
       }
     }
   }
