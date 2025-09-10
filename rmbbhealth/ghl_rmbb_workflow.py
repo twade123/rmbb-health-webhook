@@ -512,8 +512,11 @@ class GHLRMBBWorkflowHandler:
         
         case_ids = [case['case_id'] for case in created_cases]
         case_ids_str = ", ".join([str(case_id) for case_id in case_ids])
+        # Define primary case ID for reorder functionality (first case)
+        primary_case_id = str(created_cases[0]['case_id']) if created_cases else ""
         
         print(f"🔗 RMBB Case IDs: {case_ids_str}")
+        print(f"🎯 Primary Case ID (for reorders): {primary_case_id}")
         print(f"🔗 External ID base: {external_id} (links to GHL contact {contact_id})")
         print(f"👨‍⚕️ Provider: {provider_name} (cached for webhook routing)")
         print(f"📦 Products: {len(created_cases)} cases created")
