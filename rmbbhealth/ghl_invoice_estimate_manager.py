@@ -19,7 +19,6 @@ import sys
 import json
 import requests
 import logging
-import jwt
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Union
 from decimal import Decimal
