@@ -1535,7 +1535,9 @@ def handle_ghl_reorder():
         # Step 3: Create case data structure for wound calculation (reusing existing process)
         reorder_case_data = {
             "id": int(case_id),
+            "case_id": case_id,  # CRITICAL: Add case_id for estimate manager (expects 'case_id' not 'id')
             "contact_id": contact_id,  # CRITICAL: Add contact_id for downstream processing
+            "location_id": case_mapping["location_id"],  # CRITICAL: Add location_id for estimate manager
             "status": "APPROVED",  # Reorders are by definition approved
             "external_status": "APPROVED",
             "overall_insurance_result": "APPROVED",
