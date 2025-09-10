@@ -135,8 +135,8 @@ def _analyze_status_trigger(case_data, approval_analysis):
     secondary_result = case_data.get('secondary_insurance', {}).get('result', '').upper()
     
     # Define trigger patterns for each status type
-    approval_triggers = ['APPROVED', 'ACCEPTED', 'AUTHORIZED', 'COVERED', 'QUALIFIED', 'COMPLETED']
-    denial_triggers = ['DENIED', 'REJECTED', 'DECLINED', 'NOT COVERED', 'DISQUALIFIED', 'FAILED']
+    approval_triggers = ['APPROVED', 'ACCEPTED', 'AUTHORIZED', 'COVERED', 'QUALIFIED', 'COMPLETED', 'VERIFIED']
+    denial_triggers = ['DENIED', 'REJECTED', 'DECLINED', 'NOT COVERED', 'NOT_COVERED', 'DISQUALIFIED', 'FAILED']
     pending_triggers = ['PENDING', 'UNDER REVIEW', 'PROCESSING', 'SUBMITTED', 'IN PROGRESS']
     
     # Analyze what type of status change occurred
@@ -154,7 +154,7 @@ def _analyze_status_trigger(case_data, approval_analysis):
             'workflow_tags': ['rmbb-denial-received', 'rmbb-appeal-eligible']
         }
     elif any(trigger in determining_value for trigger in approval_triggers):
-        if 'PRIMARY' in determining_field.upper():
+        if 'PRIMARY' in determining_field.upper() or 'primary_insurance' in determining_field.lower():
             return {
                 'trigger_type': 'PRIMARY_INSURANCE_APPROVAL',
                 'status_field': determining_field,
@@ -162,7 +162,7 @@ def _analyze_status_trigger(case_data, approval_analysis):
                 'document_priority': 'IVR_APPROVAL',
                 'workflow_tags': ['rmbb-ivr-approved']
             }
-        elif 'SECONDARY' in determining_field.upper():
+        elif 'SECONDARY' in determining_field.upper() or 'secondary_insurance' in determining_field.lower():
             return {
                 'trigger_type': 'SECONDARY_INSURANCE_APPROVAL', 
                 'status_field': determining_field,
@@ -170,7 +170,7 @@ def _analyze_status_trigger(case_data, approval_analysis):
                 'document_priority': 'SECONDARY_APPROVAL',
                 'workflow_tags': ['rmbb-ivr-approved']
             }
-        elif 'OVERALL' in determining_field.upper():
+        elif 'OVERALL' in determining_field.upper() or 'overall' in determining_field.lower():
             return {
                 'trigger_type': 'OVERALL_CASE_APPROVAL',
                 'status_field': determining_field,
@@ -1397,9 +1397,11 @@ def handle_ghl_reorder():
     
     Expected payload from GHL form:
     {
-        "case_id": "53330",
-        "contact_id": "9ycwwscO60MGHiTTBDzo",
-        "new_wound_size": "4.5"  // in cm2
+        "id": "9ycwwscO60MGHiTTBDzo",              // contact.id
+        "rmbb_case_id": "53330",                  // contact.rmbb_case_id  
+        "provider_name": "Dr. Smith",             // contact.provider_name
+        "contactnew_wound_size": "4.5",          // contact.contactnew_wound_size (in cm2)
+        "product_selection": "amniomaxx"          // contact.product_selection (new field)
     }
     """
     try:
@@ -1419,25 +1421,27 @@ def handle_ghl_reorder():
             
         logging.info(f"📦 GHL reorder payload: {json.dumps(payload, indent=2)}")
         
-        # Extract required fields
-        case_id = payload.get('case_id')
-        contact_id = payload.get('contact_id')  
-        new_wound_size = payload.get('new_wound_size')
+        # Extract required fields (updated to match GHL payload structure)
+        contact_id = payload.get('id')  # GHL sends contact.id as 'id'
+        case_id = payload.get('rmbb_case_id')  # GHL sends contact.rmbb_case_id 
+        new_wound_size = payload.get('contactnew_wound_size')  # GHL sends contact.contactnew_wound_size
+        provider_name = payload.get('provider_name')  # New field: contact.provider_name
+        product_selection = payload.get('product_selection')  # New field (note: currently mapped wrong in GHL)
         
         # Validate required fields
         missing_fields = []
         if not case_id:
-            missing_fields.append('case_id')
+            missing_fields.append('rmbb_case_id')
         if not contact_id:
-            missing_fields.append('contact_id')
+            missing_fields.append('id')
         if not new_wound_size:
-            missing_fields.append('new_wound_size')
+            missing_fields.append('contactnew_wound_size')
             
         if missing_fields:
             return jsonify({
                 "error": "Missing required fields",
                 "missing_fields": missing_fields,
-                "required_fields": ["case_id", "contact_id", "new_wound_size"]
+                "required_fields": ["id", "rmbb_case_id", "contactnew_wound_size"]
             }), 400
         
         # Validate wound size is numeric
@@ -1476,6 +1480,51 @@ def handle_ghl_reorder():
                 "error": "Case mapping not found in provider cache",
                 "timestamp": datetime.now().isoformat()
             }), 404
+        
+        # Step 2.5: VALIDATE payload data matches stored provider location JSON data
+        validation_errors = []
+        
+        # Validate contact_id matches
+        stored_contact_id = case_mapping.get("contact_id")
+        if stored_contact_id != contact_id:
+            validation_errors.append(f"Contact ID mismatch - payload: {contact_id}, stored: {stored_contact_id}")
+        
+        # Validate provider_name matches  
+        stored_provider_name = case_mapping.get("provider_name")
+        if stored_provider_name != provider_name:
+            validation_errors.append(f"Provider name mismatch - payload: {provider_name}, stored: {stored_provider_name}")
+        
+        # Validate product_selection matches approved product (if provided)
+        if product_selection:
+            approved_product_name = approved_product.get("name", "").lower()
+            approved_q_code = approved_product.get("q_code", "").lower()
+            product_selection_lower = product_selection.lower()
+            
+            if (product_selection_lower not in approved_product_name and 
+                product_selection_lower != approved_q_code and
+                approved_product_name not in product_selection_lower):
+                validation_errors.append(f"Product mismatch - payload: {product_selection}, stored: {approved_product['name']} ({approved_product.get('q_code', '')})")
+        
+        if validation_errors:
+            return jsonify({
+                "status": "error",
+                "message": "Payload validation failed - data does not match stored provider location JSON",
+                "case_id": case_id,
+                "validation_errors": validation_errors,
+                "stored_data": {
+                    "contact_id": stored_contact_id,
+                    "provider_name": stored_provider_name, 
+                    "approved_product": approved_product["name"]
+                },
+                "payload_data": {
+                    "contact_id": contact_id,
+                    "provider_name": provider_name,
+                    "product_selection": product_selection
+                },
+                "timestamp": datetime.now().isoformat()
+            }), 400
+        
+        logging.info(f"✅ Payload validation passed - all data matches provider location JSON")
         
         # Step 3: Create case data structure for wound calculation (reusing existing process)
         reorder_case_data = {
