@@ -454,11 +454,16 @@ class GHLRMBBWorkflowHandler:
         case_ids_str = ", ".join([str(case['case_id']) for case in created_cases])
         case_products_str = ", ".join([f"{case['product_name']} ({case['cm2']} cm2)" for case in created_cases])
         
+        # Determine primary case ID for reorder functionality (first/largest case)
+        # This goes to the specific rmbb_case_id field (M9Dap36CFurN03kQALVC) so reorder webhook can find it
+        primary_case_id = str(created_cases[0]['case_id']) if created_cases else ""
+        
         rmbb_tracking_update = {
             "customField": [
                 {"id": "k9onZaMZVJ5Zwlopf2fi", "value": "submitted_for_qualification"},  # rmbb_workflow_status
                 {"id": "XueHehokZYjJSvWGzjfk", "value": str(patient_response['id'])},  # rmbb_patient_id
-                {"id": "WGKrQzlaNsK8Y4t5bUYf", "value": case_ids_str},  # rmbb_case_ids
+                {"id": "WGKrQzlaNsK8Y4t5bUYf", "value": case_ids_str},  # rmbb_case_ids (multiple, comma-separated)
+                {"id": "M9Dap36CFurN03kQALVC", "value": primary_case_id},  # rmbb_case_id (primary case for reorders)
                 {"id": "DuqFjhMUOv2yKa5qbdyR", "value": str(len(created_cases))},  # rmbb_case_count
                 {"id": "tLNZ4EYxxXUO9HrDpkl5", "value": case_products_str},  # rmbb_products
                 {"id": "drfCODR4HhoKeI3eoH6J", "value": datetime.now().isoformat()}  # rmbb_submission_completed
@@ -520,7 +525,8 @@ class GHLRMBBWorkflowHandler:
         final_tracking_update = {
             "customField": [
                 {"id": "k9onZaMZVJ5Zwlopf2fi", "value": "submitted_awaiting_ivr"},  # rmbb_workflow_status
-                {"id": "WGKrQzlaNsK8Y4t5bUYf", "value": case_ids_str},  # rmbb_case_ids
+                {"id": "WGKrQzlaNsK8Y4t5bUYf", "value": case_ids_str},  # rmbb_case_ids (multiple, comma-separated)
+                {"id": "M9Dap36CFurN03kQALVC", "value": primary_case_id},  # rmbb_case_id (primary case for reorders)
                 {"id": "DuqFjhMUOv2yKa5qbdyR", "value": str(len(created_cases))},  # rmbb_case_count
                 {"id": "drfCODR4HhoKeI3eoH6J", "value": datetime.now().isoformat()},  # rmbb_submission_completed_date
                 {"id": "4AnL32P9rjYcPjbukcok", "value": "true"}  # rmbb_awaiting_ivr
