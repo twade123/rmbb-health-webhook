@@ -1,5 +1,5 @@
 {
-  "last_updated": "2025-09-10T12:55:58.900948",
+  "last_updated": "2025-09-10T12:56:02.209598",
   "providers": {
     "cell products agency account": {
       "original_name": "Cell Products Agency Account",
@@ -23,6 +23,13 @@
           "provider_name": "Cell Products",
           "external_id": "ghl_contact_VaoijIInQ7lYbkY0Yl3Y_20250910_125552_367",
           "created": "2025-09-10T12:55:58.899120"
+        },
+        "55241": {
+          "contact_id": "VaoijIInQ7lYbkY0Yl3Y",
+          "location_id": "Sqbexj54nvsxOI4V7SsD",
+          "provider_name": "Cell Products",
+          "external_id": "ghl_contact_VaoijIInQ7lYbkY0Yl3Y_20250910_125552_374",
+          "created": "2025-09-10T12:56:02.207901"
         }
       },
       "form_submissions": 14,
@@ -488,6 +495,21 @@
         "product_id": 367,
         "q_code": "Q4154",
         "saved_at": "2025-09-10T12:55:58.899131"
+      }
+    },
+    "55241": {
+      "case_id": "55241",
+      "provider_name": "Cell Products",
+      "provider_key": "cell products",
+      "contact_id": "VaoijIInQ7lYbkY0Yl3Y",
+      "location_id": "Sqbexj54nvsxOI4V7SsD",
+      "external_id": "ghl_contact_VaoijIInQ7lYbkY0Yl3Y_20250910_125552_374",
+      "created": "2025-09-10T12:56:02.207901",
+      "approved_product": {
+        "name": "Helicoll",
+        "product_id": 374,
+        "q_code": "Q4164",
+        "saved_at": "2025-09-10T12:56:02.207914"
       }
     }
   }
