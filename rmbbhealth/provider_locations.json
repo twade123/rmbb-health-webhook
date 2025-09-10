@@ -1,5 +1,5 @@
 {
-  "last_updated": "2025-09-10T12:10:37.105506",
+  "last_updated": "2025-09-10T12:10:42.694399",
   "providers": {
     "cell products agency account": {
       "original_name": "Cell Products Agency Account",
@@ -26,7 +26,15 @@
       "location_id": "default_location",
       "sub_account_api_key": null,
       "api_key_status": "pending_manual_entry",
-      "case_mappings": {},
+      "case_mappings": {
+        "55217": {
+          "contact_id": "pTHJnrvCnA6TJIrKFWId",
+          "location_id": "default_location",
+          "provider_name": "GHL",
+          "external_id": "ghl_contact_pTHJnrvCnA6TJIrKFWId_20250910_121037_364",
+          "created": "2025-09-10T12:10:42.692386"
+        }
+      },
       "form_submissions": 4,
       "first_seen": "2025-09-09T07:00:56.178156",
       "last_updated": "2025-09-10T12:10:37.102337"
@@ -380,6 +388,21 @@
         "product_id": 364,
         "q_code": "Q4239",
         "saved_at": "2025-09-10T12:07:14.450082"
+      }
+    },
+    "55217": {
+      "case_id": "55217",
+      "provider_name": "GHL",
+      "provider_key": "ghl",
+      "contact_id": "pTHJnrvCnA6TJIrKFWId",
+      "location_id": "default_location",
+      "external_id": "ghl_contact_pTHJnrvCnA6TJIrKFWId_20250910_121037_364",
+      "created": "2025-09-10T12:10:42.692386",
+      "approved_product": {
+        "name": "Amnio-Maxx",
+        "product_id": 364,
+        "q_code": "Q4239",
+        "saved_at": "2025-09-10T12:10:42.692405"
       }
     }
   }
