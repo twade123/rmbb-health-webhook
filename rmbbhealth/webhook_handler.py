@@ -1600,7 +1600,7 @@ def handle_ghl_reorder():
                 ]
             }
             
-            field_update_result = workflow_handler.update_ghl_contact(contact_id, wound_calc_update)
+            field_update_result = workflow_handler.update_ghl_contact(contact_id, wound_calc_update, provider_name=provider_name)
             if field_update_result.get("success"):
                 logging.info(f"✅ Updated wound size coverage calculator field with reorder calculation")
             else:
