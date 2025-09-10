@@ -117,20 +117,17 @@ class ProviderLocationCache:
             if global_case_mappings:
                 github_format["case_mappings"] = global_case_mappings
             
-            # Print formatted JSON for manual copying
-            print("🔗 GITHUB CACHE UPDATE REQUIRED:")
-            print("📋 Copy the following to your GitHub provider_locations.json file:")
-            print("=" * 60)
-            print(json.dumps(github_format, indent=2, default=str))
-            print("=" * 60)
+            # Reduced logging for Railway rate limits - GitHub output disabled
+            # GitHub format is ready but not printed to reduce log spam
             
         except Exception as e:
-            print(f"⚠️ Error formatting for GitHub: {e}")
+            # Reduced logging for Railway rate limits
+            pass
     
     def _commit_to_github(self):
         """Automatically commit cache to GitHub repository if credentials are available"""
         try:
-            print("🔍 DEBUG: Starting GitHub commit attempt...")
+            # Reduced logging for Railway rate limits - GitHub debug disabled
             
             # Check for required environment variables
             github_token = os.getenv('GITHUB_TOKEN')
@@ -138,12 +135,8 @@ class ProviderLocationCache:
             repo_name = os.getenv('GITHUB_REPO_NAME')
             file_path = 'rmbbhealth/provider_locations.json'  # Path in repository
             
-            print(f"🔍 DEBUG: GitHub token present: {'Yes' if github_token else 'No'}")
-            print(f"🔍 DEBUG: Repo owner: {repo_owner}")
-            print(f"🔍 DEBUG: Repo name: {repo_name}")
-            
             if not all([github_token, repo_owner, repo_name]):
-                print("📝 GitHub credentials not configured - using manual copy method")
+                # Reduced logging for Railway rate limits
                 return
                 
             # Create the GitHub-ready content
@@ -222,24 +215,16 @@ class ProviderLocationCache:
                 commit_data["sha"] = current_sha
             
             # Commit to GitHub
-            print(f"🔍 DEBUG: Making GitHub API call to: {api_url}")
-            print(f"🔍 DEBUG: Commit message: {commit_data['message']}")
+            # Reduced logging for Railway rate limits - GitHub API calls silent
             
             response = requests.put(api_url, headers=headers, json=commit_data)
             
-            print(f"🔍 DEBUG: GitHub API response status: {response.status_code}")
-            
             if response.status_code in [200, 201]:
-                commit_info = response.json()
-                commit_sha = commit_info['commit']['sha'][:8]
-                print(f"✅ Successfully committed to GitHub!")
-                print(f"🔗 Commit: {commit_sha}")
-                print(f"📄 File: {file_path}")
-                print(f"📊 Data: {len(github_format['providers'])} providers")
+                # GitHub commit successful - no logging to reduce rate limits
+                pass
             else:
+                # Only log GitHub failures
                 print(f"❌ GitHub commit failed: {response.status_code}")
-                print(f"📋 Response: {response.text}")
-                print(f"🔍 DEBUG: Full response headers: {dict(response.headers)}")
                 
         except Exception as e:
             print(f"⚠️ Error committing to GitHub: {e}")
