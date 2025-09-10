@@ -1502,9 +1502,13 @@ def handle_ghl_reorder():
             approved_q_code = approved_product.get("q_code", "").lower()
             product_selection_lower = product_selection.lower()
             
-            if (product_selection_lower not in approved_product_name and 
+            # Normalize product names for comparison (remove hyphens, spaces)
+            normalized_approved = approved_product_name.replace("-", "").replace(" ", "")
+            normalized_selection = product_selection_lower.replace("-", "").replace(" ", "")
+            
+            if (normalized_selection not in normalized_approved and 
                 product_selection_lower != approved_q_code and
-                approved_product_name not in product_selection_lower):
+                normalized_approved not in normalized_selection):
                 validation_errors.append(f"Product mismatch - payload: {product_selection}, stored: {approved_product['name']} ({approved_product.get('q_code', '')})")
         
         if validation_errors:
