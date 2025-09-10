@@ -1535,11 +1535,12 @@ def handle_ghl_reorder():
         # Step 3: Create case data structure for wound calculation (reusing existing process)
         reorder_case_data = {
             "id": int(case_id),
+            "contact_id": contact_id,  # CRITICAL: Add contact_id for downstream processing
             "status": "APPROVED",  # Reorders are by definition approved
             "external_status": "APPROVED",
             "overall_insurance_result": "APPROVED",
             
-            # Use new wound size
+            # Use new wound size from reorder payload (NOT from GHL)
             "wound_size": f"{wound_size_cm2} cm2",
             "total_wound_size": f"{wound_size_cm2} cm2", 
             "wound_type": "Reorder - Healing Wound",
