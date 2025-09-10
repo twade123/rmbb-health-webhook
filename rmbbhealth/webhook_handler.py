@@ -821,12 +821,14 @@ def handle_rmbb_status_webhook():
         # ADAPTIVE: Handle both complete case data OR minimal webhook + API call
         case_data = None
         
-        # Check if webhook contains complete case data (Option 1)
-        if payload.get('primary_insurance') or payload.get('overall_insurance_result') is not None:
-            logging.info("📦 Webhook contains complete case data - using directly")
+        # Check if webhook contains complete case data OR is just a simple status update (Option 1)
+        case_status = payload.get('status', '').upper()
+        if (payload.get('primary_insurance') or payload.get('overall_insurance_result') is not None or
+            case_status in ['CASE CREATED']):
+            logging.info(f"📦 Simple status update ({case_status}) - using webhook data directly")
             case_data = payload
         else:
-            # Minimal webhook - need to fetch case data via API (Option 2)
+            # Complex status that needs additional case data - fetch via API (Option 2)
             logging.info(f"📡 Minimal webhook received - fetching case {case_id} via API")
             
             if not case_id:
