@@ -1,5 +1,5 @@
 {
-  "last_updated": "2025-09-10T17:20:39.495086",
+  "last_updated": "2025-09-10T17:30:54.141335",
   "providers": {
     "cell products agency account": {
       "original_name": "Cell Products Agency Account",
@@ -16,18 +16,10 @@
       "location_id": "Sqbexj54nvsxOI4V7SsD",
       "sub_account_api_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsb2NhdGlvbl9pZCI6IlNxYmV4ajU0bnZzeE9JNFY3U3NEIiwidmVyc2lvbiI6MSwiaWF0IjoxNzUzMDI5MTMxMjU1LCJzdWIiOiI3MTJEQzhBY2NGaUo5Vmt5aFJqWCJ9.1JSN3gbOtcGBEvs-shLfBqbTKil-xXQCgMZarjBDyIU",
       "api_key_status": "entered",
-      "case_mappings": {
-        "55306": {
-          "contact_id": "7YKGXTAVcYsOH7bm1ksx",
-          "location_id": "Sqbexj54nvsxOI4V7SsD",
-          "provider_name": "Cell Products",
-          "external_id": "ghl_contact_7YKGXTAVcYsOH7bm1ksx_20250910_172033_364",
-          "created": "2025-09-10T17:20:39.489038"
-        }
-      },
-      "form_submissions": 17,
+      "case_mappings": {},
+      "form_submissions": 18,
       "first_seen": "2025-08-27T18:30:33.408240",
-      "last_updated": "2025-09-10T17:20:33.193117"
+      "last_updated": "2025-09-10T17:30:54.132709"
     },
     "ghl": {
       "original_name": "GHL",
