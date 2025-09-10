@@ -1,5 +1,5 @@
 {
-  "last_updated": "2025-09-10T12:07:14.451773",
+  "last_updated": "2025-09-10T12:10:37.105506",
   "providers": {
     "cell products agency account": {
       "original_name": "Cell Products Agency Account",
@@ -26,18 +26,10 @@
       "location_id": "default_location",
       "sub_account_api_key": null,
       "api_key_status": "pending_manual_entry",
-      "case_mappings": {
-        "55216": {
-          "contact_id": "pTHJnrvCnA6TJIrKFWId",
-          "location_id": "default_location",
-          "provider_name": "GHL",
-          "external_id": "ghl_contact_pTHJnrvCnA6TJIrKFWId_20250910_120708_364",
-          "created": "2025-09-10T12:07:14.450065"
-        }
-      },
-      "form_submissions": 3,
+      "case_mappings": {},
+      "form_submissions": 4,
       "first_seen": "2025-09-09T07:00:56.178156",
-      "last_updated": "2025-09-10T12:07:08.845675"
+      "last_updated": "2025-09-10T12:10:37.102337"
     },
     "ttt": {
       "original_name": "TTT",
