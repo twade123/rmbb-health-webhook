@@ -41,15 +41,23 @@ class WoundCalculationIntegration:
             dict: Calculation results with GHL custom field updates, or None if not applicable
         """
         try:
+            logging.error("🚨🚨🚨 CRITICAL DEBUG: process_approved_case called with UPDATED CODE 🚨🚨🚨")
             logging.info("🧮 Starting wound coverage processing for approved case")
+            
+            # DEBUG: Log the entire case_data structure
+            logging.info(f"🔍 FULL case_data received: {case_data}")
             
             # Step 1: Extract product and wound information from case data
             product_info = self._extract_product_info(case_data)
             if not product_info:
+                logging.error("❌ Failed to extract product info")
                 return None
             
+            logging.info("🔍 About to call _extract_wound_info...")
             wound_info = self._extract_wound_info(case_data)
+            logging.info(f"🔍 _extract_wound_info returned: {wound_info}")
             if not wound_info:
+                logging.error("❌ Failed to extract wound info")
                 return None
             
             # Step 2: Map RMBB Health product to our product catalog
@@ -129,14 +137,43 @@ class WoundCalculationIntegration:
     
     def _extract_wound_info(self, case_data: Dict) -> Optional[Dict]:
         """
-        Extract wound size information from GHL custom field rmbb_wound_size_coverage_calculator.
+        Extract wound size information from case_data (reorders) or GHL custom field (status updates).
         
         Args:
-            case_data (dict): Case data containing case_id for provider cache lookup
+            case_data (dict): Case data containing wound_size (reorders) or case_id (status updates)
             
         Returns:
             dict: Wound information with numerical size in cm², or None if not found
         """
+        # DEBUG: Log what we received in case_data
+        logging.info(f"   🔍 _extract_wound_info received case_data keys: {list(case_data.keys())}")
+        logging.info(f"   🔍 wound_size value: '{case_data.get('wound_size')}'")
+        logging.info(f"   🔍 total_wound_size value: '{case_data.get('total_wound_size')}'")
+        
+        # REORDER SCENARIO: Check if wound_size is provided in case_data first
+        if case_data.get('wound_size') or case_data.get('total_wound_size'):
+            wound_size_str = case_data.get('wound_size') or case_data.get('total_wound_size')
+            logging.info(f"   🔍 Using wound_size_str: '{wound_size_str}' (type: {type(wound_size_str)})")
+            
+            # Parse wound size from case data
+            import re
+            cm2_match = re.search(r'(\d+(?:\.\d+)?)', str(wound_size_str))
+            if cm2_match:
+                wound_size_cm2 = float(cm2_match.group(1))
+                logging.info(f"   📏 ✅ USING REORDER PAYLOAD wound size: {wound_size_cm2} cm²")
+                
+                return {
+                    'wound_size_cm2': wound_size_cm2,
+                    'wound_size_str': f"{wound_size_cm2} cm²",
+                    'total_wound_size_str': f"{wound_size_cm2} cm²",
+                    'wound_type': 'From Reorder Payload'
+                }
+            else:
+                logging.warning(f"   ⚠️ Could not parse wound size from: '{wound_size_str}'")
+        else:
+            logging.info(f"   🔍 No wound_size or total_wound_size in case_data, falling back to GHL lookup")
+        
+        # STATUS UPDATE SCENARIO: Fall back to GHL custom field lookup
         # Get case_id for provider cache lookup
         case_id = case_data.get('case_id') or case_data.get('id')
         if not case_id:
