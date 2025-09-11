@@ -1,5 +1,5 @@
 {
-  "last_updated": "2025-09-11T19:53:33.175445",
+  "last_updated": "2025-09-11T19:53:38.664983",
   "providers": {
     "cell products agency account": {
       "original_name": "Cell Products Agency Account ",
@@ -16,10 +16,35 @@
       "location_id": "default_location",
       "sub_account_api_key": null,
       "api_key_status": "pending_manual_entry",
-      "case_mappings": {},
+      "case_mappings": {
+        "55543": {
+          "contact_id": "w0AZhBaiN71Kq40YHVGe",
+          "location_id": "default_location",
+          "provider_name": "Bull Doc",
+          "external_id": "ghl_contact_w0AZhBaiN71Kq40YHVGe_20250911_195333_375",
+          "created": "2025-09-11T19:53:38.664397"
+        }
+      },
       "form_submissions": 1,
       "first_seen": "2025-09-11T19:53:33.175072",
       "last_updated": "2025-09-11T19:53:33.175079"
+    }
+  },
+  "case_mappings": {
+    "55543": {
+      "case_id": "55543",
+      "provider_name": "Bull Doc",
+      "provider_key": "bull doc",
+      "contact_id": "w0AZhBaiN71Kq40YHVGe",
+      "location_id": "default_location",
+      "external_id": "ghl_contact_w0AZhBaiN71Kq40YHVGe_20250911_195333_375",
+      "created": "2025-09-11T19:53:38.664397",
+      "approved_product": {
+        "name": "AmchoPlast",
+        "product_id": 375,
+        "q_code": "Q4316",
+        "saved_at": "2025-09-11T19:53:38.664408"
+      }
     }
   }
 }
