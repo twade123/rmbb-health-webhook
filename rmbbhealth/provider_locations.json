@@ -94,9 +94,9 @@
     },
     "bull doc": {
       "original_name": "Bull Doc",
-      "location_id": "default_location",
+      "location_id": "Sqbexj54nvsxOI4V7SsD",
       "sub_account_api_key": null,
-      "api_key_status": "pending_manual_entry",
+      "api_key_status": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsb2NhdGlvbl9pZCI6IkVHS0FuRThYY1p0N3BMczhMRWxWIiwidmVyc2lvbiI6MSwiaWF0IjoxNzU3NjE4NDkxOTM3fQ.bk5CyNSjXHgNKCxpSkZeaxr06mWTRI5JazgE6LEEWbk",
       "case_mappings": {
         "55536": {
           "contact_id": "NkGPzkUATgc5NnurMvga",
