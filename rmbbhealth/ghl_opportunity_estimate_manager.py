@@ -16,6 +16,7 @@ import sys
 import json
 import requests
 import logging
+import jwt
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Union
 
@@ -619,7 +620,7 @@ class GHLOpportunityEstimateManager:
                 if provider_margin > 30:
                     pass  # Remove the excellent margin text
                 elif provider_margin > 15:
-                    notes.append("🟡 GOOD MARGIN - Moderate profitability")
+                    pass  # Remove the good margin text
                 else:
                     notes.append("🔴 LOW MARGIN - Review coverage/pricing")
                 notes.append("")
