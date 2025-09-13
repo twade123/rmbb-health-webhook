@@ -1,0 +1,33 @@
+{
+  "sync_history": {
+    "last_successful_sync": null,
+    "last_sync_attempt": null,
+    "consecutive_successful_syncs": 0,
+    "consecutive_failed_syncs": 0,
+    "total_syncs_performed": 0
+  },
+  "ghl_api_status": {
+    "agency_api_key_valid": true,
+    "last_api_response_code": null,
+    "api_rate_limit_remaining": null,
+    "locations_endpoint_accessible": true
+  },
+  "sync_configuration": {
+    "auto_sync_enabled": true,
+    "sync_trigger": "webhook_request",
+    "preserve_existing_data": true,
+    "backup_before_sync": true,
+    "max_sync_retries": 3
+  },
+  "change_detection": {
+    "new_sub_accounts_detected": [],
+    "modified_sub_accounts": [],
+    "removed_sub_accounts": [],
+    "location_id_changes": []
+  },
+  "performance_metrics": {
+    "average_sync_duration_ms": 0,
+    "last_sync_duration_ms": 0,
+    "cache_file_sizes_bytes": {}
+  }
+}
