@@ -356,7 +356,7 @@ def populate_subaccount_cache_from_agency():
     
     if not ghl_agency_key:
         logging.error("❌ GHL agency API key required for sub-account discovery")
-        logging.error("   Set GHL_AGENCY_API_KEY or GHL_API_KEY environment variable")
+        logging.error("   Set GHL_API_KEY_AGENCY or GHL_API_KEY environment variable")
         return {
             'success': False,
             'error': 'GHL agency API key not configured'
@@ -436,7 +436,7 @@ class WebhookConfig:
     RMBB_TEAM_ID = os.environ.get('RMBB_TEAM_ID', None)
     
     # GHL V1 API Configuration - Dual Token Support
-    GHL_AGENCY_API_KEY = os.environ.get('GHL_AGENCY_API_KEY', None)  # For locations/cache refresh
+    GHL_AGENCY_API_KEY = os.environ.get('GHL_API_KEY_AGENCY', None)  # For sub-account creation and locations/cache refresh
     GHL_LOCATION_API_KEY = os.environ.get('GHL_LOCATION_API_KEY', None)  # For contact operations
     GHL_API_KEY = os.environ.get('GHL_API_KEY', None)  # Fallback/legacy support
     GHL_BASE_URL = os.environ.get('GHL_BASE_URL', 'https://rest.gohighlevel.com/v1')
@@ -468,7 +468,7 @@ def validate_configuration():
     has_legacy_token = WebhookConfig.GHL_API_KEY
     
     if not has_dual_tokens and not has_legacy_token:
-        missing_vars.append('GHL_AGENCY_API_KEY and GHL_LOCATION_API_KEY (or GHL_API_KEY for legacy)')
+        missing_vars.append('GHL_API_KEY_AGENCY and GHL_LOCATION_API_KEY (or GHL_API_KEY for legacy)')
     
     if missing_vars:
         logging.error(f"❌ Missing required environment variables: {missing_vars}")
@@ -476,7 +476,7 @@ def validate_configuration():
         for var in missing_vars:
             if 'GHL' in var:
                 logging.error(f"  # Dual token mode (recommended):")
-                logging.error(f"  export GHL_AGENCY_API_KEY='agency_token_here'")
+                logging.error(f"  export GHL_API_KEY_AGENCY='agency_token_here'")
                 logging.error(f"  export GHL_LOCATION_API_KEY='location_token_here'")
                 logging.error(f"  # OR legacy single token mode:")
                 logging.error(f"  export GHL_API_KEY='single_token_here'")
@@ -1201,7 +1201,8 @@ def handle_rmbb_status_webhook():
             contact_id=ghl_contact_id,
             location_id=location_id,
             ivr_data=enhanced_ivr_data,
-            patient_name=patient_name
+            patient_name=patient_name,
+            case_id=case_id  # Pass case_id for hierarchical cache lookup
         )
         
         logging.info(f"📧 Provider notification result: {notification_result}")
@@ -1693,6 +1694,215 @@ def handle_ghl_reorder():
             "timestamp": datetime.now().isoformat()
         }), 500
 
+
+@app.route('/webhook/provider-onboarding', methods=['POST'])
+def handle_provider_onboarding():
+    """
+    Handle provider onboarding survey webhook from GHL.
+    
+    This endpoint processes provider signup forms and automatically:
+    1. Creates GHL sub-account using survey data
+    2. Updates master_registry.json with new provider entry
+    3. Creates individual provider JSON file with API key placeholders
+    
+    Expected payload from GHL survey form:
+    {
+        "Business name": "Provider Business Name",
+        "first_name": "John", 
+        "last_name": "Doe",
+        "email": "provider@example.com",
+        "phone": "+1234567890",
+        "address1": "123 Main St",
+        "city": "Phoenix",
+        "state": "AZ", 
+        "postal_code": "85001",
+        "ein": "12-3456789",  // Optional - Federal Tax ID
+        "npi": "1234567890",  // Optional - National Provider ID
+        "locationId": "Sqbexj54nvsxOI4V7SsD"  // Cell Products location
+    }
+    """
+    try:
+        logging.info("🏥 Received provider onboarding survey webhook")
+        
+        # Validate request method and content type
+        if request.method != 'POST':
+            return jsonify({"error": "Only POST requests are allowed"}), 405
+            
+        # Parse payload
+        payload = request.get_json()
+        if not payload:
+            return jsonify({"error": "Empty JSON payload"}), 400
+            
+        logging.info(f"📦 Provider onboarding payload: {json.dumps(payload, indent=2)}")
+        
+        # Extract required provider information from survey data
+        business_name = (payload.get('Business name') or     # GHL format
+                        payload.get('business name') or 
+                        payload.get('business_name') or
+                        payload.get('Legal Company Name') or
+                        '').strip()
+        
+        first_name = (payload.get('first_name') or 
+                     payload.get('firstName') or '').strip()
+        
+        last_name = (payload.get('last_name') or 
+                    payload.get('lastName') or '').strip()
+        
+        email = (payload.get('email') or 
+                payload.get('emailAddress') or '').strip()
+        
+        phone = (payload.get('phone') or 
+                payload.get('phoneNumber') or '').strip()
+        
+        # Address fields
+        address1 = payload.get('address1', '').strip()
+        city = payload.get('city', '').strip()
+        state = payload.get('state', '').strip()
+        postal_code = payload.get('postal_code', '').strip()
+        
+        # Business identifiers (for GHL sub-account creation only)
+        ein = payload.get('ein', '').strip()
+        npi = payload.get('npi', '').strip()
+        
+        # Source location validation
+        source_location_id = payload.get('locationId', '')
+        expected_cell_products_id = 'Sqbexj54nvsxOI4V7SsD'
+        
+        if source_location_id != expected_cell_products_id:
+            logging.warning(f"⚠️ Unexpected source location: {source_location_id}, expected: {expected_cell_products_id}")
+        
+        # Validate required fields
+        if not all([business_name, first_name, last_name, email]):
+            missing_fields = []
+            if not business_name: missing_fields.append('Business name')
+            if not first_name: missing_fields.append('first_name')
+            if not last_name: missing_fields.append('last_name')
+            if not email: missing_fields.append('email')
+            
+            return jsonify({
+                "success": False,
+                "error": f"Missing required fields: {', '.join(missing_fields)}",
+                "timestamp": datetime.now().isoformat()
+            }), 400
+        
+        logging.info(f"🏢 Processing provider onboarding for: {business_name}")
+        logging.info(f"👤 Contact: {first_name} {last_name} ({email})")
+        
+        # Step 1: Create GHL sub-account using existing workflow handler
+        logging.info("🔧 Step 1: Creating GHL sub-account...")
+        
+        # Prepare sub-account data for GHL API
+        clean_phone = phone.replace('+1', '').replace('-', '').replace('(', '').replace(')', '').replace(' ', '')
+        
+        subaccount_data = {
+            "name": f"{business_name} - {first_name} {last_name}",
+            "businessName": business_name,
+            "address": address1,
+            "city": city,
+            "state": state,
+            "postalCode": postal_code,
+            "country": "US",
+            "phone": clean_phone,
+            "email": email,
+            "website": payload.get('website', ''),
+            "timezone": "America/Phoenix",  # Cell Products timezone
+            "firstName": first_name,
+            "lastName": last_name
+        }
+        
+        # Add EIN and NPI if provided (for GHL sub-account creation only)
+        if ein:
+            subaccount_data["ein"] = ein
+        if npi:
+            subaccount_data["npi"] = npi
+        
+        # Create sub-account via GHL API
+        headers = {
+            "Authorization": f"Bearer {WebhookConfig.GHL_AGENCY_API_KEY}",
+            "Content-Type": "application/json",
+            "Version": "2021-07-28"
+        }
+        
+        ghl_response = requests.post(
+            f"{WebhookConfig.GHL_BASE_URL}/locations/",
+            headers=headers,
+            json=subaccount_data
+        )
+        
+        if ghl_response.status_code not in [200, 201]:
+            error_msg = f"GHL sub-account creation failed: {ghl_response.status_code} - {ghl_response.text}"
+            logging.error(f"❌ {error_msg}")
+            return jsonify({
+                "success": False,
+                "error": error_msg,
+                "timestamp": datetime.now().isoformat()
+            }), 500
+        
+        ghl_result = ghl_response.json()
+        new_location_id = ghl_result.get('id')
+        
+        if not new_location_id:
+            error_msg = "GHL API did not return location ID"
+            logging.error(f"❌ {error_msg}")
+            return jsonify({
+                "success": False,
+                "error": error_msg,
+                "timestamp": datetime.now().isoformat()
+            }), 500
+        
+        logging.info(f"✅ GHL sub-account created successfully - ID: {new_location_id}")
+        
+        # Step 2: Update provider cache registry with new provider
+        logging.info("🔧 Step 2: Updating provider registry...")
+        
+        from services.provider_location_cache import get_provider_cache
+        provider_cache = get_provider_cache()
+        
+        # Add provider to registry using existing cache system (maintains correct format)
+        cache_result = provider_cache.add_or_update_provider(
+            provider_name=business_name,
+            location_id=new_location_id,
+            increment_submissions=True
+        )
+        
+        if cache_result:
+            logging.info(f"✅ Provider registry updated successfully")
+        else:
+            logging.warning(f"⚠️ Provider registry update failed, but sub-account was created")
+        
+        # Step 3: Return success response
+        response_data = {
+            "success": True,
+            "message": "Provider onboarding completed successfully",
+            "provider_data": {
+                "business_name": business_name,
+                "contact_name": f"{first_name} {last_name}",
+                "email": email,
+                "ghl_location_id": new_location_id,
+                "registry_updated": cache_result
+            },
+            "next_steps": [
+                "Provider entry created in master registry with 'pending_manual_entry' API key status",
+                "Individual provider JSON file created with API key placeholders",
+                "Manual API key entry required via provider dashboard or support"
+            ],
+            "timestamp": datetime.now().isoformat()
+        }
+        
+        logging.info(f"🎉 Provider onboarding successful for {business_name} (Location: {new_location_id})")
+        return jsonify(response_data), 200
+        
+    except Exception as e:
+        error_msg = f"Provider onboarding webhook processing error: {str(e)}"
+        logging.error(f"❌ {error_msg}")
+        logging.error(traceback.format_exc())
+        return jsonify({
+            "success": False,
+            "error": error_msg,
+            "timestamp": datetime.now().isoformat()
+        }), 500
+
+
 if __name__ == '__main__':
     # Validate configuration before starting
     if not validate_configuration():
@@ -1718,6 +1928,7 @@ if __name__ == '__main__':
     logging.info(f"🔗 Main endpoint: http://{WebhookConfig.HOST}:{WebhookConfig.PORT}/webhook/ghl-rmbb-qualification")
     logging.info(f"📋 RMBB status update: http://{WebhookConfig.HOST}:{WebhookConfig.PORT}/webhook/rmbb-status-update")
     logging.info(f"🔄 GHL reorder: http://{WebhookConfig.HOST}:{WebhookConfig.PORT}/webhook/ghl-reorder")
+    logging.info(f"🏥 Provider onboarding: http://{WebhookConfig.HOST}:{WebhookConfig.PORT}/webhook/provider-onboarding")
     logging.info(f"🧪 Test endpoint: http://{WebhookConfig.HOST}:{WebhookConfig.PORT}/webhook/test")
     logging.info(f"❤️ Health check: http://{WebhookConfig.HOST}:{WebhookConfig.PORT}/health")
     logging.info("=" * 60)
