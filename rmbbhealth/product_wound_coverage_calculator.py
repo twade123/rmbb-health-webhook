@@ -57,7 +57,7 @@ class ProductWoundCoverageCalculator:
                 'q_code': 'Q4239',
                 'available_sizes': {
                     '2x2': 4, '2x3': 6, '2x4': 8, 
-                    '4x4': 16, '4x6': 24, '4x8': 32, '3x3': 9
+                    '3x3': 9, '4x4': 16, '4x6': 24, '4x8': 32
                 }
             },
             'Dermabind-FM': {
@@ -81,11 +81,11 @@ class ProductWoundCoverageCalculator:
                 }
             
             },
-            'Membrane Wrap Q2': {
+            'Membrane Wrap': {
                 'q_code': 'Q4205',
                 'available_sizes': {
-                    '1x1': 1, '2x2': 4, '2x3': 6,
-                    '4x4': 16, '4x6': 24, '4x8': 32
+                    '1x1 Q2': 1, '2x2 Q2': 4, '2x3 Q2': 6,
+                    '4x4 Q2': 16, '4x6 Q2': 24, '4x8 Q2': 32
                 }
             },
             'Membrane Wrap H': {
