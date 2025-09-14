@@ -310,6 +310,13 @@ class HierarchicalProviderCache:
                 self.master_registry["sub_accounts"][provider_key]["last_updated"] = datetime.now().isoformat()
                 self.master_registry["sub_accounts"][provider_key]["case_count"] = len(data.get("case_mappings", {}))
                 self._save_master_registry()
+                
+            # CRITICAL: Commit to GitHub for Railway persistence
+            # Only attempt if we're in Railway environment (has /app path)
+            if '/app' in str(self.cache_dir):
+                self._commit_provider_file_to_github(provider_key)
+                # Also commit updated master registry
+                self._commit_master_registry_to_github()
 
         except Exception as e:
             print(f"❌ Error saving sub-account {provider_key}: {e}")
@@ -788,6 +795,148 @@ class HierarchicalProviderCache:
 
             except Exception as e:
                 print(f"❌ Error clearing cache: {e}")
+
+    def _commit_master_registry_to_github(self):
+        """Commit master registry to GitHub for Railway persistence"""
+        try:
+            # Check for required environment variables
+            github_token = os.getenv('GITHUB_TOKEN')
+            repo_owner = os.getenv('GITHUB_REPO_OWNER') 
+            repo_name = os.getenv('GITHUB_REPO_NAME')
+            
+            if not all([github_token, repo_owner, repo_name]):
+                return False
+                
+            file_path = 'rmbbhealth/provider_cache/master_registry.json'
+            
+            # GitHub API setup
+            api_url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/contents/{file_path}"
+            headers = {
+                "Authorization": f"token {github_token}",
+                "Accept": "application/vnd.github.v3+json"
+            }
+            
+            # Get current file SHA (required for updates)
+            current_sha = None
+            try:
+                response = requests.get(api_url, headers=headers)
+                if response.status_code == 200:
+                    current_file = response.json()
+                    current_sha = current_file['sha']
+            except Exception:
+                pass  # File doesn't exist, will create new
+            
+            # Prepare commit data
+            content_json = json.dumps(self.master_registry, indent=2, default=str)
+            commit_data = {
+                "message": f"Update master registry - {len(self.master_registry.get('sub_accounts', {}))} providers",
+                "content": base64.b64encode(content_json.encode()).decode(),
+                "branch": "main"
+            }
+            
+            if current_sha:
+                commit_data["sha"] = current_sha
+            
+            # Commit to GitHub
+            response = requests.put(api_url, headers=headers, json=commit_data)
+            
+            if response.status_code in [200, 201]:
+                print(f"✅ Master registry committed to GitHub")
+                return True
+            else:
+                print(f"❌ GitHub master registry commit failed: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            print(f"⚠️ Error committing master registry to GitHub: {e}")
+            return False
+
+    def _commit_provider_file_to_github(self, provider_key):
+        """Commit individual provider file to GitHub for Railway persistence"""
+        try:
+            # Check for required environment variables
+            github_token = os.getenv('GITHUB_TOKEN')
+            repo_owner = os.getenv('GITHUB_REPO_OWNER') 
+            repo_name = os.getenv('GITHUB_REPO_NAME')
+            
+            if not all([github_token, repo_owner, repo_name]):
+                return False
+                
+            # Load provider data
+            sub_account_data = self._load_sub_account_data(provider_key)
+            if not sub_account_data:
+                return False
+                
+            file_path = f'rmbbhealth/provider_cache/sub_accounts/{provider_key}.json'
+            
+            # GitHub API setup
+            api_url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/contents/{file_path}"
+            headers = {
+                "Authorization": f"token {github_token}",
+                "Accept": "application/vnd.github.v3+json"
+            }
+            
+            # Get current file SHA (required for updates)
+            current_sha = None
+            try:
+                response = requests.get(api_url, headers=headers)
+                if response.status_code == 200:
+                    current_file = response.json()
+                    current_sha = current_file['sha']
+            except Exception:
+                pass  # File doesn't exist, will create new
+            
+            # Prepare commit data
+            content_json = json.dumps(sub_account_data, indent=2, default=str)
+            case_count = len(sub_account_data.get("case_mappings", {}))
+            commit_data = {
+                "message": f"Update {provider_key} - {case_count} cases",
+                "content": base64.b64encode(content_json.encode()).decode(),
+                "branch": "main"
+            }
+            
+            if current_sha:
+                commit_data["sha"] = current_sha
+            
+            # Commit to GitHub
+            response = requests.put(api_url, headers=headers, json=commit_data)
+            
+            if response.status_code in [200, 201]:
+                print(f"✅ Provider {provider_key} committed to GitHub")
+                return True
+            else:
+                print(f"❌ GitHub provider commit failed: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            print(f"⚠️ Error committing provider {provider_key} to GitHub: {e}")
+            return False
+
+    def _commit_hierarchical_cache_to_github(self):
+        """Commit both master registry and all provider files to GitHub"""
+        try:
+            # Only commit if we're in Railway environment
+            if '/app' not in str(self.cache_dir):
+                return True  # Skip in development
+                
+            success = True
+            
+            # Commit master registry
+            if not self._commit_master_registry_to_github():
+                success = False
+            
+            # Commit all provider files
+            for provider_key in self.master_registry.get("sub_accounts", {}):
+                registry_info = self.master_registry["sub_accounts"][provider_key]
+                if registry_info.get("data_file"):  # Skip agency accounts
+                    if not self._commit_provider_file_to_github(provider_key):
+                        success = False
+            
+            return success
+            
+        except Exception as e:
+            print(f"⚠️ Error committing hierarchical cache to GitHub: {e}")
+            return False
 
 
 # BACKWARD COMPATIBILITY: Keep the original class name as alias
