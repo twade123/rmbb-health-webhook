@@ -1748,6 +1748,15 @@ def handle_provider_onboarding():
         last_name = (payload.get('last_name') or 
                     payload.get('lastName') or '').strip()
         
+        # If no separate name fields found, try parsing combined 'name' field
+        if not first_name and not last_name:
+            full_name = payload.get('name', '').strip()
+            if full_name:
+                # Parse combined name field (from working standalone version)
+                name_parts = full_name.replace('Dr. ', '').replace('Mr. ', '').replace('Ms. ', '').replace('Mrs. ', '').strip().split(' ', 1)
+                first_name = name_parts[0] if len(name_parts) > 0 else ''
+                last_name = name_parts[1] if len(name_parts) > 1 else ''
+        
         email = (payload.get('email') or 
                 payload.get('emailAddress') or '').strip()
         
