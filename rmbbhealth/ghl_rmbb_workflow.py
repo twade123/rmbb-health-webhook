@@ -563,7 +563,7 @@ class GHLRMBBWorkflowHandler:
             "completed_at": datetime.now().isoformat()
         }
     
-    def notify_provider_in_subaccount(self, contact_id, location_id, ivr_data, patient_name):
+    def notify_provider_in_subaccount(self, contact_id, location_id, ivr_data, patient_name, case_id=None):
         """
         STEP 4: Notify provider in the correct sub-account
         Send notification to provider in the originating sub-account
@@ -621,8 +621,25 @@ Effective Date: {ivr_data['effective_date']}
             ]
         }
         
-        # Get provider name from cache using location_id for proper API key usage
-        provider_name = self._get_provider_name_by_location(location_id)
+        # Get complete provider info from hierarchical cache using case_id 
+        provider_info = None
+        provider_name = None
+        
+        if case_id:
+            # PREFERRED: Use hierarchical cache with case_id (complete flow)
+            provider_info = self._get_provider_info_by_case(case_id)
+            if provider_info:
+                provider_name = provider_info['provider_name']
+                # Verify location_id matches what we expect
+                if provider_info['location_id'] != location_id:
+                    logging.warning(f"⚠️ Location ID mismatch: expected {location_id}, got {provider_info['location_id']}")
+                logging.info(f"✅ Found provider via hierarchical cache: {provider_name}")
+            else:
+                logging.error(f"❌ No provider info found for case_id {case_id}")
+                return {"success": False, "error": f"Case {case_id} not found in provider cache"}
+        else:
+            logging.error(f"❌ case_id is required for hierarchical provider lookup")
+            return {"success": False, "error": "case_id parameter is required"}
         
         # Final update to the original contact in the correct sub-account
         final_contact_update = self.update_ghl_contact(
@@ -1193,26 +1210,41 @@ Effective Date: {ivr_data['effective_date']}
             print(f"❌ {error_msg}")
             return {"success": False, "error": error_msg}
     
-    def _get_provider_name_by_location(self, location_id):
-        """Get provider name from cache using location_id"""
+    def _get_provider_info_by_case(self, case_id):
+        """
+        Get complete provider info using hierarchical cache structure:
+        case_id -> master registry -> provider JSON file -> case mapping
+        
+        Returns: dict with provider_name, location_id, contact_id, etc.
+        """
         try:
             provider_cache = get_provider_cache()
             
-            # Access the internal cache dictionary directly
-            with provider_cache.lock:
-                cache_data = provider_cache.cache
-                for provider_key, provider_data in cache_data.items():
-                    if provider_key == "case_mappings":  # Skip global mappings
-                        continue
-                    if provider_data.get("location_id") == location_id:
-                        original_name = provider_data.get("original_name", provider_key)
-                        logging.info(f"🔍 Found provider for location {location_id}: {original_name}")
-                        return original_name
+            # STEP 1: Use hierarchical cache method to get case mapping
+            case_mapping = provider_cache.get_case_mapping(str(case_id))
             
-            logging.warning(f"⚠️ No provider found for location_id: {location_id}")
-            return None
+            if case_mapping:
+                provider_name = case_mapping.get('provider_name')
+                location_id = case_mapping.get('location_id') 
+                contact_id = case_mapping.get('contact_id')
+                
+                logging.info(f"🔍 Found complete provider info for case {case_id}:")
+                logging.info(f"   Provider: {provider_name}")
+                logging.info(f"   Location ID: {location_id}")
+                logging.info(f"   Contact ID: {contact_id}")
+                
+                return {
+                    'provider_name': provider_name,
+                    'location_id': location_id,
+                    'contact_id': contact_id,
+                    'case_mapping': case_mapping
+                }
+            else:
+                logging.warning(f"⚠️ No case mapping found for case_id: {case_id}")
+                return None
+                
         except Exception as e:
-            logging.error(f"❌ Error getting provider name by location: {str(e)}")
+            logging.error(f"❌ Error getting provider info by case: {str(e)}")
             return None
 
     def _get_provider_headers(self, provider_name=None, location_id=None):
