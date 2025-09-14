@@ -9,16 +9,36 @@
 ```mermaid
 graph TD
     A[GHL Form Submission] --> B[Biologic Product Extraction]
-    B --> C[Provider Cache Routing] 
-    C --> D[RMBB Patient Creation]
+    B --> C[🆕 Hierarchical Provider Cache]
+    C --> C1[Master Registry Lookup]
+    C1 --> C2[Provider File Loading]
+    C2 --> D[RMBB Patient Creation]
     D --> E[Multi-Case Creation by Product]
-    E --> F[Status Monitoring & Webhooks]
-    F --> G[JSON Document Processing Engine]
+    E --> E1[🆕 Case ID → Provider Mapping]
+    E1 --> E2[🆕 GitHub Commit: Individual Provider Files]
+    E2 --> F[Status Monitoring & Webhooks]
+    F --> F1[🆕 Case ID → Hierarchical Lookup]
+    F1 --> G[JSON Document Processing Engine]
     G --> H[GHL Field Updates & Workflow Tags]
     H --> I[Provider Notifications & Automations]
+    
+    style C fill:#e1f5fe
+    style C1 fill:#e1f5fe
+    style C2 fill:#e1f5fe
+    style E1 fill:#e8f5e8
+    style E2 fill:#e8f5e8
+    style F1 fill:#fff3e0
 ```
 
 ## 🆕 **MAJOR SYSTEM UPDATES - AUGUST 2025**
+
+### ✅ **Hierarchical Provider Cache System** (NEW ARCHITECTURE)
+- **🚀 Performance Optimized**: Load only needed provider data vs entire cache
+- **📁 Isolated Provider Files**: Individual JSON files per provider for scalability
+- **📋 Master Registry**: Central index with provider metadata and case counts
+- **⚡ Case-Based Routing**: Primary routing via `case_id` → hierarchical lookup
+- **🔄 GitHub Persistence**: Dual commit system (master registry + provider files)
+- **🏢 Multi-Tenant Isolation**: Complete data separation per provider
 
 ### ✅ **JSON-Based Document Processing** (Replaces OCR)
 - **100% Accuracy**: Direct API data processing vs 30% OCR accuracy
@@ -96,10 +116,12 @@ rmbbhealth/
 │       │                               # - Replaces OCR with 100% accurate JSON parsing
 │       │                               # - 5-section structured data extraction
 │       │                               # - Automatic status analysis and approval detection
-│       └── provider_location_cache.py  # Multi-tenant routing & persistence
-│                                       # - Case-to-contact mapping system
-│                                       # - Sub-account API key management
-│                                       # - GitHub sync for Railway/AWS persistence
+│       └── provider_location_cache.py  # 🆕 HIERARCHICAL Multi-tenant routing & persistence
+│                                       # - NEW: Hierarchical cache structure (master registry + individual provider files)
+│                                       # - Isolated provider data prevents cross-contamination
+│                                       # - Case-to-contact mapping per provider
+│                                       # - Sub-account API key management with location-based routing
+│                                       # - GitHub sync for Railway/AWS persistence (hierarchical structure)
 
 ├── 🔥 WOUND COVERAGE & BILLING SYSTEMS
 │   ├── product_wound_coverage_calculator.py  # Advanced wound coverage calculations
@@ -219,46 +241,97 @@ def extract_selected_biologic_product(self, form_data):
 4. **📋 Multi-Case Creation**: Creates separate RMBB case for each selected product
 5. **🔗 External ID Linking**: Links each case to GHL contact via `external_id`
 
-### 2. Provider Cache & Multi-Tenant Routing System
+### 2. 🆕 Hierarchical Provider Cache & Multi-Tenant Routing System
 
 **Core Service**: `services/provider_location_cache.py`
 
 ```python
 class ProviderLocationCache:
     """
-    HIPAA-compliant multi-tenant routing system.
-    Maps provider names to GHL location IDs and sub-account API keys.
-    Enables RMBB status updates to route back to correct GHL contacts.
+    🆕 HIERARCHICAL HIPAA-compliant multi-tenant routing system.
+    Uses master registry + isolated provider JSON files for optimal performance.
+    Maps provider names to GHL location IDs and enables case-based routing.
     """
     
-    def cache_provider_mapping()           # Store provider → location + API key
-    def get_location_id()                  # Route to correct GHL sub-account
-    def get_sub_account_api_key()          # Direct sub-account API access
+    def add_or_update_provider()           # Store provider → location + API key
+    def get_location_id_by_provider()      # Route to correct GHL sub-account  
+    def get_sub_account_api_key_by_location_id() # API key by location ID
     def add_case_mapping()                 # Link RMBB case_id ↔ GHL contact_id
-    def get_case_mapping()                 # Retrieve case-to-contact linkage
-    def incremental_provider_update()      # Auto-discover GHL sub-accounts
-    def _commit_to_github()               # Persist cache for Railway restarts
+    def get_case_mapping()                 # Retrieve case mapping by case_id
+    def _commit_master_registry_to_github() # Persist master registry
+    def _commit_provider_file_to_github()  # Persist individual provider files
 ```
 
-**Advanced Features**:
-- 🏢 **Multi-Tenant Isolation**: Each provider routed to correct GHL sub-account
-- 🔐 **HIPAA Compliance**: Only stores provider name + location mappings (no PHI)
-- 🔄 **Auto-Discovery**: Queries GHL agency API to find all sub-accounts automatically
-- 📊 **Railway Persistence**: Commits cache updates to GitHub for restart survival
-- 🧵 **Thread-Safe Operations**: Handles concurrent webhook processing safely
-- 📋 **Case Tracking**: Maintains complete case_id → contact_id → provider mapping
+**🆕 Hierarchical Architecture**:
+- 📋 **Master Registry**: Central index (`master_registry.json`) with provider metadata
+- 📁 **Isolated Provider Files**: Individual JSON files (`sub_accounts/{provider_key}.json`)
+- ⚡ **Performance Optimized**: Load only needed provider data, not entire cache
+- 🔄 **Scalable Design**: Supports unlimited providers without memory issues
+- 🏢 **Multi-Tenant Isolation**: Each provider has completely isolated data file
 
-**Provider Cache Data Structure**:
+**Advanced Features**:
+- 🔐 **HIPAA Compliance**: Only stores provider name + location mappings (no PHI)
+- 🔄 **Auto-Discovery**: Queries GHL agency API to find all sub-accounts automatically  
+- 📊 **Railway Persistence**: GitHub commits for both master registry and provider files
+- 🧵 **Thread-Safe Operations**: Handles concurrent webhook processing safely
+- 📋 **Case-Based Routing**: Primary routing via `case_id` → hierarchical lookup
+
+**🆕 Hierarchical File Structure**:
+```bash
+provider_cache/
+├── master_registry.json          # Central provider index
+└── sub_accounts/
+    ├── cell_products.json         # Individual provider data
+    ├── conscious_health.json      # Isolated provider file
+    └── dr_smith_medical.json      # Separate provider data
+```
+
+**Master Registry Format** (`master_registry.json`):
 ```json
 {
-  "provider_name": {
-    "location_id": "GHL_location_id",
+  "version": "2.0.0",
+  "created": "2025-08-29T16:00:00Z",
+  "sub_accounts": {
+    "cell_products": {
+      "provider_name": "Cell Products",
+      "location_id": "Sqbexj54nvsxOI4V7SsD", 
+      "data_file": "cell_products.json",
+      "case_count": 45,
+      "last_updated": "2025-08-29T16:00:00Z"
+    },
+    "conscious_health": {
+      "provider_name": "Conscious Health",
+      "location_id": "xyz789location",
+      "data_file": "conscious_health.json", 
+      "case_count": 23,
+      "last_updated": "2025-08-29T16:00:00Z"
+    }
+  }
+}
+```
+
+**Individual Provider File Format** (`sub_accounts/{provider_key}.json`):
+```json
+{
+  "provider_info": {
+    "provider_name": "Cell Products",
+    "location_id": "Sqbexj54nvsxOI4V7SsD",
     "sub_account_api_key": "eyJhbGciOiJIUzI1NiIs...",
-    "case_mappings": {
-      "rmbb_case_id": {
-        "contact_id": "GHL_contact_id",
-        "external_id": "ghl_contact_..._datetime_case",
-        "created": "2025-08-29T16:00:00.000000"
+    "submission_count": 45,
+    "created": "2025-08-29T16:00:00Z"
+  },
+  "case_mappings": {
+    "12345": {
+      "case_id": "12345",
+      "contact_id": "ghl_contact_abc123", 
+      "location_id": "Sqbexj54nvsxOI4V7SsD",
+      "external_id": "ghl_contact_abc123_20250829_case",
+      "provider_name": "Cell Products",
+      "created": "2025-08-29T16:00:00Z",
+      "approved_product": {
+        "name": "Biovance", 
+        "product_id": "Q4154",
+        "q_code": "Q4154"
       }
     }
   }
@@ -925,7 +998,45 @@ RMBB_TEAM_ID=59                                   # Production team ID
   - Authorization: Bearer rmbb-health-webhook-2025
 - **Authentication**: Required (webhook token validation)
 
-#### **4. Health Check & Monitoring**
+#### **4. 🆕 GitHub Persistence Configuration** (Critical for Railway Deployment)
+```bash
+# Add these environment variables for hierarchical cache persistence:
+GITHUB_TOKEN=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
+GITHUB_REPO_OWNER=twade123
+GITHUB_REPO_NAME=rmbb-health-webhook
+
+# The system automatically detects Railway environment (/app path)
+# and commits hierarchical cache files to GitHub for persistence
+```
+
+**🔄 Hierarchical GitHub Persistence Workflow**:
+1. **Case Creation**: New case triggers `add_case_mapping()` in provider cache
+2. **File Updates**: Updates both master registry + individual provider JSON file  
+3. **Auto-Detection**: System detects Railway environment (`/app` in cache directory path)
+4. **Dual Commits**: 
+   - Commits `master_registry.json` with updated case counts
+   - Commits individual provider file (`sub_accounts/{provider_key}.json`) with new case
+5. **Restart Survival**: GitHub data persists through Railway restarts and redeployments
+
+**GitHub Repository Structure** (Auto-Created):
+```bash
+rmbb-health-webhook/
+└── rmbbhealth/
+    └── provider_cache/
+        ├── master_registry.json              # Central provider index
+        └── sub_accounts/
+            ├── cell_products.json            # Cell Products cases
+            ├── conscious_health.json         # Conscious Health cases  
+            └── dr_smith_medical_practice.json # Dr Smith cases
+```
+
+**Benefits**:
+- ✅ **Zero Data Loss**: Cases persist through Railway restarts
+- ✅ **Performance**: Load only needed provider data vs entire cache
+- ✅ **Scalability**: Unlimited providers with isolated data files
+- ✅ **Monitoring**: Track case counts and provider activity via master registry
+
+#### **5. Health Check & Monitoring**
 ```bash
 # Health endpoint: GET https://your-app.railway.app/health
 # Returns: {"status": "healthy", "timestamp": "2025-08-29T12:00:00Z"}
@@ -935,6 +1046,7 @@ RMBB_TEAM_ID=59                                   # Production team ID
 # - Memory usage and performance metrics
 # - Webhook delivery success/failure rates  
 # - Auto-restart on failures
+# - Hierarchical cache GitHub commit success rates
 ```
 
 ---
