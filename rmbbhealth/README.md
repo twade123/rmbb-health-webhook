@@ -132,10 +132,6 @@ rmbbhealth/
 │   │                                          # - Extracts wound data from RMBB cases
 │   │                                          # - Processes through calculator engine
 │   │                                          # - Updates GHL custom fields
-│   ├── ghl_invoice_estimate_manager.py       # Professional billing system
-│   │                                          # - GHL V1 API invoice creation
-│   │                                          # - Custom line items for biologics
-│   │                                          # - Estimate to invoice conversion
 │   ├── ghl_opportunity_estimate_manager.py   # Opportunity management
 │   │                                          # - Pipeline tracking integration
 │   │                                          # - Revenue forecasting
@@ -933,16 +929,21 @@ eb logs rmbb-health-production
 RMBB_API_KEY=b6XGPVd0MpxXOAtvqZqEdP5gwoa7wha0  # Development API key
 RMBB_TEAM_ID=85                                   # Development team ID
 RMBB_BASE_URL=https://connect.production.backend.rmbbhealth.com
-
-# Development Test Account IDs (TBD = To Be Determined)
-RMBB_TBD_PHYSICIAN_ID=8077     # Test physician for development
-RMBB_TBD_ACCOUNT_ID=2921       # Test account for development  
-RMBB_TBD_ACCOUNT_LOCATION_ID=4195 # Test location for development
+RMBB_ACCOUNT_ID=2921                              # Development account ID
+RMBB_PHYSICIAN_ID=8077                            # Development physician ID
+RMBB_LOCATION_ID=4195                             # Development location ID
 
 # GHL API Configuration (Dual Token Architecture)
-GHL_AGENCY_API_KEY=your_agency_token_here         # For sub-account discovery
-GHL_LOCATION_API_KEY=your_location_token_here     # For contact operations
 GHL_API_KEY=your_fallback_token_here              # Legacy support
+GHL_API_KEY_AGENCY=your_agency_token_here         # For sub-account discovery
+GHL_LOCATION_API_KEY=your_location_token_here     # For contact operations
+GHL_LOCATION_ID=Sqbexj54nvsxOI4V7SsD             # Cell Products location ID
+GHL_BASE_URL=https://rest.gohighlevel.com/v1     # GHL API base URL
+
+# GitHub Integration for Railway Persistence
+GITHUB_TOKEN=github_pat_your_token_here           # GitHub Personal Access Token
+GITHUB_REPO_OWNER=twade123                        # GitHub repository owner
+GITHUB_REPO_NAME=rmbb-health-webhook              # GitHub repository name
 
 # Security & Server Configuration
 WEBHOOK_AUTH_TOKEN=rmbb-health-webhook-2025       # Webhook authentication
@@ -955,8 +956,13 @@ DEBUG=false                                       # Production logging
 ```bash  
 # Switch ONLY these variables for production:
 RMBB_API_KEY=08u6Avws1Qp4mzkSV81GgzdOe54mWqNQ  # Production API key
-RMBB_TEAM_ID=59                                   # Production team ID  
+RMBB_TEAM_ID=59                                   # Production team ID
+RMBB_ACCOUNT_ID=your_production_account_id        # Production account ID
+RMBB_PHYSICIAN_ID=your_production_physician_id    # Production physician ID
+RMBB_LOCATION_ID=your_production_location_id      # Production location ID
+
 # All other environment variables remain the same
+# (GitHub tokens, GHL tokens, webhook auth, etc.)
 ```
 
 ### Railway Deployment Steps
