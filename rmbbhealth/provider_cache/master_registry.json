@@ -33,32 +33,6 @@
       "last_updated": "2025-09-13T16:03:50.059139",
       "form_submissions": 27,
       "case_count": 25
-    },
-    "test provider github integration": {
-      "display_name": "Test Provider GitHub Integration",
-      "normalized_key": "test provider github integration",
-      "location_id": "test_location_12345",
-      "account_type": "sub_account",
-      "status": "active",
-      "data_file": "test provider github integration.json",
-      "api_key_status": "pending_manual_entry",
-      "first_seen": "2025-09-14T11:26:34.595351",
-      "last_updated": "2025-09-14T11:29:52.193927",
-      "form_submissions": 2,
-      "case_count": 2
-    },
-    "cell test llc": {
-      "display_name": "Cell TEST LLC",
-      "normalized_key": "cell test llc",
-      "location_id": "kjYShMHgXjFt42Ry2qg0",
-      "account_type": "sub_account",
-      "status": "active",
-      "data_file": "cell test llc.json",
-      "api_key_status": "pending_manual_entry",
-      "first_seen": "2025-09-14T20:43:01.114789",
-      "last_updated": "2025-09-14T20:43:01.117951",
-      "form_submissions": 1,
-      "case_count": 0
     }
   },
   "discovery_metadata": {
