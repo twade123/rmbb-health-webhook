@@ -1764,12 +1764,22 @@ def handle_provider_onboarding():
         ein = payload.get('ein', '').strip()
         npi = payload.get('npi', '').strip()
         
-        # Source location validation
+        # Source location validation - use environment variable
         source_location_id = payload.get('locationId', '')
-        expected_cell_products_id = 'Sqbexj54nvsxOI4V7SsD'
+        expected_cell_products_id = os.environ.get('GHL_LOCATION_ID')
         
-        if source_location_id != expected_cell_products_id:
+        if not expected_cell_products_id:
+            logging.error("❌ GHL_LOCATION_ID environment variable not set")
+            return jsonify({
+                "success": False,
+                "error": "Server configuration error: GHL_LOCATION_ID not configured",
+                "timestamp": datetime.now().isoformat()
+            }), 500
+        
+        if source_location_id and source_location_id != expected_cell_products_id:
             logging.warning(f"⚠️ Unexpected source location: {source_location_id}, expected: {expected_cell_products_id}")
+        elif not source_location_id:
+            logging.info(f"ℹ️ No locationId in payload, using configured location: {expected_cell_products_id}")
         
         # Validate required fields
         if not all([business_name, first_name, last_name, email]):
