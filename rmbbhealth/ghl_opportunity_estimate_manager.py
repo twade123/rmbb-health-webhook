@@ -620,7 +620,7 @@ class GHLOpportunityEstimateManager:
                 if provider_margin > 30:
                     pass  # Remove the excellent margin text
                 elif provider_margin > 15:
-                    pass  # Remove the good margin text
+                    notes.append("🟡 GOOD MARGIN - Moderate profitability")
                 else:
                     notes.append("🔴 LOW MARGIN - Review coverage/pricing")
                 notes.append("")
