@@ -1,0 +1,16 @@
+{
+  "provider_info": {
+    "original_name": "GHL MCP Test Business",
+    "normalized_key": "ghl mcp test business",
+    "location_id": "KEWy8PzJpXUO4Mebqluv",
+    "sub_account_api_key": null,
+    "api_key_status": "pending_manual_entry"
+  },
+  "statistics": {
+    "form_submissions": 0,
+    "first_seen": "2025-09-15T13:06:45.639277",
+    "last_updated": "2025-09-15T13:06:45.639278",
+    "case_ids": []
+  },
+  "case_mappings": {}
+}
