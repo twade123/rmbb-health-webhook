@@ -1,0 +1,16 @@
+{
+  "provider_info": {
+    "original_name": "MCP Minimal Business",
+    "normalized_key": "mcp minimal business",
+    "location_id": "C87Rs9oCNF3kDMfgKpJy",
+    "sub_account_api_key": null,
+    "api_key_status": "pending_manual_entry"
+  },
+  "statistics": {
+    "form_submissions": 0,
+    "first_seen": "2025-09-15T13:06:49.686506",
+    "last_updated": "2025-09-15T13:06:49.686507",
+    "case_ids": []
+  },
+  "case_mappings": {}
+}
