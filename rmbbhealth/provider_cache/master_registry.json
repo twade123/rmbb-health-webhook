@@ -1,5 +1,5 @@
 {
-  "last_updated": "2025-09-15T13:06:44.289979",
+  "last_updated": "2025-09-15T13:06:45.640677",
   "total_sub_accounts": 3,
   "agency_info": {
     "agency_name": "Cell Products Agency Account",
@@ -70,6 +70,19 @@
       "api_key_status": "pending_manual_entry",
       "first_seen": "2025-09-15T13:06:44.288513",
       "last_updated": "2025-09-15T13:06:44.289963",
+      "form_submissions": 0,
+      "case_count": 0
+    },
+    "ghl mcp test business": {
+      "display_name": "GHL MCP Test Business",
+      "normalized_key": "ghl mcp test business",
+      "location_id": "KEWy8PzJpXUO4Mebqluv",
+      "account_type": "sub_account",
+      "status": "active",
+      "data_file": "ghl mcp test business.json",
+      "api_key_status": "pending_manual_entry",
+      "first_seen": "2025-09-15T13:06:45.639250",
+      "last_updated": "2025-09-15T13:06:45.640661",
       "form_submissions": 0,
       "case_count": 0
     }
