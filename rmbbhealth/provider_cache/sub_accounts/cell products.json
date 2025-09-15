@@ -12,7 +12,8 @@
     "last_updated": "2025-09-15T13:27:39.835509",
     "case_ids": [
       "test_new_case_999",
-      "55876"
+      "55876",
+      "55882"
     ],
     "sample_contact_id": "DzSN7QLrlZPJ3fKXDZCJ"
   },
@@ -399,6 +400,21 @@
         "product_id": 364,
         "q_code": "Q4239",
         "saved_at": "2025-09-15T13:18:41.991992"
+      }
+    },
+    "55882": {
+      "case_id": "55882",
+      "provider_name": "Cell Products",
+      "provider_key": "cell products",
+      "contact_id": "DzSN7QLrlZPJ3fKXDZCJ",
+      "location_id": "Sqbexj54nvsxOI4V7SsD",
+      "external_id": "ghl_contact_DzSN7QLrlZPJ3fKXDZCJ_20250915_132739_364",
+      "created": "2025-09-15T13:27:46.593420",
+      "approved_product": {
+        "name": "Amnio-Maxx",
+        "product_id": 364,
+        "q_code": "Q4239",
+        "saved_at": "2025-09-15T13:27:46.593437"
       }
     }
   }
