@@ -1,5 +1,5 @@
 {
-  "last_updated": "2025-09-14T20:43:01.117969",
+  "last_updated": "2025-09-15T13:06:41.675369",
   "total_sub_accounts": 3,
   "agency_info": {
     "agency_name": "Cell Products Agency Account",
@@ -33,6 +33,19 @@
       "last_updated": "2025-09-13T16:03:50.059139",
       "form_submissions": 27,
       "case_count": 25
+    },
+    "bioliv llc": {
+      "display_name": "BioLiv LLC",
+      "normalized_key": "bioliv llc",
+      "location_id": "HYUaRU1vbsGECGbfH2B4",
+      "account_type": "sub_account",
+      "status": "active",
+      "data_file": "bioliv llc.json",
+      "api_key_status": "pending_manual_entry",
+      "first_seen": "2025-09-15T13:06:41.672598",
+      "last_updated": "2025-09-15T13:06:41.675347",
+      "form_submissions": 0,
+      "case_count": 0
     }
   },
   "discovery_metadata": {
