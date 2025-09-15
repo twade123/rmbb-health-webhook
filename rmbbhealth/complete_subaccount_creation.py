@@ -93,113 +93,17 @@ def validate_cell_products_source(source_location_id):
     
     return True
 
-# Global variable for provider cache availability
-PROVIDER_CACHE_AVAILABLE = False
-get_provider_cache = None
-
-def commit_provider_to_github(provider_name, location_id, contact_email):
-    """
-    Commit provider to GitHub directly - embedded GitHub API functionality
-    This bypasses import issues by including the GitHub logic directly
-    """
-    try:
-        print("🔗 DIRECT GitHub integration: Starting provider commit...")
-        logging.info("🔗 DIRECT GitHub integration: Starting provider commit...")
-        
-        # Check for required environment variables
-        github_token = os.environ.get('GITHUB_TOKEN')
-        repo_owner = os.environ.get('GITHUB_REPO_OWNER', 'timothywade') 
-        repo_name = os.environ.get('GITHUB_REPO_NAME', 'rmbbhealth')
-        
-        print(f"🔍 GITHUB_TOKEN present: {'✅' if github_token else '❌'}")
-        print(f"🔍 GITHUB_REPO_OWNER: {repo_owner}")
-        print(f"🔍 GITHUB_REPO_NAME: {repo_name}")
-        
-        if not github_token:
-            print("❌ GITHUB_TOKEN not configured - GitHub persistence disabled")
-            logging.warning("❌ GITHUB_TOKEN not configured - GitHub persistence disabled")
-            return False
-            
-        # Normalize provider name for filename
-        normalized_key = provider_name.lower().replace(' ', '_').replace('-', '_').replace('.', '').replace("'", '')
-        
-        # Create provider data structure (matching hierarchical cache format)
-        provider_data = {
-            "provider_info": {
-                "original_name": provider_name,
-                "normalized_key": normalized_key,
-                "location_id": location_id,
-                "sub_account_api_key": None,
-                "api_key_status": "pending_manual_entry"
-            },
-            "statistics": {
-                "form_submissions": 1,
-                "first_seen": datetime.now().isoformat(),
-                "last_updated": datetime.now().isoformat(),
-                "case_ids": []
-            },
-            "case_mappings": {},
-            "created_by": "standalone_complete_subaccount_creation",
-            "contact_email": contact_email
-        }
-        
-        # GitHub API setup for individual provider file
-        file_path = f'rmbbhealth/provider_cache/sub_accounts/{normalized_key}.json'
-        api_url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/contents/{file_path}"
-        headers = {
-            "Authorization": f"token {github_token}",
-            "Accept": "application/vnd.github.v3+json"
-        }
-        
-        print(f"🔍 GitHub API URL: {api_url}")
-        
-        # Get current file SHA (required for updates)
-        current_sha = None
-        try:
-            response = requests.get(api_url, headers=headers)
-            if response.status_code == 200:
-                current_file = response.json()
-                current_sha = current_file['sha']
-                print(f"🔍 Found existing file, SHA: {current_sha[:8]}...")
-            else:
-                print(f"🔍 File doesn't exist yet, will create new")
-        except Exception as e:
-            print(f"⚠️ Error checking existing file: {e}")
-        
-        # Prepare commit data
-        import base64
-        content_json = json.dumps(provider_data, indent=2)
-        commit_data = {
-            "message": f"Add provider: {provider_name} (ID: {location_id})",
-            "content": base64.b64encode(content_json.encode()).decode(),
-            "branch": "main"
-        }
-        
-        if current_sha:
-            commit_data["sha"] = current_sha
-        
-        print(f"🔍 Committing provider file: {file_path}")
-        
-        # Commit to GitHub
-        response = requests.put(api_url, headers=headers, json=commit_data)
-        
-        print(f"🔍 GitHub API response: {response.status_code}")
-        
-        if response.status_code in [200, 201]:
-            print(f"✅ DIRECT GitHub commit successful: {provider_name}")
-            logging.info(f"✅ DIRECT GitHub commit successful: {provider_name}")
-            return True
-        else:
-            print(f"❌ GitHub commit failed: {response.status_code} - {response.text}")
-            logging.error(f"❌ GitHub commit failed: {response.status_code} - {response.text}")
-            return False
-            
-    except Exception as e:
-        print(f"❌ DIRECT GitHub commit error: {e}")
-        logging.error(f"❌ DIRECT GitHub commit error: {e}")
-        import traceback
-        traceback.print_exc()
-        return False
+# Import provider location cache for GitHub persistence
+try:
+    from services.provider_location_cache import get_provider_cache
+    PROVIDER_CACHE_AVAILABLE = True
+    print("✅ Successfully imported provider_location_cache")
+    logging.info("✅ Successfully imported provider_location_cache")
+except ImportError as e:
+    PROVIDER_CACHE_AVAILABLE = False
+    get_provider_cache = None
+    print(f"❌ Failed to import provider_location_cache: {e}")
+    logging.error(f"❌ Failed to import provider_location_cache: {e}")
 
 def create_subaccount_from_survey_data(survey_data):
     """
@@ -362,23 +266,35 @@ def create_subaccount_from_survey_data(survey_data):
             logging.info(f"🏢 Business: {business_name}")
             logging.info(f"👤 Contact: {first_name} {last_name} ({email})")
             
-            # DIRECT GitHub integration - bypassing import issues
-            print("🔥 DIRECT GitHub integration: Starting provider commit...")
-            logging.info("🔥 DIRECT GitHub integration: Starting provider commit...")
-            
-            # Use direct GitHub API integration
-            github_success = commit_provider_to_github(
-                provider_name=business_name,
-                location_id=subaccount_id,
-                contact_email=email
-            )
-            
-            if github_success:
-                print("🎉 DIRECT GitHub commit successful - provider persisted to repository!")
-                logging.info("🎉 DIRECT GitHub commit successful - provider persisted to repository!")
+            # Use existing provider cache for GitHub persistence
+            if PROVIDER_CACHE_AVAILABLE:
+                try:
+                    print("🔗 Using existing provider_location_cache for GitHub persistence...")
+                    logging.info("🔗 Using existing provider_location_cache for GitHub persistence...")
+                    
+                    provider_cache = get_provider_cache()
+                    cache_success = provider_cache.add_or_update_provider(
+                        provider_name=business_name,
+                        location_id=subaccount_id,
+                        contact_id=None,  # No contact_id for sub-account creation
+                        increment_submissions=True
+                    )
+                    
+                    if cache_success:
+                        print("✅ Provider added to cache and committed to GitHub successfully!")
+                        logging.info("✅ Provider added to cache and committed to GitHub successfully!")
+                    else:
+                        print("⚠️ Provider cache update failed - but GHL sub-account still created")
+                        logging.warning("⚠️ Provider cache update failed - but GHL sub-account still created")
+                        
+                except Exception as e:
+                    print(f"❌ Error updating provider cache: {e}")
+                    logging.error(f"❌ Error updating provider cache: {e}")
+                    import traceback
+                    traceback.print_exc()
             else:
-                print("⚠️ DIRECT GitHub commit failed - but GHL sub-account still created")
-                logging.warning("⚠️ DIRECT GitHub commit failed - but GHL sub-account still created")
+                print("⚠️ Provider cache not available - GitHub persistence disabled")
+                logging.warning("⚠️ Provider cache not available - GitHub persistence disabled")
             
             return {
                 'success': True,
@@ -627,20 +543,6 @@ def verify_configuration():
         logging.error(f"❌ Configuration verification failed: {e}")
         return False
 
-def check_github_environment():
-    """Check if GitHub environment variables are configured"""
-    github_token = os.environ.get('GITHUB_TOKEN')
-    repo_owner = os.environ.get('GITHUB_REPO_OWNER', 'timothywade') 
-    repo_name = os.environ.get('GITHUB_REPO_NAME', 'rmbbhealth')
-    
-    print("🔍 GitHub Environment Check:")
-    print(f"   GITHUB_TOKEN: {'✅ Configured' if github_token else '❌ Missing'}")
-    print(f"   GITHUB_REPO_OWNER: {repo_owner}")
-    print(f"   GITHUB_REPO_NAME: {repo_name}")
-    
-    logging.info(f"GitHub Environment - Token: {'✅' if github_token else '❌'}, Owner: {repo_owner}, Repo: {repo_name}")
-    
-    return bool(github_token)
 
 if __name__ == '__main__':
     # Get port from environment variable (for cloud deployment) or use default
@@ -655,8 +557,13 @@ if __name__ == '__main__':
     logging.info(f"🧪 Test endpoint: http://{host}:{port}/webhook/test")
     logging.info(f"❤️ Health check: http://{host}:{port}/health")
     
-    # Check GitHub environment for direct integration
-    github_available = check_github_environment()
+    # Log provider cache availability
+    if PROVIDER_CACHE_AVAILABLE:
+        print("✅ Provider cache available - GitHub persistence enabled")
+        logging.info("✅ Provider cache available - GitHub persistence enabled")
+    else:
+        print("⚠️ Provider cache not available - GitHub persistence disabled")
+        logging.warning("⚠️ Provider cache not available - GitHub persistence disabled")
     
     # Verify configuration before starting
     if verify_configuration():
