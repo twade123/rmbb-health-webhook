@@ -1,5 +1,5 @@
 {
-  "last_updated": "2025-09-15T13:18:24.880086",
+  "last_updated": "2025-09-15T13:18:26.068292",
   "total_sub_accounts": 3,
   "agency_info": {
     "agency_name": "Cell Products Agency Account",
@@ -122,6 +122,19 @@
       "api_key_status": "pending_manual_entry",
       "first_seen": "2025-09-15T13:18:24.878491",
       "last_updated": "2025-09-15T13:18:24.880074",
+      "form_submissions": 0,
+      "case_count": 0
+    },
+    "mcp snapshot object business": {
+      "display_name": "MCP Snapshot Object Business",
+      "normalized_key": "mcp snapshot object business",
+      "location_id": "0WB7hd3bF8n3fZX3wI6H",
+      "account_type": "sub_account",
+      "status": "active",
+      "data_file": "mcp snapshot object business.json",
+      "api_key_status": "pending_manual_entry",
+      "first_seen": "2025-09-15T13:18:26.067393",
+      "last_updated": "2025-09-15T13:18:26.068283",
       "form_submissions": 0,
       "case_count": 0
     }
