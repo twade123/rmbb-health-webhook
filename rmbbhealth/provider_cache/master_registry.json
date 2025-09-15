@@ -1,5 +1,5 @@
 {
-  "last_updated": "2025-09-15T13:18:41.993649",
+  "last_updated": "2025-09-15T13:27:39.839194",
   "total_sub_accounts": 16,
   "agency_info": {
     "agency_name": "Cell Products Agency Account",
@@ -30,8 +30,8 @@
       "data_file": "cell products.json",
       "api_key_status": "entered",
       "first_seen": "2025-08-27T18:30:33.408240",
-      "last_updated": "2025-09-15T13:18:41.993632",
-      "form_submissions": 28,
+      "last_updated": "2025-09-15T13:27:39.839175",
+      "form_submissions": 29,
       "case_count": 26
     },
     "bioliv llc": {
@@ -219,10 +219,10 @@
   },
   "discovery_metadata": {
     "auto_discovery_enabled": true,
-    "last_ghl_agency_sync": "2025-09-15T13:18:35.166685",
+    "last_ghl_agency_sync": "2025-09-15T13:27:39.820962",
     "locations_discovered_count": 16,
     "sync_frequency": "on_webhook",
     "sync_errors": [],
-    "new_accounts_found_last_sync": 9
+    "new_accounts_found_last_sync": 0
   }
 }
