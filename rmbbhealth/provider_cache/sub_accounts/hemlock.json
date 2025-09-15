@@ -1,0 +1,16 @@
+{
+  "provider_info": {
+    "original_name": "Hemlock",
+    "normalized_key": "hemlock",
+    "location_id": "2SkCbzSLAq1wAgVZcuSD",
+    "sub_account_api_key": null,
+    "api_key_status": "pending_manual_entry"
+  },
+  "statistics": {
+    "form_submissions": 0,
+    "first_seen": "2025-09-15T13:06:47.089448",
+    "last_updated": "2025-09-15T13:06:47.089449",
+    "case_ids": []
+  },
+  "case_mappings": {}
+}
