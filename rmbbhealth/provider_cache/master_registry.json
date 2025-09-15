@@ -1,5 +1,5 @@
 {
-  "last_updated": "2025-09-15T13:06:43.034398",
+  "last_updated": "2025-09-15T13:06:44.289979",
   "total_sub_accounts": 3,
   "agency_info": {
     "agency_name": "Cell Products Agency Account",
@@ -57,6 +57,19 @@
       "api_key_status": "pending_manual_entry",
       "first_seen": "2025-09-15T13:06:43.033044",
       "last_updated": "2025-09-15T13:06:43.034383",
+      "form_submissions": 0,
+      "case_count": 0
+    },
+    "cell test llc": {
+      "display_name": "Cell TEST LLC",
+      "normalized_key": "cell test llc",
+      "location_id": "kjYShMHgXjFt42Ry2qg0",
+      "account_type": "sub_account",
+      "status": "active",
+      "data_file": "cell test llc.json",
+      "api_key_status": "pending_manual_entry",
+      "first_seen": "2025-09-15T13:06:44.288513",
+      "last_updated": "2025-09-15T13:06:44.289963",
       "form_submissions": 0,
       "case_count": 0
     }
