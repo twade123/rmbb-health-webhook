@@ -597,45 +597,85 @@ class HierarchicalProviderCache:
                 sub_accounts = self.master_registry.setdefault("sub_accounts", {})
 
                 if provider_key not in sub_accounts:
-                    # New provider - add to master registry only
+                    # Check if provider file already exists (might be missing from master registry)
                     is_agency = location_id == "10SapwdFnQK3Kwqp5ecv"
                     account_type = "agency" if is_agency else "sub_account"
-
-                    sub_accounts[provider_key] = {
-                        "display_name": business_name,
-                        "normalized_key": provider_key,
-                        "location_id": location_id,
-                        "account_type": account_type,
-                        "status": "active",
-                        "data_file": f"{provider_key}.json" if not is_agency else None,
-                        "api_key_status": "pending_manual_entry",
-                        "first_seen": datetime.now().isoformat(),
-                        "last_updated": datetime.now().isoformat(),
-                        "form_submissions": 0,
-                        "case_count": 0
-                    }
-
-                    stats["new_providers"] += 1
-
-                    # For new sub-accounts (not agency), create empty file
+                    
+                    existing_provider_data = None
                     if not is_agency:
-                        sub_account_data = {
-                            "provider_info": {
-                                "original_name": business_name,
-                                "normalized_key": provider_key,
-                                "location_id": location_id,
-                                "sub_account_api_key": None,
-                                "api_key_status": "pending_manual_entry"
-                            },
-                            "statistics": {
-                                "form_submissions": 0,
-                                "first_seen": datetime.now().isoformat(),
-                                "last_updated": datetime.now().isoformat(),
-                                "case_ids": []
-                            },
-                            "case_mappings": {}
+                        existing_provider_data = self._load_sub_account_data(provider_key)
+                    
+                    if existing_provider_data:
+                        # Provider file exists but missing from master registry - restore it
+                        provider_info = existing_provider_data.get("provider_info", {})
+                        statistics = existing_provider_data.get("statistics", {})
+                        case_mappings = existing_provider_data.get("case_mappings", {})
+                        
+                        # Preserve existing API key and status
+                        existing_api_key = provider_info.get("sub_account_api_key")
+                        api_key_status = "configured" if existing_api_key else "pending_manual_entry"
+                        
+                        sub_accounts[provider_key] = {
+                            "display_name": business_name,
+                            "normalized_key": provider_key,
+                            "location_id": location_id,
+                            "account_type": account_type,
+                            "status": "active",
+                            "data_file": f"{provider_key}.json",
+                            "api_key_status": api_key_status,
+                            "first_seen": provider_info.get("first_seen", datetime.now().isoformat()),
+                            "last_updated": datetime.now().isoformat(),
+                            "form_submissions": statistics.get("form_submissions", 0),
+                            "case_count": len(case_mappings)
                         }
-                        self._save_sub_account_data(provider_key, sub_account_data)
+                        
+                        # Update provider file metadata but preserve all existing data
+                        existing_provider_data["provider_info"]["original_name"] = business_name
+                        existing_provider_data["provider_info"]["location_id"] = location_id
+                        existing_provider_data["provider_info"]["last_updated"] = datetime.now().isoformat()
+                        
+                        self._save_sub_account_data(provider_key, existing_provider_data)
+                        stats["updated_providers"] += 1
+                        
+                    else:
+                        # Truly new provider - create from scratch
+                        sub_accounts[provider_key] = {
+                            "display_name": business_name,
+                            "normalized_key": provider_key,
+                            "location_id": location_id,
+                            "account_type": account_type,
+                            "status": "active",
+                            "data_file": f"{provider_key}.json" if not is_agency else None,
+                            "api_key_status": "pending_manual_entry",
+                            "first_seen": datetime.now().isoformat(),
+                            "last_updated": datetime.now().isoformat(),
+                            "form_submissions": 0,
+                            "case_count": 0
+                        }
+
+                        stats["new_providers"] += 1
+
+                        # For new sub-accounts (not agency), create empty file
+                        if not is_agency:
+                            sub_account_data = {
+                                "provider_info": {
+                                    "original_name": business_name,
+                                    "normalized_key": provider_key,
+                                    "location_id": location_id,
+                                    "sub_account_api_key": None,
+                                    "api_key_status": "pending_manual_entry",
+                                    "first_seen": datetime.now().isoformat(),
+                                    "last_updated": datetime.now().isoformat()
+                                },
+                                "statistics": {
+                                    "form_submissions": 0,
+                                    "first_seen": datetime.now().isoformat(),
+                                    "last_updated": datetime.now().isoformat(),
+                                    "case_ids": []
+                                },
+                                "case_mappings": {}
+                            }
+                            self._save_sub_account_data(provider_key, sub_account_data)
 
                 else:
                     # Existing provider - check for location_id changes
@@ -841,7 +881,6 @@ class HierarchicalProviderCache:
             response = requests.put(api_url, headers=headers, json=commit_data)
             
             if response.status_code in [200, 201]:
-                print(f"✅ Master registry committed to GitHub")
                 return True
             else:
                 print(f"❌ GitHub master registry commit failed: {response.status_code}")
@@ -902,7 +941,6 @@ class HierarchicalProviderCache:
             response = requests.put(api_url, headers=headers, json=commit_data)
             
             if response.status_code in [200, 201]:
-                print(f"✅ Provider {provider_key} committed to GitHub")
                 return True
             else:
                 print(f"❌ GitHub provider commit failed: {response.status_code}")
