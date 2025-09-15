@@ -88,19 +88,37 @@ def validate_cell_products_source(source_location_id):
     return True
 
 # Import shared provider cache functions for unified GitHub persistence
+print("🔍 DEBUG: Attempting to import provider cache system...")
 try:
     # Get the directory where this script is located for imports
     script_dir = os.path.dirname(os.path.abspath(__file__))
+    print(f"🔍 DEBUG: Script directory: {script_dir}")
+    
     if script_dir not in sys.path:
         sys.path.insert(0, script_dir)
+        print(f"🔍 DEBUG: Added {script_dir} to sys.path")
+    
+    # Check if services directory exists
+    services_dir = os.path.join(script_dir, 'services')
+    print(f"🔍 DEBUG: Services directory exists: {os.path.exists(services_dir)}")
+    if os.path.exists(services_dir):
+        print(f"🔍 DEBUG: Services directory contents: {os.listdir(services_dir)}")
     
     # Import the provider cache system (same as webhook handler uses)
     from services.provider_location_cache import get_provider_cache
+    print("✅ DEBUG: Successfully imported provider cache system")
     logging.info("✅ Successfully imported provider cache system")
     PROVIDER_CACHE_AVAILABLE = True
 except ImportError as e:
+    print(f"❌ DEBUG: Failed to import provider cache: {e}")
     logging.error(f"❌ Failed to import provider cache: {e}")
     PROVIDER_CACHE_AVAILABLE = False
+except Exception as e:
+    print(f"❌ DEBUG: Unexpected error during import: {e}")
+    logging.error(f"❌ Unexpected error during import: {e}")
+    PROVIDER_CACHE_AVAILABLE = False
+
+print(f"🔍 DEBUG: PROVIDER_CACHE_AVAILABLE = {PROVIDER_CACHE_AVAILABLE}")
 
 def create_subaccount_from_survey_data(survey_data):
     """
@@ -264,28 +282,43 @@ def create_subaccount_from_survey_data(survey_data):
             logging.info(f"👤 Contact: {first_name} {last_name} ({email})")
             
             # UNIFIED APPROACH: Use the same provider cache as webhook handler
+            print(f"🔍 DEBUG: About to check provider cache. PROVIDER_CACHE_AVAILABLE = {PROVIDER_CACHE_AVAILABLE}")
+            logging.info(f"🔍 DEBUG: About to check provider cache. PROVIDER_CACHE_AVAILABLE = {PROVIDER_CACHE_AVAILABLE}")
+            
             if PROVIDER_CACHE_AVAILABLE:
                 try:
+                    print("🔗 DEBUG: Starting provider cache integration...")
                     logging.info("🔗 Using shared provider cache system (same as webhook handler)")
                     
+                    print(f"🔍 DEBUG: Getting provider cache instance...")
                     provider_cache = get_provider_cache()
+                    print(f"🔍 DEBUG: Provider cache type: {type(provider_cache).__name__}")
+                    
+                    print(f"🔍 DEBUG: Calling add_or_update_provider with: {business_name}, {subaccount_id}")
                     cache_success = provider_cache.add_or_update_provider(
                         provider_name=business_name,
                         location_id=subaccount_id,
                         contact_id=None,  # No contact_id for sub-account creation
                         increment_submissions=True
                     )
+                    print(f"🔍 DEBUG: add_or_update_provider returned: {cache_success}")
                     
                     if cache_success:
+                        print("✅ DEBUG: Provider cache update successful - should have GitHub commit")
                         logging.info("✅ Provider added to hierarchical cache and committed to GitHub")
                         logging.info("🔗 Same system used by webhook handler - fully unified!")
                     else:
+                        print("⚠️ DEBUG: Provider cache update failed")
                         logging.warning("⚠️ Failed to add provider to cache (GHL sub-account still created)")
                         
                 except Exception as e:
+                    print(f"❌ DEBUG: Exception in provider cache: {e}")
                     logging.error(f"❌ Error updating provider cache: {e}")
                     logging.warning("⚠️ GHL sub-account created but not cached (continuing anyway)")
+                    import traceback
+                    traceback.print_exc()
             else:
+                print("⚠️ DEBUG: Provider cache not available - this is the problem!")
                 logging.warning("⚠️ Provider cache not available - GitHub persistence disabled")
             
             return {
