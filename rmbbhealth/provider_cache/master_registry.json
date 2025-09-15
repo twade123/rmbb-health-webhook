@@ -1,5 +1,5 @@
 {
-  "last_updated": "2025-09-15T13:06:47.090614",
+  "last_updated": "2025-09-15T13:06:48.476908",
   "total_sub_accounts": 3,
   "agency_info": {
     "agency_name": "Cell Products Agency Account",
@@ -96,6 +96,19 @@
       "api_key_status": "pending_manual_entry",
       "first_seen": "2025-09-15T13:06:47.089425",
       "last_updated": "2025-09-15T13:06:47.090600",
+      "form_submissions": 0,
+      "case_count": 0
+    },
+    "integrated wound care": {
+      "display_name": "Integrated Wound Care",
+      "normalized_key": "integrated wound care",
+      "location_id": "uyNJLBsVOLYr6PBVUeB4",
+      "account_type": "sub_account",
+      "status": "active",
+      "data_file": "integrated wound care.json",
+      "api_key_status": "pending_manual_entry",
+      "first_seen": "2025-09-15T13:06:48.475707",
+      "last_updated": "2025-09-15T13:06:48.476894",
       "form_submissions": 0,
       "case_count": 0
     }
