@@ -246,7 +246,16 @@ def create_subaccount_from_survey_data(survey_data):
             # Add to hierarchical provider cache for Railway persistence
             try:
                 logging.info("📋 Adding to provider cache for GitHub persistence...")
-                sys.path.insert(0, '/Users/timothywade/Jarvis/rmbbhealth')
+                
+                # Get the directory where this script is located
+                script_dir = os.path.dirname(os.path.abspath(__file__))
+                logging.info(f"🔍 Script directory: {script_dir}")
+                
+                # Add the script directory to Python path for imports
+                if script_dir not in sys.path:
+                    sys.path.insert(0, script_dir)
+                
+                # Import the provider cache system
                 from services.provider_location_cache import get_provider_cache
                 
                 provider_cache = get_provider_cache()
