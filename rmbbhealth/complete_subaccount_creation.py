@@ -39,6 +39,8 @@ if not CONFIG['company_api_key']:
 print("✅ Loaded Cell Products configuration from environment variables")
 print(f"🏢 Company: cell_products")
 print(f"📍 Location ID: {CONFIG['cell_products_location_id']}")
+print("🔥 VERSION CHECK: This is the UPDATED file with provider cache integration - v2.0")
+logging.info("🔥 VERSION CHECK: This is the UPDATED file with provider cache integration - v2.0")
 
 # Configure logging EARLY
 logging.basicConfig(
@@ -94,6 +96,110 @@ def validate_cell_products_source(source_location_id):
 # Global variable for provider cache availability
 PROVIDER_CACHE_AVAILABLE = False
 get_provider_cache = None
+
+def commit_provider_to_github(provider_name, location_id, contact_email):
+    """
+    Commit provider to GitHub directly - embedded GitHub API functionality
+    This bypasses import issues by including the GitHub logic directly
+    """
+    try:
+        print("🔗 DIRECT GitHub integration: Starting provider commit...")
+        logging.info("🔗 DIRECT GitHub integration: Starting provider commit...")
+        
+        # Check for required environment variables
+        github_token = os.environ.get('GITHUB_TOKEN')
+        repo_owner = os.environ.get('GITHUB_REPO_OWNER', 'timothywade') 
+        repo_name = os.environ.get('GITHUB_REPO_NAME', 'rmbbhealth')
+        
+        print(f"🔍 GITHUB_TOKEN present: {'✅' if github_token else '❌'}")
+        print(f"🔍 GITHUB_REPO_OWNER: {repo_owner}")
+        print(f"🔍 GITHUB_REPO_NAME: {repo_name}")
+        
+        if not github_token:
+            print("❌ GITHUB_TOKEN not configured - GitHub persistence disabled")
+            logging.warning("❌ GITHUB_TOKEN not configured - GitHub persistence disabled")
+            return False
+            
+        # Normalize provider name for filename
+        normalized_key = provider_name.lower().replace(' ', '_').replace('-', '_').replace('.', '').replace("'", '')
+        
+        # Create provider data structure (matching hierarchical cache format)
+        provider_data = {
+            "provider_info": {
+                "original_name": provider_name,
+                "normalized_key": normalized_key,
+                "location_id": location_id,
+                "sub_account_api_key": None,
+                "api_key_status": "pending_manual_entry"
+            },
+            "statistics": {
+                "form_submissions": 1,
+                "first_seen": datetime.now().isoformat(),
+                "last_updated": datetime.now().isoformat(),
+                "case_ids": []
+            },
+            "case_mappings": {},
+            "created_by": "standalone_complete_subaccount_creation",
+            "contact_email": contact_email
+        }
+        
+        # GitHub API setup for individual provider file
+        file_path = f'rmbbhealth/provider_cache/sub_accounts/{normalized_key}.json'
+        api_url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/contents/{file_path}"
+        headers = {
+            "Authorization": f"token {github_token}",
+            "Accept": "application/vnd.github.v3+json"
+        }
+        
+        print(f"🔍 GitHub API URL: {api_url}")
+        
+        # Get current file SHA (required for updates)
+        current_sha = None
+        try:
+            response = requests.get(api_url, headers=headers)
+            if response.status_code == 200:
+                current_file = response.json()
+                current_sha = current_file['sha']
+                print(f"🔍 Found existing file, SHA: {current_sha[:8]}...")
+            else:
+                print(f"🔍 File doesn't exist yet, will create new")
+        except Exception as e:
+            print(f"⚠️ Error checking existing file: {e}")
+        
+        # Prepare commit data
+        import base64
+        content_json = json.dumps(provider_data, indent=2)
+        commit_data = {
+            "message": f"Add provider: {provider_name} (ID: {location_id})",
+            "content": base64.b64encode(content_json.encode()).decode(),
+            "branch": "main"
+        }
+        
+        if current_sha:
+            commit_data["sha"] = current_sha
+        
+        print(f"🔍 Committing provider file: {file_path}")
+        
+        # Commit to GitHub
+        response = requests.put(api_url, headers=headers, json=commit_data)
+        
+        print(f"🔍 GitHub API response: {response.status_code}")
+        
+        if response.status_code in [200, 201]:
+            print(f"✅ DIRECT GitHub commit successful: {provider_name}")
+            logging.info(f"✅ DIRECT GitHub commit successful: {provider_name}")
+            return True
+        else:
+            print(f"❌ GitHub commit failed: {response.status_code} - {response.text}")
+            logging.error(f"❌ GitHub commit failed: {response.status_code} - {response.text}")
+            return False
+            
+    except Exception as e:
+        print(f"❌ DIRECT GitHub commit error: {e}")
+        logging.error(f"❌ DIRECT GitHub commit error: {e}")
+        import traceback
+        traceback.print_exc()
+        return False
 
 def create_subaccount_from_survey_data(survey_data):
     """
@@ -256,45 +362,23 @@ def create_subaccount_from_survey_data(survey_data):
             logging.info(f"🏢 Business: {business_name}")
             logging.info(f"👤 Contact: {first_name} {last_name} ({email})")
             
-            # UNIFIED APPROACH: Use the same provider cache as webhook handler
-            print(f"🔍 DEBUG: About to check provider cache. PROVIDER_CACHE_AVAILABLE = {PROVIDER_CACHE_AVAILABLE}")
-            logging.info(f"🔍 DEBUG: About to check provider cache. PROVIDER_CACHE_AVAILABLE = {PROVIDER_CACHE_AVAILABLE}")
+            # DIRECT GitHub integration - bypassing import issues
+            print("🔥 DIRECT GitHub integration: Starting provider commit...")
+            logging.info("🔥 DIRECT GitHub integration: Starting provider commit...")
             
-            if PROVIDER_CACHE_AVAILABLE:
-                try:
-                    print("🔗 DEBUG: Starting provider cache integration...")
-                    logging.info("🔗 Using shared provider cache system (same as webhook handler)")
-                    
-                    print(f"🔍 DEBUG: Getting provider cache instance...")
-                    provider_cache = get_provider_cache()
-                    print(f"🔍 DEBUG: Provider cache type: {type(provider_cache).__name__}")
-                    
-                    print(f"🔍 DEBUG: Calling add_or_update_provider with: {business_name}, {subaccount_id}")
-                    cache_success = provider_cache.add_or_update_provider(
-                        provider_name=business_name,
-                        location_id=subaccount_id,
-                        contact_id=None,  # No contact_id for sub-account creation
-                        increment_submissions=True
-                    )
-                    print(f"🔍 DEBUG: add_or_update_provider returned: {cache_success}")
-                    
-                    if cache_success:
-                        print("✅ DEBUG: Provider cache update successful - should have GitHub commit")
-                        logging.info("✅ Provider added to hierarchical cache and committed to GitHub")
-                        logging.info("🔗 Same system used by webhook handler - fully unified!")
-                    else:
-                        print("⚠️ DEBUG: Provider cache update failed")
-                        logging.warning("⚠️ Failed to add provider to cache (GHL sub-account still created)")
-                        
-                except Exception as e:
-                    print(f"❌ DEBUG: Exception in provider cache: {e}")
-                    logging.error(f"❌ Error updating provider cache: {e}")
-                    logging.warning("⚠️ GHL sub-account created but not cached (continuing anyway)")
-                    import traceback
-                    traceback.print_exc()
+            # Use direct GitHub API integration
+            github_success = commit_provider_to_github(
+                provider_name=business_name,
+                location_id=subaccount_id,
+                contact_email=email
+            )
+            
+            if github_success:
+                print("🎉 DIRECT GitHub commit successful - provider persisted to repository!")
+                logging.info("🎉 DIRECT GitHub commit successful - provider persisted to repository!")
             else:
-                print("⚠️ DEBUG: Provider cache not available - this is the problem!")
-                logging.warning("⚠️ Provider cache not available - GitHub persistence disabled")
+                print("⚠️ DIRECT GitHub commit failed - but GHL sub-account still created")
+                logging.warning("⚠️ DIRECT GitHub commit failed - but GHL sub-account still created")
             
             return {
                 'success': True,
@@ -543,65 +627,20 @@ def verify_configuration():
         logging.error(f"❌ Configuration verification failed: {e}")
         return False
 
-def initialize_provider_cache():
-    """Initialize provider cache system - called when Flask app starts"""
-    global PROVIDER_CACHE_AVAILABLE, get_provider_cache
+def check_github_environment():
+    """Check if GitHub environment variables are configured"""
+    github_token = os.environ.get('GITHUB_TOKEN')
+    repo_owner = os.environ.get('GITHUB_REPO_OWNER', 'timothywade') 
+    repo_name = os.environ.get('GITHUB_REPO_NAME', 'rmbbhealth')
     
-    print("🔍 DEBUG: Attempting to import provider cache system...")
-    logging.info("🔍 DEBUG: Attempting to import provider cache system...")
+    print("🔍 GitHub Environment Check:")
+    print(f"   GITHUB_TOKEN: {'✅ Configured' if github_token else '❌ Missing'}")
+    print(f"   GITHUB_REPO_OWNER: {repo_owner}")
+    print(f"   GITHUB_REPO_NAME: {repo_name}")
     
-    try:
-        # Get the directory where this script is located for imports
-        script_dir = os.path.dirname(os.path.abspath(__file__))
-        print(f"🔍 DEBUG: Script directory: {script_dir}")
-        logging.info(f"🔍 DEBUG: Script directory: {script_dir}")
-        
-        if script_dir not in sys.path:
-            sys.path.insert(0, script_dir)
-            print(f"🔍 DEBUG: Added {script_dir} to sys.path")
-            logging.info(f"🔍 DEBUG: Added {script_dir} to sys.path")
-        
-        # Check if services directory exists
-        services_dir = os.path.join(script_dir, 'services')
-        exists = os.path.exists(services_dir)
-        print(f"🔍 DEBUG: Services directory exists: {exists}")
-        logging.info(f"🔍 DEBUG: Services directory exists: {exists}")
-        
-        if exists:
-            try:
-                contents = os.listdir(services_dir)
-                print(f"🔍 DEBUG: Services directory contents: {contents}")
-                logging.info(f"🔍 DEBUG: Services directory contents: {contents}")
-            except Exception as e:
-                print(f"⚠️ DEBUG: Could not list services directory: {e}")
-                logging.warning(f"⚠️ DEBUG: Could not list services directory: {e}")
-        
-        # Import the provider cache system (same as webhook handler uses)
-        from services.provider_location_cache import get_provider_cache as _get_provider_cache
-        get_provider_cache = _get_provider_cache
-        
-        print("✅ DEBUG: Successfully imported provider cache system")
-        logging.info("✅ Successfully imported provider cache system")
-        PROVIDER_CACHE_AVAILABLE = True
-        
-        # Test the provider cache
-        test_cache = get_provider_cache()
-        print(f"✅ DEBUG: Provider cache test successful: {type(test_cache).__name__}")
-        logging.info(f"✅ Provider cache test successful: {type(test_cache).__name__}")
-        
-    except ImportError as e:
-        print(f"❌ DEBUG: Failed to import provider cache: {e}")
-        logging.error(f"❌ Failed to import provider cache: {e}")
-        PROVIDER_CACHE_AVAILABLE = False
-    except Exception as e:
-        print(f"❌ DEBUG: Unexpected error during import: {e}")
-        logging.error(f"❌ Unexpected error during import: {e}")
-        PROVIDER_CACHE_AVAILABLE = False
-        import traceback
-        traceback.print_exc()
-
-    print(f"🔍 DEBUG: Final PROVIDER_CACHE_AVAILABLE = {PROVIDER_CACHE_AVAILABLE}")
-    logging.info(f"🔍 DEBUG: Final PROVIDER_CACHE_AVAILABLE = {PROVIDER_CACHE_AVAILABLE}")
+    logging.info(f"GitHub Environment - Token: {'✅' if github_token else '❌'}, Owner: {repo_owner}, Repo: {repo_name}")
+    
+    return bool(github_token)
 
 if __name__ == '__main__':
     # Get port from environment variable (for cloud deployment) or use default
@@ -616,8 +655,8 @@ if __name__ == '__main__':
     logging.info(f"🧪 Test endpoint: http://{host}:{port}/webhook/test")
     logging.info(f"❤️ Health check: http://{host}:{port}/health")
     
-    # Initialize provider cache system
-    initialize_provider_cache()
+    # Check GitHub environment for direct integration
+    github_available = check_github_environment()
     
     # Verify configuration before starting
     if verify_configuration():
