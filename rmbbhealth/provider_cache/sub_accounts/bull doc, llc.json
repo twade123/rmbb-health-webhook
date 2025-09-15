@@ -1,0 +1,16 @@
+{
+  "provider_info": {
+    "original_name": "Bull Doc, LLC",
+    "normalized_key": "bull doc, llc",
+    "location_id": "EGKAnE8XcZt7pLs8LElV",
+    "sub_account_api_key": null,
+    "api_key_status": "pending_manual_entry"
+  },
+  "statistics": {
+    "form_submissions": 0,
+    "first_seen": "2025-09-15T13:06:43.033066",
+    "last_updated": "2025-09-15T13:06:43.033067",
+    "case_ids": []
+  },
+  "case_mappings": {}
+}
