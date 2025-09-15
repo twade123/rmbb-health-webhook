@@ -9,6 +9,7 @@ import requests
 import json
 import logging
 import os
+import sys
 from datetime import datetime
 from flask import Flask, request, jsonify
 import traceback
@@ -241,6 +242,29 @@ def create_subaccount_from_survey_data(survey_data):
             logging.info(f"🆔 Sub-account ID: {subaccount_id}")
             logging.info(f"🏢 Business: {business_name}")
             logging.info(f"👤 Contact: {first_name} {last_name} ({email})")
+            
+            # Add to hierarchical provider cache for Railway persistence
+            try:
+                logging.info("📋 Adding to provider cache for GitHub persistence...")
+                sys.path.insert(0, '/Users/timothywade/Jarvis/rmbbhealth')
+                from services.provider_location_cache import get_provider_cache
+                
+                provider_cache = get_provider_cache()
+                cache_success = provider_cache.add_or_update_provider(
+                    provider_name=business_name,
+                    location_id=subaccount_id,
+                    contact_id=None,  # No contact_id for sub-account creation
+                    increment_submissions=True
+                )
+                
+                if cache_success:
+                    logging.info("✅ Provider added to hierarchical cache and committed to GitHub")
+                else:
+                    logging.warning("⚠️ Failed to add provider to cache (GHL sub-account still created)")
+                    
+            except Exception as e:
+                logging.error(f"❌ Error updating provider cache: {e}")
+                logging.warning("⚠️ GHL sub-account created but not cached (continuing anyway)")
             
             return {
                 'success': True,
