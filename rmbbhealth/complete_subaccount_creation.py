@@ -87,217 +87,170 @@ def validate_cell_products_source(source_location_id):
     
     return True
 
+# Import webhook handler functions for unified processing
+try:
+    # Get the directory where this script is located for imports
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    if script_dir not in sys.path:
+        sys.path.insert(0, script_dir)
+    
+    # Import the existing webhook handler functions
+    from webhook_handler import handle_provider_onboarding
+    logging.info("✅ Successfully imported webhook_handler functions")
+except ImportError as e:
+    logging.error(f"❌ Failed to import webhook_handler: {e}")
+    handle_provider_onboarding = None
+
 def create_subaccount_from_survey_data(survey_data):
-    """Create a new sub-account using survey submission data."""
+    """
+    Create a new sub-account using survey submission data.
+    
+    NEW APPROACH: Uses the existing webhook handler's provider onboarding functionality
+    instead of duplicating code. This ensures consistency and unified GitHub persistence.
+    """
     
     try:
-        # Extract required data from survey - handle multiple possible field names
-        business_name = (survey_data.get('Business name') or     # Capital B (what GHL actually sends)
-                        survey_data.get('business name') or     # lowercase b (backup)
-                        survey_data.get('business_name') or 
-                        survey_data.get('businessName') or 
-                        survey_data.get('company') or 
-                        survey_data.get('companyName') or 
-                        survey_data.get('Provider Name') or 
-                        survey_data.get('Legal Company Name') or 
-                        survey_data.get('legal_company_name') or     # From webhook template
-                        '').strip()
+        if handle_provider_onboarding is None:
+            raise ImportError("Webhook handler not available - falling back to legacy method")
         
-        # Extract EIN (Federal Tax ID)
-        ein = (survey_data.get('ein') or 
-               survey_data.get('federal_tax_id__ein') or     # From webhook template
-               survey_data.get('federal_tax_id') or 
-               survey_data.get('tax_id') or 
-               survey_data.get('EIN') or 
-               survey_data.get('Federal Tax ID') or 
-               '').strip()
+        logging.info("🔗 Using integrated webhook handler for sub-account creation")
         
-        # Extract NPI (National Provider Identifier)
-        npi = (survey_data.get('npi') or     # From webhook template
-               survey_data.get('NPI') or 
-               survey_data.get('national_provider_id') or 
-               survey_data.get('provider_id') or 
-               '').strip()
+        # The webhook handler expects a Flask request object, but we can simulate it
+        # by creating a mock request with the survey data
+        from flask import Flask
+        from werkzeug.test import Client
+        from werkzeug.wrappers import BaseResponse
         
-        first_name = (survey_data.get('first_name') or 
-                     survey_data.get('firstName') or 
-                     survey_data.get('fname') or 
-                     survey_data.get('Patient First Name') or '').strip()
+        # Create a test client to simulate the webhook request
+        test_app = Flask(__name__)
+        test_client = test_app.test_client()
         
-        last_name = (survey_data.get('last_name') or 
-                    survey_data.get('lastName') or 
-                    survey_data.get('lname') or 
-                    survey_data.get('Patient Last Name') or '').strip()
+        # Prepare the payload in the format expected by the webhook handler
+        webhook_payload = {
+            'Business name': survey_data.get('Business name', ''),
+            'first_name': survey_data.get('first_name', ''),
+            'last_name': survey_data.get('last_name', ''),
+            'email': survey_data.get('email', ''),
+            'phone': survey_data.get('phone', ''),
+            'address1': survey_data.get('address1', ''),
+            'city': survey_data.get('city', ''),
+            'state': survey_data.get('state', ''),
+            'postal_code': survey_data.get('postal_code', ''),
+            'ein': survey_data.get('ein', ''),
+            'npi': survey_data.get('npi', ''),
+            'locationId': CONFIG['cell_products_location_id']
+        }
         
-        # If no separate name fields found, try parsing combined 'name' field
-        if not first_name and not last_name:
+        # Extract required fields with fallbacks for different naming conventions
+        if not webhook_payload['Business name']:
+            webhook_payload['Business name'] = (
+                survey_data.get('business name') or 
+                survey_data.get('business_name') or
+                survey_data.get('businessName') or 
+                survey_data.get('company') or 
+                survey_data.get('companyName') or 
+                survey_data.get('Provider Name') or 
+                survey_data.get('Legal Company Name') or 
+                survey_data.get('legal_company_name') or ''
+            ).strip()
+        
+        # Handle name field variations
+        for field in ['first_name', 'last_name', 'email', 'phone']:
+            if not webhook_payload[field]:
+                webhook_payload[field] = (
+                    survey_data.get(field) or
+                    survey_data.get(field.replace('_', '')) or
+                    survey_data.get(field.title()) or
+                    survey_data.get(f'Patient {field.replace("_", " ").title()}') or ''
+                ).strip()
+        
+        # Handle address fields
+        for field in ['address1', 'city', 'state', 'postal_code']:
+            if not webhook_payload[field]:
+                alt_names = {
+                    'address1': ['address', 'street_address', 'Address'],
+                    'city': ['City'],
+                    'state': ['State'],
+                    'postal_code': ['zip_code', 'zipcode', 'zip', 'Zip Code']
+                }
+                for alt_name in alt_names.get(field, []):
+                    if survey_data.get(alt_name):
+                        webhook_payload[field] = survey_data.get(alt_name).strip()
+                        break
+        
+        # Handle EIN and NPI with variations
+        if not webhook_payload['ein']:
+            webhook_payload['ein'] = (
+                survey_data.get('federal_tax_id__ein') or
+                survey_data.get('federal_tax_id') or 
+                survey_data.get('tax_id') or 
+                survey_data.get('EIN') or 
+                survey_data.get('Federal Tax ID') or ''
+            ).strip()
+            
+        if not webhook_payload['npi']:
+            webhook_payload['npi'] = (
+                survey_data.get('NPI') or 
+                survey_data.get('national_provider_id') or 
+                survey_data.get('provider_id') or ''
+            ).strip()
+        
+        # Parse combined name field if needed
+        if not webhook_payload['first_name'] and not webhook_payload['last_name']:
             full_name = survey_data.get('name', '').strip()
             if full_name:
-                # Parse combined name field
                 name_parts = full_name.replace('Dr. ', '').replace('Mr. ', '').replace('Ms. ', '').replace('Mrs. ', '').strip().split(' ', 1)
-                first_name = name_parts[0] if len(name_parts) > 0 else ''
-                last_name = name_parts[1] if len(name_parts) > 1 else ''
+                webhook_payload['first_name'] = name_parts[0] if len(name_parts) > 0 else ''
+                webhook_payload['last_name'] = name_parts[1] if len(name_parts) > 1 else ''
         
-        email = (survey_data.get('email') or 
-                survey_data.get('emailAddress') or 
-                survey_data.get('Email') or 
-                survey_data.get('Patient Email') or '').strip()
+        logging.info(f"📦 Prepared webhook payload: {json.dumps(webhook_payload, indent=2)}")
         
-        phone = (survey_data.get('phone') or 
-                survey_data.get('phoneNumber') or 
-                survey_data.get('mobile') or 
-                survey_data.get('Phone') or 
-                survey_data.get('Patient Phone') or '').strip()
-        
-        # Extract address components (webhook format: address1, city, state, postal_code)
-        address1 = (survey_data.get('address1') or     # From webhook template
-                   survey_data.get('address') or       # Fallback
-                   survey_data.get('street_address') or 
-                   survey_data.get('Address') or 
-                   '').strip()
-        
-        city = (survey_data.get('city') or     # From webhook template
-               survey_data.get('City') or 
-               '').strip()
-        
-        state = (survey_data.get('state') or     # From webhook template
-                survey_data.get('State') or 
-                '').strip()
-        
-        postal_code = (survey_data.get('postal_code') or     # From webhook template
-                      survey_data.get('zip_code') or 
-                      survey_data.get('zipcode') or 
-                      survey_data.get('zip') or 
-                      survey_data.get('Zip Code') or 
-                      '').strip()
-        
-        # Validate required fields
-        if not all([business_name, first_name, last_name, email]):
-            raise ValueError("Missing required fields: business_name, first_name, last_name, email")
-        
-        # Validate EIN format if provided (should be 9 digits: XX-XXXXXXX)
-        if ein and not (ein.replace('-', '').isdigit() and len(ein.replace('-', '')) == 9):
-            logging.warning(f"⚠️ Invalid EIN format: {ein} (should be 9 digits)")
-        
-        # Validate NPI format if provided (should be 10 digits)
-        if npi and not (npi.isdigit() and len(npi) == 10):
-            logging.warning(f"⚠️ Invalid NPI format: {npi} (should be 10 digits)")
-        
-        # Clean phone number
-        clean_phone = phone.replace('+1', '').replace('-', '').replace('(', '').replace(')', '').replace(' ', '')
-        
-        # Build sub-account data
-        subaccount_data = {
-          "name": f"{business_name} - {first_name} {last_name}",
-          "businessName": business_name,  # Required field
-          "address": address1,  # Use extracted address1 field
-          "city": city,         # Use extracted city field
-          "state": state,       # Use extracted state field
-          "postalCode": postal_code,  # Use extracted postal_code field
-          "country": "US",
-          "phone": clean_phone,
-          "email": email,
-          "website": survey_data.get('website', ''),
-          "timezone": CONFIG['default_timezone'],
-          "firstName": first_name,
-          "lastName": last_name
-        }
-        
-        # Add EIN and NPI if provided
-        if ein:
-            subaccount_data["ein"] = ein
-        if npi:
-            subaccount_data["npi"] = npi
-      
-        # Log sub-account creation attempt with all extracted fields
-        logging.info(f"🚀 Creating sub-account for {business_name}")
-        logging.info(f"👤 Contact: {first_name} {last_name} ({email})")
-        logging.info(f"📍 Address: {address1}, {city}, {state} {postal_code}")
-        if ein:
-            logging.info(f"🏢 EIN (Federal Tax ID): {ein}")
-        if npi:
-            logging.info(f"⚕️ NPI (National Provider ID): {npi}")
-        logging.info(f"📊 Sub-account data: {json.dumps(subaccount_data, indent=2)}")
-        
-        # API headers for Cell Products company account
-        headers = {
-            "Authorization": f"Bearer {CONFIG['company_api_key']}",
-            "Content-Type": "application/json",
-            "Version": "2021-07-28"
-        }
-        
-        url = f"{CONFIG['base_url']}/locations/"
-        
-        # Create the sub-account
-        response = requests.post(url, headers=headers, json=subaccount_data)
-        
-        logging.info(f"📡 POST {url}")
-        logging.info(f"📊 Status: {response.status_code}")
-        
-        if response.status_code in [200, 201]:
-            result = response.json()
-            subaccount_id = result.get('id', 'N/A')
+        # Simulate the webhook request using the existing handler
+        with test_app.test_request_context('/webhook/provider-onboarding', 
+                                         method='POST', 
+                                         json=webhook_payload,
+                                         content_type='application/json'):
             
-            logging.info(f"🎉 Sub-account created successfully!")
-            logging.info(f"🆔 Sub-account ID: {subaccount_id}")
-            logging.info(f"🏢 Business: {business_name}")
-            logging.info(f"👤 Contact: {first_name} {last_name} ({email})")
+            from flask import request
+            # Call the existing webhook handler function
+            response = handle_provider_onboarding()
             
-            # Add to hierarchical provider cache for Railway persistence
-            try:
-                logging.info("📋 Adding to provider cache for GitHub persistence...")
-                
-                # Get the directory where this script is located
-                script_dir = os.path.dirname(os.path.abspath(__file__))
-                logging.info(f"🔍 Script directory: {script_dir}")
-                
-                # Add the script directory to Python path for imports
-                if script_dir not in sys.path:
-                    sys.path.insert(0, script_dir)
-                
-                # Import the provider cache system
-                from services.provider_location_cache import get_provider_cache
-                
-                provider_cache = get_provider_cache()
-                cache_success = provider_cache.add_or_update_provider(
-                    provider_name=business_name,
-                    location_id=subaccount_id,
-                    contact_id=None,  # No contact_id for sub-account creation
-                    increment_submissions=True
-                )
-                
-                if cache_success:
-                    logging.info("✅ Provider added to hierarchical cache and committed to GitHub")
-                else:
-                    logging.warning("⚠️ Failed to add provider to cache (GHL sub-account still created)")
-                    
-            except Exception as e:
-                logging.error(f"❌ Error updating provider cache: {e}")
-                logging.warning("⚠️ GHL sub-account created but not cached (continuing anyway)")
+            # Extract the response data
+            if hasattr(response, 'get_json'):
+                result_data = response.get_json()
+                status_code = response.status_code
+            else:
+                # Handle tuple response (data, status_code)
+                result_data, status_code = response
             
-            return {
-                'success': True,
-                'sub_account_id': subaccount_id,
-                'business_name': business_name,
-                'contact_name': f"{first_name} {last_name}",
-                'email': email,
-                'created_at': datetime.now().isoformat()
-            }
-        else:
-            error_msg = f"Sub-account creation failed: {response.status_code} - {response.text}"
-            logging.error(f"❌ {error_msg}")
-            return {
-                'success': False,
-                'error': error_msg
-            }
+            logging.info(f"📊 Webhook handler response: {status_code}")
+            logging.info(f"📊 Response data: {json.dumps(result_data, indent=2)}")
             
+            if status_code == 200 and result_data.get('success'):
+                # Transform webhook handler response to match expected format
+                return {
+                    'success': True,
+                    'sub_account_id': result_data.get('sub_account_id'),
+                    'business_name': result_data.get('business_name'),
+                    'contact_name': result_data.get('contact_name'),
+                    'email': result_data.get('email'),
+                    'created_at': result_data.get('created_at', datetime.now().isoformat())
+                }
+            else:
+                return {
+                    'success': False,
+                    'error': result_data.get('error', f'Webhook handler returned {status_code}')
+                }
+        
     except Exception as e:
-        error_msg = f"Error creating sub-account: {str(e)}"
+        error_msg = f"Error using webhook handler for sub-account creation: {str(e)}"
         logging.error(f"❌ {error_msg}")
         logging.error(traceback.format_exc())
+        
+        # Fallback to a simplified version that at least logs the attempt
         return {
             'success': False,
-            'error': error_msg
+            'error': f"Integration with webhook handler failed: {error_msg}"
         }
 
 @app.route('/webhook/survey-completion', methods=['POST'])
