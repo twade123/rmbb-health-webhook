@@ -40,7 +40,7 @@ print("✅ Loaded Cell Products configuration from environment variables")
 print(f"🏢 Company: cell_products")
 print(f"📍 Location ID: {CONFIG['cell_products_location_id']}")
 
-# Configure logging
+# Configure logging EARLY
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
@@ -50,6 +50,10 @@ logging.basicConfig(
 )
 
 app = Flask(__name__)
+
+# Add startup logging to see when the application begins
+print("🚀 STARTUP: Application starting...")
+logging.info("🚀 STARTUP: Application starting...")
 
 def validate_webhook_auth(request):
     """Validate webhook authentication for Cell Products only."""
@@ -87,38 +91,9 @@ def validate_cell_products_source(source_location_id):
     
     return True
 
-# Import shared provider cache functions for unified GitHub persistence
-print("🔍 DEBUG: Attempting to import provider cache system...")
-try:
-    # Get the directory where this script is located for imports
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    print(f"🔍 DEBUG: Script directory: {script_dir}")
-    
-    if script_dir not in sys.path:
-        sys.path.insert(0, script_dir)
-        print(f"🔍 DEBUG: Added {script_dir} to sys.path")
-    
-    # Check if services directory exists
-    services_dir = os.path.join(script_dir, 'services')
-    print(f"🔍 DEBUG: Services directory exists: {os.path.exists(services_dir)}")
-    if os.path.exists(services_dir):
-        print(f"🔍 DEBUG: Services directory contents: {os.listdir(services_dir)}")
-    
-    # Import the provider cache system (same as webhook handler uses)
-    from services.provider_location_cache import get_provider_cache
-    print("✅ DEBUG: Successfully imported provider cache system")
-    logging.info("✅ Successfully imported provider cache system")
-    PROVIDER_CACHE_AVAILABLE = True
-except ImportError as e:
-    print(f"❌ DEBUG: Failed to import provider cache: {e}")
-    logging.error(f"❌ Failed to import provider cache: {e}")
-    PROVIDER_CACHE_AVAILABLE = False
-except Exception as e:
-    print(f"❌ DEBUG: Unexpected error during import: {e}")
-    logging.error(f"❌ Unexpected error during import: {e}")
-    PROVIDER_CACHE_AVAILABLE = False
-
-print(f"🔍 DEBUG: PROVIDER_CACHE_AVAILABLE = {PROVIDER_CACHE_AVAILABLE}")
+# Global variable for provider cache availability
+PROVIDER_CACHE_AVAILABLE = False
+get_provider_cache = None
 
 def create_subaccount_from_survey_data(survey_data):
     """
@@ -568,6 +543,66 @@ def verify_configuration():
         logging.error(f"❌ Configuration verification failed: {e}")
         return False
 
+def initialize_provider_cache():
+    """Initialize provider cache system - called when Flask app starts"""
+    global PROVIDER_CACHE_AVAILABLE, get_provider_cache
+    
+    print("🔍 DEBUG: Attempting to import provider cache system...")
+    logging.info("🔍 DEBUG: Attempting to import provider cache system...")
+    
+    try:
+        # Get the directory where this script is located for imports
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        print(f"🔍 DEBUG: Script directory: {script_dir}")
+        logging.info(f"🔍 DEBUG: Script directory: {script_dir}")
+        
+        if script_dir not in sys.path:
+            sys.path.insert(0, script_dir)
+            print(f"🔍 DEBUG: Added {script_dir} to sys.path")
+            logging.info(f"🔍 DEBUG: Added {script_dir} to sys.path")
+        
+        # Check if services directory exists
+        services_dir = os.path.join(script_dir, 'services')
+        exists = os.path.exists(services_dir)
+        print(f"🔍 DEBUG: Services directory exists: {exists}")
+        logging.info(f"🔍 DEBUG: Services directory exists: {exists}")
+        
+        if exists:
+            try:
+                contents = os.listdir(services_dir)
+                print(f"🔍 DEBUG: Services directory contents: {contents}")
+                logging.info(f"🔍 DEBUG: Services directory contents: {contents}")
+            except Exception as e:
+                print(f"⚠️ DEBUG: Could not list services directory: {e}")
+                logging.warning(f"⚠️ DEBUG: Could not list services directory: {e}")
+        
+        # Import the provider cache system (same as webhook handler uses)
+        from services.provider_location_cache import get_provider_cache as _get_provider_cache
+        get_provider_cache = _get_provider_cache
+        
+        print("✅ DEBUG: Successfully imported provider cache system")
+        logging.info("✅ Successfully imported provider cache system")
+        PROVIDER_CACHE_AVAILABLE = True
+        
+        # Test the provider cache
+        test_cache = get_provider_cache()
+        print(f"✅ DEBUG: Provider cache test successful: {type(test_cache).__name__}")
+        logging.info(f"✅ Provider cache test successful: {type(test_cache).__name__}")
+        
+    except ImportError as e:
+        print(f"❌ DEBUG: Failed to import provider cache: {e}")
+        logging.error(f"❌ Failed to import provider cache: {e}")
+        PROVIDER_CACHE_AVAILABLE = False
+    except Exception as e:
+        print(f"❌ DEBUG: Unexpected error during import: {e}")
+        logging.error(f"❌ Unexpected error during import: {e}")
+        PROVIDER_CACHE_AVAILABLE = False
+        import traceback
+        traceback.print_exc()
+
+    print(f"🔍 DEBUG: Final PROVIDER_CACHE_AVAILABLE = {PROVIDER_CACHE_AVAILABLE}")
+    logging.info(f"🔍 DEBUG: Final PROVIDER_CACHE_AVAILABLE = {PROVIDER_CACHE_AVAILABLE}")
+
 if __name__ == '__main__':
     # Get port from environment variable (for cloud deployment) or use default
     port = int(os.environ.get('PORT', 8080))
@@ -580,6 +615,9 @@ if __name__ == '__main__':
     logging.info(f"🔗 Endpoint: http://{host}:{port}/webhook/survey-completion")
     logging.info(f"🧪 Test endpoint: http://{host}:{port}/webhook/test")
     logging.info(f"❤️ Health check: http://{host}:{port}/health")
+    
+    # Initialize provider cache system
+    initialize_provider_cache()
     
     # Verify configuration before starting
     if verify_configuration():
