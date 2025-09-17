@@ -1007,7 +1007,7 @@ RMBB_LOCATION_ID=your_production_location_id      # Production location ID
 #### **4. 🆕 GitHub Persistence Configuration** (Critical for Railway Deployment)
 ```bash
 # Add these environment variables for hierarchical cache persistence:
-GITHUB_TOKEN=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
+GITHUB_TOKEN=
 GITHUB_REPO_OWNER=twade123
 GITHUB_REPO_NAME=rmbb-health-webhook
 
