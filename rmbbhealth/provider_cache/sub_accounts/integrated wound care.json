@@ -2,19 +2,19 @@
   "provider_info": {
     "original_name": "Integrated Wound Care",
     "normalized_key": "integrated wound care",
-    "location_id": "uyNJLBsVOLYr6PBVUeB4",
+    "location_id": "default_location",
     "sub_account_api_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsb2NhdGlvbl9pZCI6InV5TkpMQnNWT0xZcjZQQlZVZUI0IiwidmVyc2lvbiI6MSwiaWF0IjoxNzU3OTQyMjc0MzI1LCJzdWIiOiI3MTJEQzhBY2NGaUo5Vmt5aFJqWCJ9.o5F-84m6xDzqpdpnfWA6TwWRWsDv9NC998JyHZy5y74 ",
     "api_key_status": "pending_manual_entry"
   },
   "statistics": {
-    "form_submissions": 2,
+    "form_submissions": 3,
     "first_seen": "2025-09-15T13:18:23.434209",
-    "last_updated": "2025-09-18T17:24:36.025633",
+    "last_updated": "2025-09-18T17:24:44.716604",
     "case_ids": [
       "56430",
       "56457"
     ],
-    "sample_contact_id": "gb1xtnW8l8ZNMLE9YrAK"
+    "sample_contact_id": "qR6XR4D4VJTHjS6fcF4R"
   },
   "case_mappings": {
     "56430": {
