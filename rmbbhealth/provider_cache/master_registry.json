@@ -1,5 +1,5 @@
 {
-  "last_updated": "2025-09-18T18:05:39.615191",
+  "last_updated": "2025-09-18T18:05:40.941961",
   "total_sub_accounts": 9,
   "agency_info": {
     "agency_name": "Cell Products Agency Account",
@@ -37,14 +37,14 @@
     "integrated wound care": {
       "display_name": "Integrated Wound Care",
       "normalized_key": "integrated wound care",
-      "location_id": "uyNJLBsVOLYr6PBVUeB4",
+      "location_id": "default_location",
       "account_type": "sub_account",
       "status": "active",
       "data_file": "integrated wound care.json",
       "api_key_status": "pending_manual_entry",
       "first_seen": "2025-09-15T13:18:23.434192",
-      "last_updated": "2025-09-18T17:38:20.942701",
-      "form_submissions": 3,
+      "last_updated": "2025-09-18T18:05:40.941947",
+      "form_submissions": 4,
       "case_count": 3,
       "case_ids": [
         "56430",
@@ -138,7 +138,7 @@
   },
   "discovery_metadata": {
     "auto_discovery_enabled": true,
-    "last_ghl_agency_sync": "2025-09-18T17:24:44.712705",
+    "last_ghl_agency_sync": "2025-09-18T18:05:40.934198",
     "locations_discovered_count": 11,
     "sync_frequency": "on_webhook",
     "sync_errors": [],
