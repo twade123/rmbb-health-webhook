@@ -8,27 +8,9 @@
   },
   "statistics": {
     "form_submissions": 1,
-    "first_seen": "2025-09-18T14:20:11.575134",
-    "last_updated": "2025-09-18T14:20:11.575135",
-    "case_ids": [
-      "56428"
-    ]
+    "first_seen": "2025-09-18T16:31:32.982366",
+    "last_updated": "2025-09-18T16:31:32.982367",
+    "case_ids": []
   },
-  "case_mappings": {
-    "56428": {
-      "case_id": "56428",
-      "provider_name": "Diane N. Lusas, MD",
-      "provider_key": "diane n. lusas, md",
-      "contact_id": "6zJ3D1ATExEj8Ave6aQZ",
-      "location_id": "default_location",
-      "external_id": "ghl_contact_6zJ3D1ATExEj8Ave6aQZ_20250918_142011_364",
-      "created": "2025-09-18T14:20:17.872261",
-      "approved_product": {
-        "name": "Amnio-Maxx",
-        "product_id": 364,
-        "q_code": "Q4239",
-        "saved_at": "2025-09-18T14:20:17.872279"
-      }
-    }
-  }
+  "case_mappings": {}
 }
