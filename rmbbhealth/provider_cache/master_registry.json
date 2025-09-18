@@ -37,7 +37,7 @@
     "integrated wound care": {
       "display_name": "Integrated Wound Care",
       "normalized_key": "integrated wound care",
-      "location_id": "default_location",
+      "location_id": "uyNJLBsVOLYr6PBVUeB4",
       "account_type": "sub_account",
       "status": "active",
       "data_file": "integrated wound care.json",
