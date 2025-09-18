@@ -1,6 +1,6 @@
 {
-  "last_updated": "2025-09-18T14:20:11.575366",
-  "total_sub_accounts": 8,
+  "last_updated": "2025-09-18T14:20:17.873209",
+  "total_sub_accounts": 9,
   "agency_info": {
     "agency_name": "Cell Products Agency Account",
     "agency_location_id": "10SapwdFnQK3Kwqp5ecv",
@@ -121,9 +121,9 @@
       "data_file": "diane n. lusas, md.json",
       "api_key_status": "pending_manual_entry",
       "first_seen": "2025-09-18T14:20:11.575125",
-      "last_updated": "2025-09-18T14:20:11.575360",
+      "last_updated": "2025-09-18T14:20:17.873197",
       "form_submissions": 1,
-      "case_count": 0
+      "case_count": 1
     }
   },
   "discovery_metadata": {
