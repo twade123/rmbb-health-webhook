@@ -1380,8 +1380,8 @@ Effective Date: {ivr_data['effective_date']}
         headers_result = self._get_provider_headers(provider_name, display_name, location_id)
         if isinstance(headers_result, tuple):
             headers, cached_location_id = headers_result
-            # Use cached location_id if we didn't have one
-            location_id = location_id or cached_location_id
+            # Use cached location_id as priority over original location_id
+            location_id = cached_location_id or location_id
         else:
             headers = headers_result
         
@@ -1531,11 +1531,13 @@ Effective Date: {ivr_data['effective_date']}
             
             # Step 3: Finalize RMBB submission and end workflow (RMBB Health will webhook us)
             provider_name = patient_data.get('provider_name')
+            display_name = patient_data.get('display_name')
             submission_result = self.finalize_rmbb_submission(
                 external_id=external_id,
-                contact_id=contact_id, 
+                contact_id=contact_id,
                 created_cases=created_cases,
-                provider_name=provider_name
+                provider_name=provider_name,
+                display_name=display_name
             )
             
             print("\n" + "=" * 80)
@@ -1544,7 +1546,7 @@ Effective Date: {ivr_data['effective_date']}
             print(f"🔗 External ID base: {external_id}")
             print(f"📧 GHL Contact ID: {contact_id}")
             print(f"📍 GHL Location ID: {location_id}")
-            print(f"👨‍⚕️ Provider: {provider_name} (cached for webhook routing)")
+            print(f"👨‍⚕️ Provider: {provider_name} → {display_name} (cached for webhook routing)")
             print(f"🏥 RMBB Patient ID: {patient_response['id']}")
             
             # Display multiple cases created
@@ -1573,6 +1575,7 @@ Effective Date: {ivr_data['effective_date']}
                 "contact_id": contact_id,
                 "location_id": location_id,
                 "provider_name": provider_name,
+                "display_name": display_name,
                 "rmbb_patient_id": patient_response['id'],
                 "rmbb_case_ids": [case['case_id'] for case in created_cases],
                 "total_cases_created": len(created_cases),
