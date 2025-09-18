@@ -1,5 +1,5 @@
 {
-  "last_updated": "2025-09-18T14:27:37.469070",
+  "last_updated": "2025-09-18T14:27:38.814949",
   "total_sub_accounts": 16,
   "agency_info": {
     "agency_name": "Cell Products Agency Account",
@@ -96,6 +96,19 @@
       "api_key_status": "pending_manual_entry",
       "first_seen": "2025-09-18T14:20:05.894157",
       "last_updated": "2025-09-18T14:27:37.469061",
+      "form_submissions": 0,
+      "case_count": 0
+    },
+    "provider name 6": {
+      "display_name": "Provider Name 6",
+      "normalized_key": "provider name 6",
+      "location_id": "xgLmlM2J4PeKEQAyYSKe",
+      "account_type": "sub_account",
+      "status": "active",
+      "data_file": "provider name 6.json",
+      "api_key_status": "pending_manual_entry",
+      "first_seen": "2025-09-18T14:27:38.814137",
+      "last_updated": "2025-09-18T14:27:38.814941",
       "form_submissions": 0,
       "case_count": 0
     }
