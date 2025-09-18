@@ -1,0 +1,16 @@
+{
+  "provider_info": {
+    "original_name": "Diane N. Lusas, MD",
+    "normalized_key": "diane n. lusas, md",
+    "location_id": "default_location",
+    "sub_account_api_key": null,
+    "api_key_status": "pending_manual_entry"
+  },
+  "statistics": {
+    "form_submissions": 1,
+    "first_seen": "2025-09-18T14:20:11.575134",
+    "last_updated": "2025-09-18T14:20:11.575135",
+    "case_ids": []
+  },
+  "case_mappings": {}
+}
