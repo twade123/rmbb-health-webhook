@@ -1,5 +1,5 @@
 {
-  "last_updated": "2025-09-18T20:06:02.866591",
+  "last_updated": "2025-09-18T20:06:10.147159",
   "total_sub_accounts": 9,
   "agency_info": {
     "agency_name": "Cell Products Agency Account",
@@ -43,9 +43,9 @@
       "data_file": "integrated wound care.json",
       "api_key_status": "pending_manual_entry",
       "first_seen": "2025-09-15T13:18:23.434192",
-      "last_updated": "2025-09-18T20:06:02.866565",
+      "last_updated": "2025-09-18T20:06:10.147149",
       "form_submissions": 8,
-      "case_count": 7,
+      "case_count": 8,
       "case_ids": [
         "56430",
         "56457",
@@ -53,7 +53,8 @@
         "56473",
         "56487",
         "56489",
-        "56491"
+        "56491",
+        "56495"
       ]
     },
     "bioliv llc": {
