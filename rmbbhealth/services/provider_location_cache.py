@@ -412,9 +412,14 @@ class HierarchicalProviderCache:
 
                 # Check for location_id changes (potential issue detection)
                 if existing_registry["location_id"] != location_id:
-                    print(f"⚠️ WARNING: Provider {provider_name} location changed!")
-                    print(f"   Old: {existing_registry['location_id']} → New: {location_id}")
-                    existing_registry["location_id"] = location_id
+                    # SMART LOGIC: Don't overwrite real location_id with "default_location"
+                    old_id = existing_registry["location_id"]
+                    if old_id != "default_location" and location_id == "default_location":
+                        print(f"🛡️ PROTECTED: Not overwriting real location_id {old_id} with fallback {location_id}")
+                    else:
+                        print(f"⚠️ WARNING: Provider {display_name} location changed!")
+                        print(f"   Old: {old_id} → New: {location_id}")
+                        existing_registry["location_id"] = location_id
 
                 # Update submission counter in master registry
                 if increment_submissions:
