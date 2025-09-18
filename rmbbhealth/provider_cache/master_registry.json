@@ -1,6 +1,6 @@
 {
-  "last_updated": "2025-09-18T14:20:17.873209",
-  "total_sub_accounts": 9,
+  "last_updated": "2025-09-18T14:27:33.663729",
+  "total_sub_accounts": 16,
   "agency_info": {
     "agency_name": "Cell Products Agency Account",
     "agency_location_id": "10SapwdFnQK3Kwqp5ecv",
@@ -76,62 +76,36 @@
     "provider name 4": {
       "display_name": "Provider Name 4",
       "normalized_key": "provider name 4",
-      "location_id": "pE0dy7lftmc0hBFZF3i2",
+      "location_id": "RfNvPRfFo9ENY4lQuCSl",
       "account_type": "sub_account",
       "status": "active",
       "data_file": "provider name 4.json",
       "api_key_status": "pending_manual_entry",
       "first_seen": "2025-09-18T14:20:03.096998",
-      "last_updated": "2025-09-18T14:20:04.482143",
+      "last_updated": "2025-09-18T14:27:33.663713",
       "form_submissions": 0,
       "case_count": 0
     },
     "provider name 5": {
       "display_name": "Provider Name 5",
       "normalized_key": "provider name 5",
-      "location_id": "Jbnucf0AaDnk0PcwBRv7",
+      "location_id": "9xHOmfNuya9Y6daC8e3d",
       "account_type": "sub_account",
       "status": "active",
       "data_file": "provider name 5.json",
       "api_key_status": "pending_manual_entry",
       "first_seen": "2025-09-18T14:20:05.894157",
-      "last_updated": "2025-09-18T14:20:08.998476",
+      "last_updated": "2025-09-18T14:20:05.895793",
       "form_submissions": 0,
       "case_count": 0
-    },
-    "provider name 6": {
-      "display_name": "Provider Name 6",
-      "normalized_key": "provider name 6",
-      "location_id": "xgLmlM2J4PeKEQAyYSKe",
-      "account_type": "sub_account",
-      "status": "active",
-      "data_file": "provider name 6.json",
-      "api_key_status": "pending_manual_entry",
-      "first_seen": "2025-09-18T14:20:10.252216",
-      "last_updated": "2025-09-18T14:20:10.253096",
-      "form_submissions": 0,
-      "case_count": 0
-    },
-    "diane n. lusas, md": {
-      "display_name": "Diane N. Lusas, MD",
-      "normalized_key": "diane n. lusas, md",
-      "location_id": "default_location",
-      "account_type": "sub_account",
-      "status": "active",
-      "data_file": "diane n. lusas, md.json",
-      "api_key_status": "pending_manual_entry",
-      "first_seen": "2025-09-18T14:20:11.575125",
-      "last_updated": "2025-09-18T14:20:17.873197",
-      "form_submissions": 1,
-      "case_count": 1
     }
   },
   "discovery_metadata": {
     "auto_discovery_enabled": true,
-    "last_ghl_agency_sync": "2025-09-18T14:20:11.570112",
-    "locations_discovered_count": 11,
+    "last_ghl_agency_sync": "2025-09-15T13:27:39.820962",
+    "locations_discovered_count": 16,
     "sync_frequency": "on_webhook",
     "sync_errors": [],
-    "new_accounts_found_last_sync": 5
+    "new_accounts_found_last_sync": 0
   }
 }
