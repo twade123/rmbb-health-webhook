@@ -1,6 +1,6 @@
 {
-  "last_updated": "2025-09-18T14:20:10.253105",
-  "total_sub_accounts": 16,
+  "last_updated": "2025-09-18T14:20:11.575366",
+  "total_sub_accounts": 8,
   "agency_info": {
     "agency_name": "Cell Products Agency Account",
     "agency_location_id": "10SapwdFnQK3Kwqp5ecv",
@@ -111,14 +111,27 @@
       "last_updated": "2025-09-18T14:20:10.253096",
       "form_submissions": 0,
       "case_count": 0
+    },
+    "diane n. lusas, md": {
+      "display_name": "Diane N. Lusas, MD",
+      "normalized_key": "diane n. lusas, md",
+      "location_id": "default_location",
+      "account_type": "sub_account",
+      "status": "active",
+      "data_file": "diane n. lusas, md.json",
+      "api_key_status": "pending_manual_entry",
+      "first_seen": "2025-09-18T14:20:11.575125",
+      "last_updated": "2025-09-18T14:20:11.575360",
+      "form_submissions": 1,
+      "case_count": 0
     }
   },
   "discovery_metadata": {
     "auto_discovery_enabled": true,
-    "last_ghl_agency_sync": "2025-09-15T13:27:39.820962",
-    "locations_discovered_count": 16,
+    "last_ghl_agency_sync": "2025-09-18T14:20:11.570112",
+    "locations_discovered_count": 11,
     "sync_frequency": "on_webhook",
     "sync_errors": [],
-    "new_accounts_found_last_sync": 0
+    "new_accounts_found_last_sync": 5
   }
 }
