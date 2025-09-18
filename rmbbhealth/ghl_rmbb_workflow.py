@@ -735,26 +735,35 @@ Effective Date: {ivr_data['effective_date']}
         # Biologic Product Fields - Using your exact field names from GHL webhook template
         amniomaxx_q4239 = (webhook_payload.get('amniomaxx_(q4239)_units/cm2') or '').strip()
         palingen_q4173 = (webhook_payload.get('palingen_(q4173)_units/cm2') or '').strip()
-        membrane_wrap_trilayer_q4205 = (webhook_payload.get('membrane_wrap_tri-layer_(q4205)_units/cm2') or '').strip()
+        membrane_wrap_trilayer_q4344 = (webhook_payload.get('membrane_wrap_tri-layer_(q4344)_units/cm2') or '').strip()  # FIXED: Q4344 not Q4205
         amnioamp_mp_q4250 = (webhook_payload.get('amnioamp-mp_(q4250)_units/cm2') or '').strip()
         membrane_wrap_hydro_q4290 = (webhook_payload.get('membrane_wrap_hydro_(q4290)_units/cm2') or '').strip()
         biovance_q4154 = (webhook_payload.get('biovance_(q4154)_units/cm2') or '').strip()
         amchoplast_q4316 = (webhook_payload.get('amchoplast_(q4316)_units/cm2') or '').strip()
         helicoll_q4164 = (webhook_payload.get('helicoll_(q4164)_units/cm2') or '').strip()
         xcell_amnio_matrix_q4280 = (webhook_payload.get('xcell_amnio_matrix_(q4280)_units/cm2') or '').strip()
+
+        # CPT Code - ADDED: Missing field from your payload
+        cpt_code = (webhook_payload.get('cpt_code') or '').strip()
         
         # Product fields extracted from GHL payload
         
-        # Fields not provided in your webhook mapping - will be empty
-        wound_type = ''  # Not in your webhook mapping
-        wound_size = ''  # Not in your webhook mapping
+        # Wound information - NOW AVAILABLE in your webhook mapping!
+        wound_type = (webhook_payload.get('wound_type') or '').strip()  # NEW FIELD - Now available!
+        wound_size = (webhook_payload.get('wound_size') or '').strip()  # NEW FIELD - Now available!
         surgery_date = ''  # Not in your webhook mapping
         cpt_surgery_code = ''  # Not in your webhook mapping
         place_of_service = facility_type or 'Physician Office - 11'  # Use facility_type as fallback
         
         # Provider Information - Now available in your webhook mapping!
         provider_name = (webhook_payload.get('provider_name') or '').strip()  # CRITICAL for routing!
+        provider_npi = (webhook_payload.get('provider_npi') or '').strip()  # NEW FIELD
+        display_name = (webhook_payload.get('display_name') or '').strip()  # NEW FIELD
         provider_email = ''  # Still not in your webhook mapping
+
+        # HMO/PPO Information - NEW FIELDS (removed 'contact.' prefix)
+        hmo = (webhook_payload.get('hmo') or '').strip()  # NEW FIELD
+        ppo = (webhook_payload.get('ppo') or '').strip()  # NEW FIELD
         
         return {
             # Patient personal data
@@ -785,7 +794,13 @@ Effective Date: {ivr_data['effective_date']}
             
             # Provider data (CRITICAL for routing)
             "provider_name": provider_name,
+            "provider_npi": provider_npi,  # NEW FIELD
+            "display_name": display_name,  # NEW FIELD
             "provider_email": provider_email,
+
+            # HMO/PPO data (NEW FIELDS)
+            "hmo": hmo,  # NEW FIELD
+            "ppo": ppo,  # NEW FIELD
             
             # New GHL Form Fields
             "facility_type": facility_type,
@@ -795,13 +810,16 @@ Effective Date: {ivr_data['effective_date']}
             # Biologic Product Fields (units/cm2)
             "amniomaxx_q4239": amniomaxx_q4239,
             "palingen_q4173": palingen_q4173,
-            "membrane_wrap_trilayer_q4205": membrane_wrap_trilayer_q4205,
+            "membrane_wrap_trilayer_q4344": membrane_wrap_trilayer_q4344,  # FIXED: Q4344 not Q4205
             "amnioamp_mp_q4250": amnioamp_mp_q4250,
             "membrane_wrap_hydro_q4290": membrane_wrap_hydro_q4290,
             "biovance_q4154": biovance_q4154,
             "amchoplast_q4316": amchoplast_q4316,
             "helicoll_q4164": helicoll_q4164,
-            "xcell_amnio_matrix_q4280": xcell_amnio_matrix_q4280
+            "xcell_amnio_matrix_q4280": xcell_amnio_matrix_q4280,
+
+            # CPT Code from GHL payload
+            "cpt_code": cpt_code
         }
     
     
@@ -900,8 +918,8 @@ Effective Date: {ivr_data['effective_date']}
                 "parent_company": primary_insurance_name,  # Use actual insurance name from GHL payload
                 "participating_status": form_data.get("primary_participating_status", ""),
                 "policy_number": form_data.get("primary_policy_number", ""),
-                "preferred_provider_organization": form_data.get("concact.ppo", form_data.get("contact.ppo", "Yes")),  # Extract PPO from GHL payload (note typo in GHL field name)
-                "health_maintenance_organization": form_data.get("contact.hmo", "No"),  # Extract HMO from GHL payload
+                "preferred_provider_organization": form_data.get("ppo", "Yes"),  # UPDATED: New field name without 'contact.' prefix
+                "health_maintenance_organization": form_data.get("hmo", "No"),  # UPDATED: New field name without 'contact.' prefix
                 "prior_authorization": ""  # Could be form field
             }
         
@@ -915,8 +933,8 @@ Effective Date: {ivr_data['effective_date']}
                 "parent_company": secondary_insurance_name,  # Use actual insurance name from GHL payload
                 "participating_status": form_data.get("secondary_participating_status", ""),
                 "policy_number": form_data.get("secondary_policy_number", ""),
-                "preferred_provider_organization": form_data.get("concact.ppo", form_data.get("contact.ppo", "No")),  # Extract PPO from GHL payload (note typo in GHL field name)
-                "health_maintenance_organization": form_data.get("contact.hmo", "Yes"),  # Extract HMO from GHL payload
+                "preferred_provider_organization": form_data.get("ppo", "No"),  # UPDATED: New field name without 'contact.' prefix
+                "health_maintenance_organization": form_data.get("hmo", "Yes"),  # UPDATED: New field name without 'contact.' prefix
                 "prior_authorization": ""  # Could be form field
             }
         
@@ -935,8 +953,9 @@ Effective Date: {ivr_data['effective_date']}
             "patient_id": patient_id,
             "product_id": self.get_product_id_for_product(product),  # Individual product ID
             "place_of_service": form_data.get("facility_type", ""),
-            "wound_size": f"{product['cm2']} cm2",  # Individual product wound size
-            "total_wound_size": f"{product['cm2']} cm2",  # Same as wound_size for individual product
+            "wound_size": form_data.get("wound_size", ""),  # Actual wound dimensions from GHL (e.g., "3x4")
+            "product_coverage_cm2": f"{product['cm2']} cm2",  # Product coverage area
+            "total_wound_size": f"{product['cm2']} cm2",  # Product coverage for RMBB calculations
             "wound_type": form_data.get("wound_type", ""),
             "is_in_skilled_nursing_facility": 1 if "skilled nursing" in form_data.get("facility_type", "").lower() else 0,
             "is_in_surgical_nursing_facility": 0,  # Default
@@ -956,8 +975,8 @@ Effective Date: {ivr_data['effective_date']}
                 "parent_company": primary_insurance_name,  # Use actual insurance name from GHL payload
                 "participating_status": form_data.get("primary_participating_status", ""),
                 "policy_number": form_data.get("primary_policy_number", ""),
-                "preferred_provider_organization": form_data.get("concact.ppo", form_data.get("contact.ppo", "Yes")),  # Extract PPO from GHL payload (note typo in GHL field name)
-                "health_maintenance_organization": form_data.get("contact.hmo", "No"),  # Extract HMO from GHL payload
+                "preferred_provider_organization": form_data.get("ppo", "Yes"),  # UPDATED: New field name without 'contact.' prefix
+                "health_maintenance_organization": form_data.get("hmo", "No"),  # UPDATED: New field name without 'contact.' prefix
                 "prior_authorization": ""  # Could be form field
             }
         
@@ -970,8 +989,8 @@ Effective Date: {ivr_data['effective_date']}
                 "parent_company": secondary_insurance_name,  # Use actual insurance name from GHL payload
                 "participating_status": form_data.get("secondary_participating_status", ""),
                 "policy_number": form_data.get("secondary_policy_number", ""),
-                "preferred_provider_organization": form_data.get("concact.ppo", form_data.get("contact.ppo", "No")),  # Extract PPO from GHL payload (note typo in GHL field name)
-                "health_maintenance_organization": form_data.get("contact.hmo", "Yes"),  # Extract HMO from GHL payload
+                "preferred_provider_organization": form_data.get("ppo", "No"),  # UPDATED: New field name without 'contact.' prefix
+                "health_maintenance_organization": form_data.get("hmo", "Yes"),  # UPDATED: New field name without 'contact.' prefix
                 "prior_authorization": ""  # Could be form field
             }
         
