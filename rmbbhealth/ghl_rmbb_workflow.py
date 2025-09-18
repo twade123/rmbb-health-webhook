@@ -120,20 +120,33 @@ class GHLRMBBWorkflowHandler:
         # Handle missing location_id by using a default/fallback
         if not location_id:
             print(f"⚠️ WARNING: No location_id provided in webhook - using fallback location")
-            # Try to extract from provider cache or use environment variable
+            # Try to extract from provider cache using display_name (sub-account level)
+            display_name = webhook_payload.get('display_name', '').strip()
             provider_name = webhook_payload.get('provider_name', '').strip()
-            if provider_name:
+
+            # PRIMARY: Use display_name for location lookup (sub-account level)
+            if display_name:
+                cached_location = self.provider_cache.get_location_id(display_name)
+                if cached_location:
+                    location_id = cached_location
+                    print(f"✅ Found location_id from provider cache (display_name): {location_id}")
+                else:
+                    print(f"⚠️ Display name '{display_name}' not found in provider cache")
+                    # Use environment variable as fallback
+                    location_id = os.environ.get('GHL_DEFAULT_LOCATION_ID', 'default_location')
+                    print(f"🔄 Using default location_id: {location_id}")
+            elif provider_name:
+                # FALLBACK: Try provider_name (less reliable)
                 cached_location = self.provider_cache.get_location_id(provider_name)
                 if cached_location:
                     location_id = cached_location
-                    print(f"✅ Found location_id from provider cache: {location_id}")
+                    print(f"✅ Found location_id from provider cache (provider_name): {location_id}")
                 else:
-                    # Use environment variable as fallback
                     location_id = os.environ.get('GHL_DEFAULT_LOCATION_ID', 'default_location')
                     print(f"🔄 Using default location_id: {location_id}")
             else:
                 location_id = os.environ.get('GHL_DEFAULT_LOCATION_ID', 'default_location')
-                print(f"🔄 No provider_name - using default location_id: {location_id}")
+                print(f"🔄 No provider info - using default location_id: {location_id}")
         
         # Extract patient data using robust field mapping
         patient_form_data = self.extract_patient_data(webhook_payload)
@@ -166,7 +179,9 @@ class GHLRMBBWorkflowHandler:
         # CRITICAL: Cache provider → locationId mapping for RMBB response routing
         display_name = patient_form_data.get('display_name')  # Primary sub-account key
         provider_name = patient_form_data.get('provider_name')  # Individual provider
-        if display_name and location_id:
+
+        # IMPORTANT: Only update cache with REAL location_id data, NOT fallback values
+        if display_name and location_id and location_id != "default_location":
             self.provider_cache.add_or_update_provider(
                 display_name=display_name,
                 provider_name=provider_name,
@@ -175,6 +190,9 @@ class GHLRMBBWorkflowHandler:
             )
             print(f"💾 Cached sub-account mapping: {display_name} → {location_id}")
             print(f"👨‍⚕️ Provider: {provider_name}")
+        elif location_id == "default_location":
+            print(f"🛡️ SKIPPING cache update - not overwriting with fallback value 'default_location'")
+            print(f"   display_name: {display_name}, fallback location_id: {location_id}")
         else:
             print(f"⚠️ WARNING: Missing display_name or location_id - RMBB response routing will fail!")
             print(f"   display_name: {display_name}, location_id: {location_id}")
