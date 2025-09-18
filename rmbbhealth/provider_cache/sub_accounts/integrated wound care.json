@@ -10,8 +10,26 @@
     "form_submissions": 1,
     "first_seen": "2025-09-15T13:18:23.434209",
     "last_updated": "2025-09-18T14:27:39.924685",
-    "case_ids": [],
+    "case_ids": [
+      "56430"
+    ],
     "sample_contact_id": "rZhjD5v3eZ1Ledr6yYrU"
   },
-  "case_mappings": {}
+  "case_mappings": {
+    "56430": {
+      "case_id": "56430",
+      "provider_name": "Integrated Wound Care",
+      "provider_key": "integrated wound care",
+      "contact_id": "rZhjD5v3eZ1Ledr6yYrU",
+      "location_id": "uyNJLBsVOLYr6PBVUeB4",
+      "external_id": "ghl_contact_rZhjD5v3eZ1Ledr6yYrU_20250918_142739_364",
+      "created": "2025-09-18T14:27:46.641627",
+      "approved_product": {
+        "name": "Amnio-Maxx",
+        "product_id": 364,
+        "q_code": "Q4239",
+        "saved_at": "2025-09-18T14:27:46.641637"
+      }
+    }
+  }
 }
