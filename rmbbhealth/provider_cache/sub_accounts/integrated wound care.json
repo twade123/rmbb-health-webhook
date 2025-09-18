@@ -17,7 +17,8 @@
       "56473",
       "56487",
       "56489",
-      "56491"
+      "56491",
+      "56495"
     ],
     "sample_contact_id": "vZgEWjARhr6tnhMRwMpv"
   },
@@ -131,6 +132,22 @@
         "product_id": 364,
         "q_code": "Q4239",
         "saved_at": "2025-09-18T19:45:43.134462"
+      }
+    },
+    "56495": {
+      "case_id": "56495",
+      "display_name": "Integrated Wound Care",
+      "provider_name": "Diane N. Lusas, MD",
+      "provider_key": "integrated wound care",
+      "contact_id": "vZgEWjARhr6tnhMRwMpv",
+      "location_id": "uyNJLBsVOLYr6PBVUeB4",
+      "external_id": "ghl_contact_vZgEWjARhr6tnhMRwMpv_20250918_200602_364",
+      "created": "2025-09-18T20:06:10.146460",
+      "approved_product": {
+        "name": "Amnio-Maxx",
+        "product_id": 364,
+        "q_code": "Q4239",
+        "saved_at": "2025-09-18T20:06:10.146479"
       }
     }
   }
