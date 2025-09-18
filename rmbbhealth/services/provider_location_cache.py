@@ -330,18 +330,25 @@ class HierarchicalProviderCache:
             return ""
         return " ".join(provider_name.lower().strip().split())
 
-    def add_or_update_provider(self, provider_name, location_id, contact_id=None, increment_submissions=True):
+    def add_or_update_provider(self, display_name=None, provider_name=None, location_id=None, contact_id=None, increment_submissions=True):
         """
-        Add or update provider → location mapping (ISOLATED - NO CROSS-CONTAMINATION)
+        Add or update provider → location mapping (UPDATED FOR DISPLAY_NAME + PROVIDER_NAME)
 
-        BACKWARD COMPATIBLE: Same method signature as before
-        NEW BEHAVIOR: Each provider gets isolated file, cannot corrupt others
+        NEW BEHAVIOR:
+        - display_name is the primary sub-account (e.g., "Integrated Wound Care")
+        - provider_name is the individual provider (e.g., "Diane N. Lusas, MD")
+        - Uses display_name as the master registry key
+        - Tracks provider_name with each case
         """
-        if not provider_name or not location_id:
-            print(f"⚠️ Skipping cache update - missing provider_name or location_id")
+        # Support backward compatibility - if only provider_name provided, use it as display_name
+        if provider_name and not display_name:
+            display_name = provider_name
+
+        if not display_name or not location_id:
+            print(f"⚠️ Skipping cache update - missing display_name or location_id")
             return False
 
-        provider_key = self._normalize_provider_name(provider_name)
+        provider_key = self._normalize_provider_name(display_name)
 
         with self.lock:
             # Check if provider exists in master registry
@@ -353,7 +360,7 @@ class HierarchicalProviderCache:
                 account_type = "agency" if is_agency else "sub_account"
 
                 self.master_registry.setdefault("sub_accounts", {})[provider_key] = {
-                    "display_name": provider_name,
+                    "display_name": display_name,
                     "normalized_key": provider_key,
                     "location_id": location_id,
                     "account_type": account_type,
@@ -369,7 +376,7 @@ class HierarchicalProviderCache:
                 # For agency account, don't create sub-account file
                 if is_agency:
                     self.master_registry["agency_info"] = {
-                        "agency_name": provider_name,
+                        "agency_name": display_name,
                         "agency_location_id": location_id,
                         "api_key_status": "uses_railway_ghl_api_key",
                         "created": datetime.now().isoformat()
@@ -436,29 +443,35 @@ class HierarchicalProviderCache:
 
             return True
 
-    def add_case_mapping(self, case_id, provider_name, contact_id, location_id, external_id=None, product_info=None):
+    def add_case_mapping(self, case_id, display_name=None, provider_name=None, contact_id=None, location_id=None, external_id=None, product_info=None):
         """
-        Add RMBB Health case ID to provider mapping (ISOLATED PER PROVIDER)
+        Add RMBB Health case ID to provider mapping (UPDATED FOR DISPLAY_NAME + PROVIDER_NAME)
 
-        BACKWARD COMPATIBLE: Same method signature
-        NEW BEHAVIOR: Case stored in individual provider file - cannot corrupt other providers
+        NEW BEHAVIOR:
+        - display_name is the primary sub-account key (e.g., "Integrated Wound Care")
+        - provider_name is stored with each case (e.g., "Diane N. Lusas, MD")
+        - Cases are grouped under display_name but track individual provider
         """
-        if not case_id or not provider_name or not contact_id or not location_id:
+        # Support backward compatibility - if only provider_name provided, use it as display_name
+        if provider_name and not display_name:
+            display_name = provider_name
+
+        if not case_id or not display_name or not contact_id or not location_id:
             print(f"⚠️ Missing required data for case mapping")
             return False
 
-        provider_key = self._normalize_provider_name(provider_name)
+        provider_key = self._normalize_provider_name(display_name)
 
         with self.lock:
-            # Ensure provider exists in master registry
+            # Ensure sub-account exists in master registry
             if provider_key not in self.master_registry.get("sub_accounts", {}):
-                print(f"⚠️ Provider {provider_name} not in cache - cannot add case mapping")
+                print(f"⚠️ Sub-account {display_name} not in cache - cannot add case mapping")
                 return False
 
-            # Load individual provider data
+            # Load individual sub-account data
             sub_account_data = self._load_sub_account_data(provider_key)
             if not sub_account_data:
-                print(f"⚠️ Sub-account data not found for {provider_name}")
+                print(f"⚠️ Sub-account data not found for {display_name}")
                 return False
 
             # Add case ID to statistics if not already present
@@ -466,10 +479,11 @@ class HierarchicalProviderCache:
             if str(case_id) not in case_ids:
                 case_ids.append(str(case_id))
 
-            # Store case mapping in ISOLATED provider file
+            # Store case mapping in ISOLATED sub-account file
             case_mapping_data = {
                 "case_id": str(case_id),
-                "provider_name": provider_name,
+                "display_name": display_name,  # Sub-account name (e.g., "Integrated Wound Care")
+                "provider_name": provider_name,  # Individual provider (e.g., "Diane N. Lusas, MD")
                 "provider_key": provider_key,
                 "contact_id": contact_id,
                 "location_id": location_id,
