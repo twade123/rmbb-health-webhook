@@ -7,10 +7,11 @@
     "api_key_status": "pending_manual_entry"
   },
   "statistics": {
-    "form_submissions": 0,
+    "form_submissions": 1,
     "first_seen": "2025-09-15T13:18:23.434209",
-    "last_updated": "2025-09-15T13:18:23.434210",
-    "case_ids": []
+    "last_updated": "2025-09-18T14:27:39.924685",
+    "case_ids": [],
+    "sample_contact_id": "rZhjD5v3eZ1Ledr6yYrU"
   },
   "case_mappings": {}
 }
