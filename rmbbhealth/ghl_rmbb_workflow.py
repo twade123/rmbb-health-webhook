@@ -287,11 +287,13 @@ class GHLRMBBWorkflowHandler:
             
             # Update contact with wound size data (pass provider info for correct API key)
             provider_name = patient_form_data.get('provider_name')
+            display_name = patient_form_data.get('display_name')
             wound_size_update_result = self.update_ghl_contact(
-                contact_id, 
-                wound_size_update, 
+                contact_id,
+                wound_size_update,
                 location_id=location_id,
-                provider_name=provider_name
+                provider_name=provider_name,
+                display_name=display_name
             )
             if wound_size_update_result["success"]:
                 print(f"✅ Saved wound size ({wound_size_data}) to rmbb_wound_size_coverage_calculator field")
@@ -487,10 +489,12 @@ class GHLRMBBWorkflowHandler:
         
         # Update GHL contact with provider context from form data
         provider_name = patient_form_data.get('provider_name', '')
+        display_name = patient_form_data.get('display_name', '')
         contact_update_result = self.update_ghl_contact(
-            contact_id, 
+            contact_id,
             rmbb_tracking_update,
-            provider_name=provider_name
+            provider_name=provider_name,
+            display_name=display_name
         )
         if contact_update_result["success"]:
             print(f"✅ RMBB IDs stored in GHL contact {contact_id}")
@@ -508,7 +512,7 @@ class GHLRMBBWorkflowHandler:
             "failed_cases_count": len(failed_cases)
         }
     
-    def finalize_rmbb_submission(self, external_id, contact_id, created_cases, provider_name):
+    def finalize_rmbb_submission(self, external_id, contact_id, created_cases, provider_name, display_name=None):
         """
         STEP 3: Finalize RMBB Health submission and prepare for webhook
         This workflow ends here - RMBB Health will send webhook when IVR is complete
@@ -545,9 +549,10 @@ class GHLRMBBWorkflowHandler:
         
         # Update the GHL contact with provider context
         contact_update_result = self.update_ghl_contact(
-            contact_id, 
+            contact_id,
             final_tracking_update,
-            provider_name=provider_name
+            provider_name=provider_name,
+            display_name=display_name
         )
         if contact_update_result["success"]:
             print(f"✅ Final status tracked in GHL contact {contact_id}")
@@ -628,32 +633,35 @@ Effective Date: {ivr_data['effective_date']}
             ]
         }
         
-        # Get complete provider info from hierarchical cache using case_id 
+        # Get complete provider info from hierarchical cache using case_id
         provider_info = None
         provider_name = None
-        
+        display_name = None
+
         if case_id:
             # PREFERRED: Use hierarchical cache with case_id (complete flow)
             provider_info = self._get_provider_info_by_case(case_id)
             if provider_info:
                 provider_name = provider_info['provider_name']
+                display_name = provider_info['display_name']
                 # Verify location_id matches what we expect
                 if provider_info['location_id'] != location_id:
                     logging.warning(f"⚠️ Location ID mismatch: expected {location_id}, got {provider_info['location_id']}")
-                logging.info(f"✅ Found provider via hierarchical cache: {provider_name}")
+                logging.info(f"✅ Found provider via hierarchical cache: {provider_name} (display: {display_name})")
             else:
                 logging.error(f"❌ No provider info found for case_id {case_id}")
                 return {"success": False, "error": f"Case {case_id} not found in provider cache"}
         else:
             logging.error(f"❌ case_id is required for hierarchical provider lookup")
             return {"success": False, "error": "case_id parameter is required"}
-        
+
         # Final update to the original contact in the correct sub-account
         final_contact_update = self.update_ghl_contact(
-            contact_id, 
+            contact_id,
             final_status_update,
             location_id=location_id,
-            provider_name=provider_name
+            provider_name=provider_name,
+            display_name=display_name
         )
         if final_contact_update["success"]:
             print(f"✅ Final status updated in GHL contact {contact_id}")
@@ -1252,16 +1260,19 @@ Effective Date: {ivr_data['effective_date']}
             
             if case_mapping:
                 provider_name = case_mapping.get('provider_name')
-                location_id = case_mapping.get('location_id') 
+                display_name = case_mapping.get('display_name')
+                location_id = case_mapping.get('location_id')
                 contact_id = case_mapping.get('contact_id')
-                
+
                 logging.info(f"🔍 Found complete provider info for case {case_id}:")
                 logging.info(f"   Provider: {provider_name}")
+                logging.info(f"   Display Name: {display_name}")
                 logging.info(f"   Location ID: {location_id}")
                 logging.info(f"   Contact ID: {contact_id}")
-                
+
                 return {
                     'provider_name': provider_name,
+                    'display_name': display_name,
                     'location_id': location_id,
                     'contact_id': contact_id,
                     'case_mapping': case_mapping
@@ -1588,12 +1599,14 @@ Effective Date: {ivr_data['effective_date']}
                             {"id": "4AnL32P9rjYcPjbukcok", "value": datetime.now().isoformat()}  # rmbb_error_date
                         ]
                     }
-                    # Try to get provider name from locals for proper error update
+                    # Try to get provider info from locals for proper error update
                     provider_name_for_error = locals().get('provider_name', '')
+                    display_name_for_error = locals().get('display_name', '')
                     self.update_ghl_contact(
-                        contact_id, 
+                        contact_id,
                         error_status_update,
-                        provider_name=provider_name_for_error
+                        provider_name=provider_name_for_error,
+                        display_name=display_name_for_error
                     )
                     print(f"⚠️ Error status updated in GHL contact {contact_id}")
             except:
