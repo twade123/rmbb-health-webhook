@@ -164,17 +164,20 @@ class GHLRMBBWorkflowHandler:
         external_id = f"ghl_contact_{contact_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         
         # CRITICAL: Cache provider → locationId mapping for RMBB response routing
-        provider_name = patient_form_data.get('provider_name')
-        if provider_name and location_id:
+        display_name = patient_form_data.get('display_name')  # Primary sub-account key
+        provider_name = patient_form_data.get('provider_name')  # Individual provider
+        if display_name and location_id:
             self.provider_cache.add_or_update_provider(
+                display_name=display_name,
                 provider_name=provider_name,
                 location_id=location_id,
                 contact_id=contact_id
             )
-            print(f"💾 Cached provider mapping: {provider_name} → {location_id}")
+            print(f"💾 Cached sub-account mapping: {display_name} → {location_id}")
+            print(f"👨‍⚕️ Provider: {provider_name}")
         else:
-            print(f"⚠️ WARNING: Missing provider_name or location_id - RMBB response routing will fail!")
-            print(f"   provider_name: {provider_name}, location_id: {location_id}")
+            print(f"⚠️ WARNING: Missing display_name or location_id - RMBB response routing will fail!")
+            print(f"   display_name: {display_name}, location_id: {location_id}")
         
         
         # Store initial tracking data in GHL contact custom fields
@@ -191,10 +194,11 @@ class GHLRMBBWorkflowHandler:
         
         # Update GHL contact with initial tracking data (with delay to prevent race condition)
         contact_update_result = self.update_ghl_contact(
-            contact_id, 
-            initial_tracking_data, 
+            contact_id,
+            initial_tracking_data,
             location_id=location_id,
             provider_name=provider_name,
+            display_name=display_name,
             add_delay=True  # First contact update - add delay for contact creation race condition
         )
         if contact_update_result["success"]:
@@ -348,7 +352,8 @@ class GHLRMBBWorkflowHandler:
                             
                             cache_success = self.provider_cache.add_case_mapping(
                                 case_id=str(case_id),
-                                provider_name=provider_name,
+                                display_name=patient_form_data.get('display_name'),  # Primary sub-account
+                                provider_name=patient_form_data.get('provider_name'),  # Individual provider
                                 contact_id=contact_id,
                                 location_id=location_id,
                                 external_id=case_external_id,
@@ -1269,21 +1274,24 @@ Effective Date: {ivr_data['effective_date']}
             logging.error(f"❌ Error getting provider info by case: {str(e)}")
             return None
 
-    def _get_provider_headers(self, provider_name=None, location_id=None):
-        """Get the correct GHL API headers for a provider from cache"""
-        if not provider_name:
-            logging.info(f"🔑 No provider name provided, using default headers")
+    def _get_provider_headers(self, provider_name=None, display_name=None, location_id=None):
+        """Get the correct GHL API headers for a provider from cache (UPDATED FOR DISPLAY_NAME)"""
+        # Use display_name as primary lookup, fallback to provider_name for backward compatibility
+        lookup_name = display_name or provider_name
+
+        if not lookup_name:
+            logging.info(f"🔑 No provider/display name provided, using default headers")
             return self.ghl_headers
-        
+
         try:
             # Get provider cache and use its methods
             provider_cache = get_provider_cache()
-            
-            # Get location_id for this provider
-            cached_location_id = provider_cache.get_location_id(provider_name)
+
+            # Get location_id for this sub-account (using display_name as primary key)
+            cached_location_id = provider_cache.get_location_id(lookup_name)
             if not cached_location_id:
-                logging.warning(f"⚠️ Provider not found in cache: {provider_name}")
-                logging.info(f"🔑 Falling back to default headers for provider: {provider_name}")
+                logging.warning(f"⚠️ Sub-account not found in cache: {lookup_name}")
+                logging.info(f"🔑 Falling back to default headers for sub-account: {lookup_name}")
                 return self.ghl_headers, location_id
             
             # Get sub-account API key for this location
@@ -1402,7 +1410,7 @@ Effective Date: {ivr_data['effective_date']}
             logging.error(f"❌ Exception verifying contact: {str(e)}")
             return {"exists": False, "error": str(e)}
 
-    def update_ghl_contact(self, contact_id, update_data, location_id=None, provider_name=None, add_delay=False):
+    def update_ghl_contact(self, contact_id, update_data, location_id=None, provider_name=None, display_name=None, add_delay=False):
         """Update GHL contact using V1 API with provider-specific headers and optional delay"""
         
         # Add timing delay if requested (for race condition prevention)
@@ -1411,8 +1419,8 @@ Effective Date: {ivr_data['effective_date']}
             logging.info(f"⏱️ Adding 3-second delay to prevent race condition with contact creation")
             time.sleep(3)
         
-        # Get provider-specific headers and location
-        headers_result = self._get_provider_headers(provider_name, location_id)
+        # Get provider-specific headers and location (using display_name for API key lookup)
+        headers_result = self._get_provider_headers(provider_name, display_name, location_id)
         if isinstance(headers_result, tuple):
             headers, location_id = headers_result
         else:
