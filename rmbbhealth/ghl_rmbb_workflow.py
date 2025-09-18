@@ -1298,19 +1298,19 @@ Effective Date: {ivr_data['effective_date']}
             sub_account_api_key = provider_cache.get_sub_account_api_key_by_location_id(cached_location_id)
             
             if sub_account_api_key:
-                logging.info(f"🔑 Using cached API key for provider: {provider_name}")
+                logging.info(f"🔑 Using cached API key for sub-account: {lookup_name}")
                 return {
                     "Authorization": f"Bearer {sub_account_api_key}",
                     "Content-Type": "application/json",
                     "Version": "2021-07-28"
                 }, cached_location_id or location_id
             else:
-                logging.warning(f"⚠️ No API key cached for provider: {provider_name}")
+                logging.warning(f"⚠️ No API key cached for sub-account: {lookup_name}")
                 
         except Exception as e:
             logging.error(f"❌ Error getting provider headers: {str(e)}")
         
-        logging.info(f"🔑 Falling back to default headers for provider: {provider_name}")
+        logging.info(f"🔑 Falling back to default headers for sub-account: {lookup_name}")
         return self.ghl_headers, location_id
 
     def _create_document_processing_field_update(self, extracted_data, case_data=None):
@@ -1363,10 +1363,10 @@ Effective Date: {ivr_data['effective_date']}
             "customField": field_updates
         }
 
-    def verify_ghl_contact_exists(self, contact_id, location_id=None, provider_name=None):
+    def verify_ghl_contact_exists(self, contact_id, location_id=None, provider_name=None, display_name=None):
         """Verify GHL contact exists using non-location-scoped endpoint (V1 API limitation)"""
-        # Get provider-specific headers for API key
-        headers_result = self._get_provider_headers(provider_name, location_id)
+        # Get provider-specific headers for API key (using display_name for API key lookup)
+        headers_result = self._get_provider_headers(provider_name, display_name, location_id)
         if isinstance(headers_result, tuple):
             headers, cached_location_id = headers_result
             # Use cached location_id if we didn't have one
@@ -1427,7 +1427,7 @@ Effective Date: {ivr_data['effective_date']}
             headers = headers_result
         
         # First verify the contact exists
-        verification = self.verify_ghl_contact_exists(contact_id, location_id, provider_name)
+        verification = self.verify_ghl_contact_exists(contact_id, location_id, provider_name, display_name)
         if not verification["exists"]:
             # If contact doesn't exist, log but continue workflow (non-critical error)
             logging.warning(f"⚠️ Cannot update contact {contact_id}: {verification['error']}")
