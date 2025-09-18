@@ -1,6 +1,6 @@
 {
-  "last_updated": "2025-09-18T14:27:38.814949",
-  "total_sub_accounts": 16,
+  "last_updated": "2025-09-18T14:27:39.935679",
+  "total_sub_accounts": 8,
   "agency_info": {
     "agency_name": "Cell Products Agency Account",
     "agency_location_id": "10SapwdFnQK3Kwqp5ecv",
@@ -43,8 +43,8 @@
       "data_file": "integrated wound care.json",
       "api_key_status": "pending_manual_entry",
       "first_seen": "2025-09-15T13:18:23.434192",
-      "last_updated": "2025-09-15T13:18:23.437780",
-      "form_submissions": 0,
+      "last_updated": "2025-09-18T14:27:39.935669",
+      "form_submissions": 1,
       "case_count": 0
     },
     "bioliv llc": {
@@ -115,10 +115,10 @@
   },
   "discovery_metadata": {
     "auto_discovery_enabled": true,
-    "last_ghl_agency_sync": "2025-09-15T13:27:39.820962",
-    "locations_discovered_count": 16,
+    "last_ghl_agency_sync": "2025-09-18T14:27:39.910016",
+    "locations_discovered_count": 11,
     "sync_frequency": "on_webhook",
     "sync_errors": [],
-    "new_accounts_found_last_sync": 0
+    "new_accounts_found_last_sync": 1
   }
 }
