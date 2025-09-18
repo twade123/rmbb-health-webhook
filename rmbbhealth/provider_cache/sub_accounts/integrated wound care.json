@@ -12,7 +12,8 @@
     "last_updated": "2025-09-18T17:24:44.716604",
     "case_ids": [
       "56430",
-      "56457"
+      "56457",
+      "56460"
     ],
     "sample_contact_id": "qR6XR4D4VJTHjS6fcF4R"
   },
@@ -46,6 +47,22 @@
         "product_id": 364,
         "q_code": "Q4239",
         "saved_at": "2025-09-18T17:13:58.940928"
+      }
+    },
+    "56460": {
+      "case_id": "56460",
+      "display_name": "Integrated Wound Care",
+      "provider_name": "Bethany Rock, NP",
+      "provider_key": "integrated wound care",
+      "contact_id": "qR6XR4D4VJTHjS6fcF4R",
+      "location_id": "default_location",
+      "external_id": "ghl_contact_qR6XR4D4VJTHjS6fcF4R_20250918_172444_364",
+      "created": "2025-09-18T17:24:51.605459",
+      "approved_product": {
+        "name": "Amnio-Maxx",
+        "product_id": 364,
+        "q_code": "Q4239",
+        "saved_at": "2025-09-18T17:24:51.605472"
       }
     }
   }
