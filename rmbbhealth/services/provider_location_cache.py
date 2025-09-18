@@ -307,8 +307,11 @@ class HierarchicalProviderCache:
 
             # Update master registry statistics
             if provider_key in self.master_registry.get("sub_accounts", {}):
+                case_mappings = data.get("case_mappings", {})
                 self.master_registry["sub_accounts"][provider_key]["last_updated"] = datetime.now().isoformat()
-                self.master_registry["sub_accounts"][provider_key]["case_count"] = len(data.get("case_mappings", {}))
+                self.master_registry["sub_accounts"][provider_key]["case_count"] = len(case_mappings)
+                # CRITICAL FIX: Store actual case IDs for fast lookup
+                self.master_registry["sub_accounts"][provider_key]["case_ids"] = list(case_mappings.keys())
                 self._save_master_registry()
                 
             # CRITICAL: Commit to GitHub for Railway persistence
@@ -496,10 +499,31 @@ class HierarchicalProviderCache:
         Get provider and contact info for a case ID
 
         BACKWARD COMPATIBLE: Same return format
-        NEW BEHAVIOR: Searches across isolated provider files
+        NEW BEHAVIOR: Fast lookup via master registry case_ids, then load specific provider file
         """
         with self.lock:
-            # Search through all sub-accounts for the case
+            # STEP 1: Fast lookup in master registry (O(1) instead of O(n))
+            for provider_key, registry_info in self.master_registry.get("sub_accounts", {}).items():
+                if not registry_info.get("data_file"):
+                    continue  # Skip agency accounts
+
+                # Check if this provider has the case_id in master registry
+                if str(case_id) in registry_info.get("case_ids", []):
+                    # STEP 2: Load only the specific provider file (targeted load)
+                    sub_account_data = self._load_sub_account_data(provider_key)
+                    if not sub_account_data:
+                        continue
+
+                    case_mappings = sub_account_data.get("case_mappings", {})
+                    if str(case_id) in case_mappings:
+                        mapping = case_mappings[str(case_id)]
+                        # Ensure location_id is included
+                        if "location_id" not in mapping:
+                            mapping["location_id"] = sub_account_data["provider_info"]["location_id"]
+                        return mapping
+
+            # FALLBACK: If case_ids not populated in master registry, use old method
+            print(f"⚠️ Case {case_id} not found in master registry, falling back to full search...")
             for provider_key, registry_info in self.master_registry.get("sub_accounts", {}).items():
                 if not registry_info.get("data_file"):
                     continue  # Skip agency accounts
