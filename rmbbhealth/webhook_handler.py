@@ -68,6 +68,32 @@ logging.basicConfig(
 # Initialize Flask app
 app = Flask(__name__)
 
+# Dynamic Field Resolution Helper Function
+def get_dynamic_field_id(location_id, field_name):
+    """
+    Get dynamic field ID using provider cache with fallback system.
+
+    This helper function provides the same functionality as FILE 1's class method
+    but as a standalone function for use in webhook handlers.
+
+    Args:
+        location_id (str): GHL location ID to identify the provider
+        field_name (str): Field name to resolve (e.g., 'rmbb_workflow_status')
+
+    Returns:
+        str: Provider-specific field ID, or Cell Products fallback ID, or None
+    """
+    if not location_id or not field_name:
+        return None
+
+    try:
+        from services.provider_location_cache import get_provider_cache
+        provider_cache = get_provider_cache()
+        return provider_cache.get_field_mapping(location_id, field_name)
+    except Exception as e:
+        logging.error(f"❌ Error getting dynamic field mapping for location {location_id}, field {field_name}: {e}")
+        return None
+
 # Approval Status Analysis Function
 def update_ghl_contact_direct(contact_id, location_id, sub_account_api_key, custom_fields_update):
     """
@@ -1031,70 +1057,70 @@ def handle_rmbb_status_webhook():
         # Build base custom fields list
         custom_fields_list = [
                 # Workflow status - using correct GHL field IDs
-                {"id": "k9onZaMZVJ5Zwlopf2fi", "value": "ivr_received"},  # rmbb_workflow_status
-                {"id": "4AnL32P9rjYcPjbukcok", "value": datetime.now().isoformat()},  # rmbb_ivr_received_date
-                {"id": "drfCODR4HhoKeI3eoH6J", "value": "true"},  # rmbb_webhook_processed
+                {"id": get_dynamic_field_id(location_id, "rmbb_workflow_status"), "value": "ivr_received"},  # rmbb_workflow_status
+                {"id": get_dynamic_field_id(location_id, "rmbb_ivr_received_date"), "value": datetime.now().isoformat()},  # rmbb_ivr_received_date
+                {"id": get_dynamic_field_id(location_id, "rmbb_webhook_processed"), "value": "true"},  # rmbb_webhook_processed
                 
                 # Primary status fields from RMBB Health API - using correct GHL field IDs
                 # CORRECTED: Send actual RMBB status data, not approval analysis
-                {"id": "A2gqU59iygkmxwUeO2j6", "value": case_status or ""},  # rmbb_case_status
-                {"id": "b7odVJaRBRTBQlVaUCF1", "value": external_status or ""},  # rmbb_external_status
-                {"id": "NStZu6i6cSflIhmRS7Eg", "value": overall_insurance_result or ""},  # rmbb_overall_result
+                {"id": get_dynamic_field_id(location_id, "rmbb_case_status"), "value": case_status or ""},  # rmbb_case_status
+                {"id": get_dynamic_field_id(location_id, "rmbb_external_status"), "value": external_status or ""},  # rmbb_external_status
+                {"id": get_dynamic_field_id(location_id, "rmbb_overall_result"), "value": overall_insurance_result or ""},  # rmbb_overall_result
                 
                 # Insurance-specific statuses - using correct GHL field IDs
                 # Fix: Use insurance results, not status
-                {"id": "lek4SmWzewBgvrAXBLWy", "value": primary_insurance_result or primary_insurance_status or ""},  # rmbb_primary_insurance_status
-                {"id": "vnZmPnf00xi9ImOLxao9", "value": secondary_insurance_result or secondary_insurance_status or ""},  # rmbb_secondary_insurance_status
-                {"id": "JeBBYNNHOWqyYU5FMA1w", "value": tertiary_insurance_status or ""},  # rmbb_tertiary_insurance_status
+                {"id": get_dynamic_field_id(location_id, "rmbb_primary_insurance_status"), "value": primary_insurance_result or primary_insurance_status or ""},  # rmbb_primary_insurance_status
+                {"id": get_dynamic_field_id(location_id, "rmbb_secondary_insurance_status"), "value": secondary_insurance_result or secondary_insurance_status or ""},  # rmbb_secondary_insurance_status
+                {"id": get_dynamic_field_id(location_id, "rmbb_tertiary_insurance_status"), "value": tertiary_insurance_status or ""},  # rmbb_tertiary_insurance_status
                 
                 # Insurance results - using correct GHL field IDs
-                {"id": "tXkwLnHu00e9t2MdGarP", "value": primary_insurance_result or ""},  # rmbb_primary_insurance_result
-                {"id": "0viEC6QFPlBZIm75N0fE", "value": secondary_insurance_result or ""},  # rmbb_secondary_insurance_result
+                {"id": get_dynamic_field_id(location_id, "rmbb_primary_insurance_result"), "value": primary_insurance_result or ""},  # rmbb_primary_insurance_result
+                {"id": get_dynamic_field_id(location_id, "rmbb_secondary_insurance_result"), "value": secondary_insurance_result or ""},  # rmbb_secondary_insurance_result
                 
                 # DOCUMENT PROCESSING FIELDS - Current Status Fields (4 fields)
-                {"id": "XueHehokZYjJSvWGzjfk", "value": ""},  # rmbb_current_patient_info
-                {"id": "FoqW1DyrjW6WtsoPflFZ", "value": ""},  # rmbb_current_insurance_info
-                {"id": "tLNZ4EYxxXUO9HrDpkl5", "value": ""},  # rmbb_current_notes
-                {"id": "CWCMdJsRU4hMEDS32U4s", "value": approval_analysis['status']},  # rmbb_current_status
+                {"id": get_dynamic_field_id(location_id, "rmbb_current_patient_info"), "value": ""},  # rmbb_current_patient_info
+                {"id": get_dynamic_field_id(location_id, "rmbb_current_insurance_info"), "value": ""},  # rmbb_current_insurance_info
+                {"id": get_dynamic_field_id(location_id, "rmbb_current_notes"), "value": ""},  # rmbb_current_notes
+                {"id": get_dynamic_field_id(location_id, "rmbb_current_status"), "value": approval_analysis['status']},  # rmbb_current_status
                 
                 # DOCUMENT PROCESSING FIELDS - IVR-Specific Extraction Fields (5 fields)
-                {"id": "TAA2QAEXDh14bIkYacWW", "value": ""},  # rmbb_ivr_patient_data
-                {"id": "VXpnvGzV94MPikiXXrFh", "value": primary_insurance_result or ""},  # rmbb_ivr_primary_insurance
-                {"id": "IYWefx90XVJMC3kIJaSz", "value": secondary_insurance_result or ""},  # rmbb_ivr_secondary_insurance
-                {"id": "m8Ml4hPPfNgfoURqBsSt", "value": overall_insurance_result or ""},  # rmbb_ivr_coverage_summary
-                {"id": "Y2zXVZYUzXLxLRm70J1E", "value": ""},  # rmbb_ivr_authorization_info
+                {"id": get_dynamic_field_id(location_id, "rmbb_ivr_patient_data"), "value": ""},  # rmbb_ivr_patient_data
+                {"id": get_dynamic_field_id(location_id, "rmbb_ivr_primary_insurance"), "value": primary_insurance_result or ""},  # rmbb_ivr_primary_insurance
+                {"id": get_dynamic_field_id(location_id, "rmbb_ivr_secondary_insurance"), "value": secondary_insurance_result or ""},  # rmbb_ivr_secondary_insurance
+                {"id": get_dynamic_field_id(location_id, "rmbb_ivr_coverage_summary"), "value": overall_insurance_result or ""},  # rmbb_ivr_coverage_summary
+                {"id": get_dynamic_field_id(location_id, "rmbb_ivr_authorization_info"), "value": ""},  # rmbb_ivr_authorization_info
                 
                 # DOCUMENT PROCESSING FIELDS - Document Tracking Fields (3 fields)
-                {"id": "dGy54D7hPD0Ydp4c8EsO", "value": ""},  # rmbb_document_history
-                {"id": "WGKrQzlaNsK8Y4t5bUYf", "value": ""},  # rmbb_case_summary
-                {"id": "DuqFjhMUOv2yKa5qbdyR", "value": ""},  # rmbb_total_documents
+                {"id": get_dynamic_field_id(location_id, "rmbb_document_history"), "value": ""},  # rmbb_document_history
+                {"id": get_dynamic_field_id(location_id, "rmbb_case_summary"), "value": ""},  # rmbb_case_summary
+                {"id": get_dynamic_field_id(location_id, "rmbb_total_documents"), "value": ""},  # rmbb_total_documents
                 
                 # DOCUMENT PROCESSING FIELDS - Legacy Field (1 field)
-                {"id": "pbPVNjx7lmzlMkh4QYHs", "value": approval_analysis['status']},  # rmbb_approval_status
+                {"id": get_dynamic_field_id(location_id, "rmbb_approval_status"), "value": approval_analysis['status']},  # rmbb_approval_status
                 
                 # PRODUCT QUANTITY FIELDS - Units/CM2 for each product (9 fields)
                 # NOTE: These base fields are kept for backward compatibility
                 # Size-specific fields from wound calculation will be added separately
-                {"id": "tOGJkZFd2ymaHGKYrVU2", "value": ""},  # AmnioMaxx (Q4239) Units/CM2
-                {"id": "f2ahSKCm3LRuN0djazBg", "value": ""},  # AmnioAmp-MP (Q4250) Units/CM2
-                {"id": "TIjFjavn2llFCwGizWj2", "value": ""},  # Membrane Wrap Hydro (Q4290) Units/CM2
-                {"id": "1hvUvoGbO7rMLSgEFoDz", "value": ""},  # Membrane Wrap (Q4205) Units/CM2
-                {"id": "nS8MzgEAKuaGNjxdPGe7", "value": ""},  # Biovance (Q4154) Units/CM2
-                {"id": "49vxcOnMCVYPyDdDuH80", "value": ""},  # XCell Amnio Matrix (Q4280) Units/CM2
-                {"id": "gN96ValY4BEEzUFBD6Z0", "value": ""},  # Palingen (Q4173) Units/CM2
-                {"id": "b5h4W8FSMO1E8KSleixD", "value": ""},  # Amchoplast (Q4316) Units/CM2
-                {"id": "lqdbhafh2zTeM23u0OMe", "value": ""},  # Helicoll (Q4164) Units/CM2
+                {"id": get_dynamic_field_id(location_id, "AmnioMaxx (Q4239) Units/CM2"), "value": ""},  # AmnioMaxx (Q4239) Units/CM2
+                {"id": get_dynamic_field_id(location_id, "AmnioAmp-MP (Q4250) Units/CM2"), "value": ""},  # AmnioAmp-MP (Q4250) Units/CM2
+                {"id": get_dynamic_field_id(location_id, "Membrane Wrap Hydro (Q4290) Units/CM2"), "value": ""},  # Membrane Wrap Hydro (Q4290) Units/CM2
+                {"id": get_dynamic_field_id(location_id, "Membrane Wrap (Q4205) Units/CM2"), "value": ""},  # Membrane Wrap (Q4205) Units/CM2
+                {"id": get_dynamic_field_id(location_id, "Biovance (Q4154) Units/CM2"), "value": ""},  # Biovance (Q4154) Units/CM2
+                {"id": get_dynamic_field_id(location_id, "XCell Amnio Matrix (Q4280) Units/CM2"), "value": ""},  # XCell Amnio Matrix (Q4280) Units/CM2
+                {"id": get_dynamic_field_id(location_id, "Palingen (Q4173) Units/CM2"), "value": ""},  # Palingen (Q4173) Units/CM2
+                {"id": get_dynamic_field_id(location_id, "Amchoplast (Q4316) Units/CM2"), "value": ""},  # Amchoplast (Q4316) Units/CM2
+                {"id": get_dynamic_field_id(location_id, "Helicoll (Q4164) Units/CM2"), "value": ""},  # Helicoll (Q4164) Units/CM2
                 
                 # Communication status
                 {"key": "rmbb_last_fax_status", "value": last_fax_status or ""},
-                
+
                 # Enhanced approval analysis
                 {"key": "rmbb_approval_status", "value": approval_analysis['status']},
                 {"key": "rmbb_approval_confidence", "value": approval_analysis['confidence']},
                 {"key": "rmbb_approval_message", "value": approval_analysis['message']},
                 {"key": "rmbb_determining_field", "value": approval_analysis['determining_field']},
                 {"key": "rmbb_determining_value", "value": approval_analysis['determining_value']},
-                
+
                 # Legacy IVR data support (backward compatibility)
                 {"key": "rmbb_legacy_approval", "value": ivr_data.get('approval_status', '')},
                 {"key": "rmbb_qualification_level", "value": ivr_data.get('qualification_level', '')},
@@ -1599,7 +1625,7 @@ def handle_ghl_reorder():
             # Step 5: Update rmbb_wound_size_coverage_calculator field with full calculation
             wound_calc_update = {
                 "customField": [
-                    {"id": "XQLSYwSOodHOBrqv8oz0", "value": reorder_result.get('calculation_summary', '')}  # rmbb_wound_size_coverage_calculator
+                    {"id": get_dynamic_field_id(case_location_id, "rmbb_wound_size_coverage_calculator"), "value": reorder_result.get('calculation_summary', '')}  # rmbb_wound_size_coverage_calculator
                 ]
             }
             
