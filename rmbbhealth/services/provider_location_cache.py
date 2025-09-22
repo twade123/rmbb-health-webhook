@@ -1014,10 +1014,82 @@ class HierarchicalProviderCache:
                         success = False
             
             return success
-            
+
         except Exception as e:
             print(f"⚠️ Error committing hierarchical cache to GitHub: {e}")
             return False
+
+    def get_field_mapping(self, location_id, field_name):
+        """
+        Get field mapping ID for a specific location and field name.
+
+        This method provides dynamic field resolution with fallback strategy:
+        1. Try to find provider by location_id
+        2. Load provider's field_mappings from sub-account JSON
+        3. Fallback to hardcoded Cell Products field IDs
+        4. Return None if field not found anywhere
+
+        Args:
+            location_id (str): GHL location ID to find provider for
+            field_name (str): Field name to look up (e.g., 'rmbb_workflow_status')
+
+        Returns:
+            str: Field ID for the provider, or None if not found
+        """
+        if not location_id or not field_name:
+            return None
+
+        # Cell Products fallback field mappings (from ghl_rmbb_workflow.py DOCUMENT_PROCESSING_FIELDS)
+        CELL_PRODUCTS_FALLBACK_FIELDS = {
+            "rmbb_current_patient_info": "XueHehokZYjJSvWGzjfk",
+            "rmbb_current_insurance_info": "FoqW1DyrjW6WtsoPflFZ",
+            "rmbb_wound_size_coverage_calculator": "XQLSYwSOodHOBrqv8oz0",
+            "rmbb_current_decision_summary": "KmP9XzT5vUqW8eN2jLsF",
+            "rmbb_current_notes": "tLNZ4EYxxXUO9HrDpkl5",
+            "rmbb_current_status": "CWCMdJsRU4hMEDS32U4s",
+            "rmbb_ivr_patient_data": "TAA2QAEXDh14bIkYacWW",
+            "rmbb_ivr_primary_insurance": "VXpnvGzV94MPikiXXrFh",
+            "rmbb_ivr_secondary_insurance": "IYWefx90XVJMC3kIJaSz",
+            "rmbb_ivr_coverage_summary": "m8Ml4hPPfNgfoURqBsSt",
+            "rmbb_ivr_authorization_info": "Y2zXVZYUzXLxLRm70J1E",
+            "rmbb_document_history": "dGy54D7hPD0Ydp4c8EsO",
+            "rmbb_case_summary": "WGKrQzlaNsK8Y4t5bUYf",
+            "rmbb_total_documents": "DuqFjhMUOv2yKa5qbdyR",
+            "rmbb_case_id": "M9Dap36CFurN03kQALVC",
+            "rmbb_approval_status": "pbPVNjx7lmzlMkh4QYHs"
+        }
+
+        with self.lock:
+            try:
+                # Step 1: Search through all sub-accounts for matching location_id
+                for provider_key, registry_info in self.master_registry.get("sub_accounts", {}).items():
+                    if registry_info.get("location_id") == location_id:
+                        if not registry_info.get("data_file"):
+                            # Agency account - no field mappings, use fallback
+                            print(f"📋 Agency account detected for location {location_id}, using Cell Products fallback for field: {field_name}")
+                            return CELL_PRODUCTS_FALLBACK_FIELDS.get(field_name)
+
+                        # Step 2: Load sub-account data to access field_mappings
+                        sub_account_data = self._load_sub_account_data(provider_key)
+                        if sub_account_data:
+                            field_mappings = sub_account_data.get("provider_info", {}).get("field_mappings", {})
+
+                            if field_name in field_mappings:
+                                field_id = field_mappings[field_name]
+                                print(f"✅ Dynamic field mapping found: {field_name} → {field_id} (provider: {registry_info.get('display_name')})")
+                                return field_id
+                            else:
+                                print(f"⚠️ Field '{field_name}' not found in provider field mappings for {registry_info.get('display_name')}, using Cell Products fallback")
+                                return CELL_PRODUCTS_FALLBACK_FIELDS.get(field_name)
+
+                # Step 3: Location not found in cache - use fallback
+                print(f"❌ Location {location_id} not found in provider cache, using Cell Products fallback for field: {field_name}")
+                return CELL_PRODUCTS_FALLBACK_FIELDS.get(field_name)
+
+            except Exception as e:
+                print(f"❌ Error getting field mapping for location {location_id}, field {field_name}: {e}")
+                print(f"🔄 Using Cell Products fallback for field: {field_name}")
+                return CELL_PRODUCTS_FALLBACK_FIELDS.get(field_name)
 
 
 # BACKWARD COMPATIBILITY: Keep the original class name as alias
