@@ -10,7 +10,24 @@ Based on: rmbbhealth cell prodcts formula.txt
 """
 import json
 import math
+import logging
 from typing import Dict, List, Tuple, Optional
+
+def get_dynamic_field_id(location_id, field_name):
+    """Get dynamic field ID using provider cache with fallback system."""
+    try:
+        from services.provider_location_cache import get_provider_cache
+        provider_cache = get_provider_cache()
+        field_id = provider_cache.get_field_mapping(location_id, field_name)
+        if field_id:
+            logging.debug(f"✅ Found dynamic field mapping: {field_name} -> {field_id} for location {location_id}")
+            return field_id
+        else:
+            logging.warning(f"⚠️ No field mapping found for {field_name} in location {location_id}")
+            return None
+    except Exception as e:
+        logging.error(f"❌ Error getting dynamic field mapping: {e}")
+        return None
 
 class ProductWoundCoverageCalculator:
     """
@@ -18,11 +35,18 @@ class ProductWoundCoverageCalculator:
     with 15% CMS waste allowance factor.
     """
     
-    def __init__(self):
-        """Initialize with product sizes and GHL custom field mappings."""
-        
-        # Load all custom field IDs created for size-specific products
-        self.size_field_mapping = self._load_size_field_mapping()
+    def __init__(self, provider_cache=None):
+        """Initialize with product sizes and provider cache for dynamic field mapping."""
+
+        # Initialize provider cache for dynamic field resolution
+        self.provider_cache = provider_cache
+        if not self.provider_cache:
+            try:
+                from services.provider_location_cache import get_provider_cache
+                self.provider_cache = get_provider_cache()
+            except ImportError:
+                logging.error("❌ Could not import provider_location_cache")
+                self.provider_cache = None
         
         # Product sizes from formula file (in cm²)
         self.product_sizes = {
@@ -97,32 +121,24 @@ class ProductWoundCoverageCalculator:
             }
         }
     
-    def _load_size_field_mapping(self) -> Dict[str, str]:
-        """Load custom field IDs for all product sizes."""
+    def _get_dynamic_field_id(self, location_id: str, field_name: str) -> str:
+        """Get dynamic field ID for a specific location and field name."""
+        if not self.provider_cache:
+            logging.error("❌ Provider cache not available for dynamic field mapping")
+            return None
+
         try:
-            with open('/Users/timothywade/Jarvis/product_size_custom_fields_exact.json', 'r') as f:
-                data = json.load(f)
-            
-            # Create mapping: "Product Size" -> "field_id"
-            mapping = {}
-            for field in data.get('created_fields', []):
-                product = field['product']
-                size = field['size']
-                field_id = field['field_id']
-                key = f"{product} {size}"
-                mapping[key] = field_id
-            
-            print(f"✅ Loaded {len(mapping)} product size field mappings")
-            return mapping
-            
-        except FileNotFoundError:
-            print("❌ Custom field mapping file not found")
-            return {}
+            field_id = self.provider_cache.get_field_mapping(location_id, field_name)
+            if field_id:
+                logging.debug(f"✅ Found dynamic field mapping: {field_name} -> {field_id} for location {location_id}")
+            else:
+                logging.warning(f"⚠️ No field mapping found for {field_name} in location {location_id}")
+            return field_id
         except Exception as e:
-            print(f"❌ Error loading field mapping: {e}")
-            return {}
+            logging.error(f"❌ Error getting dynamic field mapping for {field_name}: {e}")
+            return None
     
-    def calculate_wound_coverage(self, product_name: str, wound_size_cm2: float, 
+    def calculate_wound_coverage(self, location_id: str, product_name: str, wound_size_cm2: float,
                                 pre_selected_product: str = None) -> Dict:
         """
         Calculate optimal product size combination for wound coverage.
@@ -186,7 +202,7 @@ class ProductWoundCoverageCalculator:
         actual_waste_percent = ((total_cm2 / wound_size_cm2) - 1) * 100
         
         # Map to GHL custom fields
-        ghl_field_updates = self._map_to_ghl_fields(product_name, size_combination)
+        ghl_field_updates = self._map_to_ghl_fields(location_id, product_name, size_combination)
         
         result = {
             "success": True,
@@ -269,15 +285,16 @@ class ProductWoundCoverageCalculator:
         
         return units
     
-    def _map_to_ghl_fields(self, product_name: str, size_combination: Dict) -> List[Dict]:
-        """Map calculated sizes to GHL custom field updates."""
-        
+    def _map_to_ghl_fields(self, location_id: str, product_name: str, size_combination: Dict) -> List[Dict]:
+        """Map calculated sizes to GHL custom field updates using dynamic field resolution."""
+
         field_updates = []
-        
+
         for size_name, size_info in size_combination.items():
-            field_key = f"{product_name} {size_name}"
-            field_id = self.size_field_mapping.get(field_key)
-            
+            # Create field name that matches provider JSON format
+            field_name = f"{product_name} {size_name} Units"
+            field_id = self._get_dynamic_field_id(location_id, field_name)
+
             if field_id:
                 field_updates.append({
                     "id": field_id,
@@ -288,10 +305,10 @@ class ProductWoundCoverageCalculator:
                     "cm2_per_unit": size_info['cm2'],
                     "total_cm2": size_info['total_cm2']
                 })
-                print(f"   🔗 Mapped {field_key}: {size_info['units']} units → Field ID {field_id}")
+                print(f"   🔗 Mapped {field_name}: {size_info['units']} units → Field ID {field_id} (location: {location_id})")
             else:
-                print(f"   ⚠️ No field mapping found for: {field_key}")
-        
+                print(f"   ⚠️ No field mapping found for: {field_name} (location: {location_id})")
+
         return field_updates
     
     def _generate_summary(self, size_combination: Dict, total_cm2: float, 
@@ -306,14 +323,15 @@ class ProductWoundCoverageCalculator:
         summary = f"{', '.join(parts)} (Total: {total_cm2} cm², Waste: {actual_waste:.1f}%)"
         return summary
     
-    def process_rmbb_approval(self, case_data: Dict) -> Dict:
+    def process_rmbb_approval(self, location_id: str, case_data: Dict) -> Dict:
         """
         Process RMBB Health approval data to extract product and wound size,
         then calculate optimal product combination.
-        
+
         Args:
+            location_id: GHL location ID for dynamic field mapping
             case_data: RMBB Health case data from webhook
-            
+
         Returns:
             Dict with calculation results and GHL field updates
         """
@@ -338,42 +356,48 @@ class ProductWoundCoverageCalculator:
 
 def test_calculator():
     """Test the wound coverage calculator with sample data."""
-    
+
     calculator = ProductWoundCoverageCalculator()
-    
-    # Test case 1: AmnioMaxx with 20 cm² wound
+
+    # Test locations
+    cell_products_location = "vB1lKXSyZgqEczGNRaWC"  # Cell Products sandbox
+    integrated_wound_care_location = "uyNJLBsVOLYr6PBVUeB4"  # Integrated Wound Care live
+
+    # Test case 1: AmnioMaxx with 20 cm² wound (Cell Products)
     print("=" * 60)
-    print("TEST CASE 1: AmnioMaxx 20 cm² wound")
+    print("TEST CASE 1: AmnioMaxx 20 cm² wound (Cell Products)")
     print("=" * 60)
-    
+
     result1 = calculator.calculate_wound_coverage(
+        location_id=cell_products_location,
         product_name="AmnioMaxx",
         wound_size_cm2=20.0,
         pre_selected_product="4x4"
     )
-    
+
     if result1["success"]:
         print(f"✅ Success: {result1['calculation_summary']}")
         print(f"📋 GHL Field Updates: {len(result1['ghl_field_updates'])} fields")
     else:
         print(f"❌ Failed: {result1['error']}")
-    
-    # Test case 2: Palingen with 12 cm² wound
+
+    # Test case 2: Palingen with 12 cm² wound (Integrated Wound Care)
     print("\n" + "=" * 60)
-    print("TEST CASE 2: Palingen 12 cm² wound")
+    print("TEST CASE 2: Palingen 12 cm² wound (Integrated Wound Care)")
     print("=" * 60)
-    
+
     result2 = calculator.calculate_wound_coverage(
-        product_name="Palingen", 
+        location_id=integrated_wound_care_location,
+        product_name="Palingen",
         wound_size_cm2=12.0
     )
-    
+
     if result2["success"]:
         print(f"✅ Success: {result2['calculation_summary']}")
         print(f"📋 GHL Field Updates: {len(result2['ghl_field_updates'])} fields")
     else:
         print(f"❌ Failed: {result2['error']}")
-    
+
     return result1, result2
 
 
