@@ -367,17 +367,82 @@ def auto_map_fields_for_new_provider(location_id: str, api_key: str) -> Dict:
 
 
 if __name__ == "__main__":
-    # Test with Integrated Wound Care
-    test_location_id = "uyNJLBsVOLYr6PBVUeB4"
-    test_api_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsb2NhdGlvbl9pZCI6InV5TkpMQnNWT0xZcjZQQlZVZUI0IiwidmVyc2lvbiI6MSwiaWF0IjoxNzU3OTQyMjc0MzI1LCJzdWIiOiI3MTJEQzhBY2NGaUo5Vmt5aFJqWCJ9.o5F-84m6xDzqpdpnfWA6TwWRWsDv9NC998JyHZy5y74"
+    import sys
 
-    print("🧪 Testing Auto Field Mapper...")
-    result = auto_map_fields_for_new_provider(test_location_id, test_api_key)
+    # Check for command line argument (sub-account name)
+    if len(sys.argv) > 1:
+        sub_account_name = sys.argv[1].lower().replace(' ', '_').replace('-', '_')
 
-    print(f"📊 Results:")
+        print(f"🔍 Looking up sub-account: '{sys.argv[1]}'...")
+
+        try:
+            # Import provider cache to get location ID and API key
+            sys.path.append('..')  # Go up one directory to import from services
+            from provider_location_cache import get_provider_cache
+
+            provider_cache = get_provider_cache()
+
+            # Try to find matching sub-account
+            location_id = None
+            api_key = None
+
+            # Check if it's a known sub-account name
+            known_accounts = {
+                'integrated_wound_care': 'uyNJLBsVOLYr6PBVUeB4',
+                'cell_products': 'vB1lKXSyZgqEczGNRaWC',
+                'integrated': 'uyNJLBsVOLYr6PBVUeB4',  # Shorthand
+                'cell': 'vB1lKXSyZgqEczGNRaWC'     # Shorthand
+            }
+
+            if sub_account_name in known_accounts:
+                location_id = known_accounts[sub_account_name]
+                api_key = provider_cache.get_sub_account_api_key_by_location_id(location_id)
+
+                if api_key:
+                    print(f"✅ Found sub-account: {sys.argv[1]}")
+                    print(f"   Location ID: {location_id}")
+                    print(f"   API Key: {api_key[:20]}...")
+                else:
+                    print(f"❌ Found location but no API key for: {sys.argv[1]}")
+                    sys.exit(1)
+            else:
+                print(f"❌ Unknown sub-account: {sys.argv[1]}")
+                print(f"Available options: {', '.join(known_accounts.keys())}")
+                sys.exit(1)
+
+        except Exception as e:
+            print(f"❌ Error looking up sub-account: {e}")
+            print("Using fallback to Integrated Wound Care...")
+            location_id = "uyNJLBsVOLYr6PBVUeB4"
+            api_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsb2NhdGlvbl9pZCI6InV5TkpMQnNWT0xZcjZQQlZVZUI0IiwidmVyc2lvbiI6MSwiaWF0IjoxNzU3OTQyMjc0MzI1LCJzdWIiOiI3MTJEQzhBY2NGaUo5Vkt5aFJqWCJ9.o5F-84m6xDzqpdpnfWA6TwWRWsDv9NC998JyHZy5y74"
+    else:
+        # Default behavior - use Integrated Wound Care
+        print("ℹ️  No sub-account specified, using default (Integrated Wound Care)")
+        print("💡 Usage: python auto_field_mapper.py [sub_account_name]")
+        print("   Available: integrated_wound_care, cell_products, integrated, cell")
+        print()
+
+        location_id = "uyNJLBsVOLYr6PBVUeB4"
+        api_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsb2NhdGlvbl9pZCI6InV5TkpMQnNWT0xZcjZQQlZVZUI0IiwidmVyc2lvbiI6MSwiaWF0IjoxNzU3OTQyMjc0MzI1LCJzdWIiOiI3MTJEQzhBY2NGaUo5Vmt5aFJqWCJ9.o5F-84m6xDzqpdpnfWA6TwWRWsDv9NC998JyHZy5y74"
+
+    print(f"\n🚀 Running Auto Field Mapper...")
+    print(f"📍 Location ID: {location_id}")
+    print(f"🔑 API Key: {api_key[:20]}...")
+    print()
+
+    result = auto_map_fields_for_new_provider(location_id, api_key)
+
+    print(f"\n📊 RESULTS:")
     print(f"   Status: {result['status']}")
     print(f"   Fields mapped: {result['statistics']['critical_fields_mapped']}/96")
     print(f"   Success rate: {result['statistics']['mapping_success_rate']}%")
 
     if result['missing_fields']:
         print(f"   Missing fields: {len(result['missing_fields'])}")
+        print(f"   First 5 missing: {result['missing_fields'][:5]}")
+
+    print(f"\n💡 Usage examples:")
+    print(f"   python auto_field_mapper.py integrated_wound_care")
+    print(f"   python auto_field_mapper.py cell_products")
+    print(f"   python auto_field_mapper.py integrated")
+    print(f"   python auto_field_mapper.py cell")
