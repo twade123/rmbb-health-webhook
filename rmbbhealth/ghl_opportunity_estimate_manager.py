@@ -16,9 +16,24 @@ import sys
 import json
 import requests
 import logging
-import jwt
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Union
+
+def get_dynamic_field_id(location_id, field_name):
+    """Get dynamic field ID using provider cache with fallback system."""
+    try:
+        from services.provider_location_cache import get_provider_cache
+        provider_cache = get_provider_cache()
+        field_id = provider_cache.get_field_mapping(location_id, field_name)
+        if field_id:
+            logging.debug(f"✅ Found dynamic field mapping: {field_name} -> {field_id} for location {location_id}")
+            return field_id
+        else:
+            logging.warning(f"⚠️ No field mapping found for {field_name} in location {location_id}")
+            return None
+    except Exception as e:
+        logging.error(f"❌ Error getting dynamic field mapping: {e}")
+        return None
 
 # Import RMBB modules for integration
 try:
@@ -42,10 +57,10 @@ class GHLOpportunityEstimateManager:
     def __init__(self, api_key: str, sub_account_id: str, location_id: str = None):
         """
         Initialize the opportunity-based estimate manager.
-        
+
         Args:
             api_key: GHL sub-account API key from Cell Products cache
-            sub_account_id: GHL sub-account ID from Cell Products cache  
+            sub_account_id: GHL sub-account ID from Cell Products cache
             location_id: GHL location ID
         """
         self.api_key = api_key
@@ -57,28 +72,32 @@ class GHLOpportunityEstimateManager:
             "Content-Type": "application/json",
             "Version": "2021-07-28"
         }
-        
+
         # RMBB Health Pipeline Configuration
         self.rmbb_pipeline_config = {
             "pipeline_name": "RMBB Health Orders",
             "stages": [
                 {"name": "Draft Order", "order": 1},
-                {"name": "Pending Provider Approval", "order": 2}, 
+                {"name": "Pending Provider Approval", "order": 2},
                 {"name": "Provider Approved", "order": 3},
                 {"name": "Provider Declined", "order": 4},
                 {"name": "Invoiced/Billed", "order": 5}
             ]
         }
-        
+
         # Initialize pricing manager
         self.pricing_manager = ProductPricingManager()
-        
+
         # Provider discount configuration
         self.provider_discount_percentage = 65  # Provider pays 65% of product cost to Cell Products
-        
-        # Custom field IDs for insurance and wound data
-        self.insurance_field_id = "FoqW1DyrjW6WtsoPflFZ"  # rmbb_current_insurance_info
-        self.wound_size_field_id = "XQLSYwSOodHOBrqv8oz0"  # rmbb_wound_size_coverage_calculator
+
+        # Initialize provider cache for dynamic field resolution
+        try:
+            from services.provider_location_cache import get_provider_cache
+            self.provider_cache = get_provider_cache()
+        except ImportError:
+            logging.error("❌ Could not import provider_location_cache")
+            self.provider_cache = None
     
     def create_wound_product_estimate(self, case_data: Dict, wound_calculation_result: Dict) -> Dict:
         """
@@ -404,82 +423,96 @@ class GHLOpportunityEstimateManager:
     
     def get_wound_size_from_calculator(self, contact_id: str) -> str:
         """
-        Get wound size (cm²) from rmbb_wound_size_coverage_calculator custom field.
-        
+        Get wound size (cm²) from rmbb_wound_size_coverage_calculator custom field using dynamic field resolution.
+
         Args:
             contact_id: GHL contact ID
-            
+
         Returns:
             str: Wound size in cm² format (e.g., "23 cm²") or "N/A"
         """
         try:
+            # Get dynamic field ID for wound size calculator field
+            wound_size_field_id = get_dynamic_field_id(self.location_id, "rmbb_wound_size_coverage_calculator")
+
+            if not wound_size_field_id:
+                logging.warning(f"⚠️ No field mapping found for rmbb_wound_size_coverage_calculator")
+                return "N/A cm²"
+
             # Get contact details
             response = requests.get(
                 f"{self.base_url}/contacts/{contact_id}",
                 headers=self.headers
             )
-            
+
             if response.status_code == 200:
                 contact_data = response.json().get('contact', {})
                 custom_fields = contact_data.get('customField', [])
-                
-                # Find wound size coverage calculator field
+
+                # Find wound size coverage calculator field using dynamic field ID
                 for field in custom_fields:
-                    if field.get('id') == self.wound_size_field_id:
+                    if field.get('id') == wound_size_field_id:
                         field_value = field.get('value', '')
-                        
+
                         if field_value:
                             # Extract wound size using regex patterns
                             import re
-                            
+
                             # Look for "Total: XX cm²" pattern first (most accurate)
                             total_match = re.search(r'Total:\s*(\d+)\s*cm²', field_value)
                             if total_match:
                                 return f"{total_match.group(1)} cm²"
-                            
+
                             # Fallback: Look for any "XX cm²" pattern
                             cm2_match = re.search(r'(\d+)\s*cm²', field_value)
                             if cm2_match:
                                 return f"{cm2_match.group(1)} cm²"
-                        
+
                         break
-                
+
                 logging.warning(f"⚠️ No wound size data found in rmbb_wound_size_coverage_calculator field for contact {contact_id}")
                 return "N/A cm²"
             else:
                 logging.error(f"❌ Failed to get contact {contact_id}: {response.status_code}")
                 return "N/A cm²"
-                
+
         except Exception as e:
             logging.error(f"❌ Error getting wound size for {contact_id}: {str(e)}")
             return "N/A cm²"
     
     def get_insurance_coverage_percentage(self, contact_id: str) -> float:
         """
-        Extract insurance coverage percentage from contact's custom field.
-        
+        Extract insurance coverage percentage from contact's custom field using dynamic field resolution.
+
         Args:
             contact_id: GHL contact ID
-            
+
         Returns:
             float: Insurance coverage percentage (0-100)
         """
         try:
+            # Get dynamic field ID for insurance field
+            insurance_field_id = get_dynamic_field_id(self.location_id, "rmbb_current_insurance_info")
+
+            if not insurance_field_id:
+                logging.warning(f"⚠️ No field mapping found for rmbb_current_insurance_info, using default coverage")
+                return 80.0  # Default assumption
+
             # Get contact details
             response = requests.get(
                 f"{self.base_url}/contacts/{contact_id}",
                 headers=self.headers
             )
-            
+
             if response.status_code == 200:
                 contact_data = response.json().get('contact', {})
                 custom_fields = contact_data.get('customField', [])
-                
-                # Find insurance field
+
+                # Find insurance field using dynamic field ID
                 for field in custom_fields:
-                    if field.get('id') == self.insurance_field_id:
+                    if field.get('id') == insurance_field_id:
                         insurance_data = field.get('value', '')
-                        
+
                         # Parse coverage percentage from insurance data
                         if 'COVERED 100%' in insurance_data:
                             return 100.0
@@ -488,19 +521,19 @@ class GHLOpportunityEstimateManager:
                             pct_match = re.search(r'COVERED (\d+)%', insurance_data)
                             if pct_match:
                                 return float(pct_match.group(1))
-                        
+
                         # Default assumption if coverage found but no percentage specified
                         if 'COVERED' in insurance_data:
                             return 80.0  # Conservative default
-                        
+
                         break
-                
+
                 logging.warning(f"⚠️ No insurance coverage data found for contact {contact_id}")
                 return 80.0  # Default assumption
             else:
                 logging.error(f"❌ Failed to get contact {contact_id}: {response.status_code}")
                 return 80.0  # Default assumption
-                
+
         except Exception as e:
             logging.error(f"❌ Error getting insurance coverage for {contact_id}: {str(e)}")
             return 80.0  # Default assumption
@@ -620,7 +653,7 @@ class GHLOpportunityEstimateManager:
                 if provider_margin > 30:
                     pass  # Remove the excellent margin text
                 elif provider_margin > 15:
-                    notes.append("🟡 GOOD MARGIN - Moderate profitability")
+                    pass  # Remove the good margin text
                 else:
                     notes.append("🔴 LOW MARGIN - Review coverage/pricing")
                 notes.append("")
@@ -894,30 +927,30 @@ def create_rmbb_opportunity_manager(location_id: str = None) -> GHLOpportunityEs
         GHLOpportunityEstimateManager: Configured instance
     """
     try:
-        # Get API credentials from Cell Products sub-account in provider cache
+        # FOLLOW EXACT SAME PATTERN AS REAL WORKFLOW FILES:
+        # webhook_handler.py and wound_calculation_integration.py use this exact sequence
         provider_cache = get_provider_cache()
         
-        # Always use Cell Products sub-account data for RMBB Health
-        cell_products_data = provider_cache.cache.get("cell products", {})
-        api_key = cell_products_data.get("sub_account_api_key")
-        default_location_id = cell_products_data.get("location_id")
+        if not location_id:
+            raise ValueError("location_id is required - real workflow files always pass location_id from case_mapping")
+        
+        # Use hierarchical cache method (same as wound_calculation_integration.py)
+        api_key = provider_cache.get_sub_account_api_key_by_location_id(location_id)
         
         if not api_key:
-            raise ValueError("Missing Cell Products sub-account API key in provider cache")
+            raise ValueError(f"No API key found for location_id {location_id}")
         
-        # Extract sub-account ID from JWT token
-        try:
-            decoded_token = jwt.decode(api_key, options={"verify_signature": False})
-            sub_account_id = decoded_token.get("sub")
-            if not sub_account_id:
-                raise ValueError("No 'sub' field found in JWT token")
-        except Exception as e:
-            raise ValueError(f"Failed to decode JWT token to extract sub-account ID: {str(e)}")
+        # For v1 API calls, get sub-account ID from provider cache (not JWT)
+        # The provider cache stores the sub-account ID separately from the API key
+        # For v1 API calls, use location_id as sub_account_id (standard GHL v1 pattern)
+        # The provider cache provides location_id which serves as the sub_account_id in v1 API
+        sub_account_id = location_id
+        logging.info(f"✅ Using location_id as sub_account_id for v1 API: {sub_account_id}")
         
-        # Use provided location_id or default to Cell Products location
-        final_location_id = location_id or default_location_id
+        # Use the provided location_id (follows real workflow pattern)
+        final_location_id = location_id
         
-        logging.info(f"🔑 Creating opportunity manager with Cell Products sub-account {sub_account_id}")
+        logging.info(f"🔑 Creating opportunity manager with sub-account {sub_account_id}")
         logging.info(f"📍 Using location ID: {final_location_id}")
         
         return GHLOpportunityEstimateManager(api_key, sub_account_id, final_location_id)
