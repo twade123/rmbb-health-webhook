@@ -226,10 +226,8 @@ class GHLRMBBWorkflowHandler:
             "customField": [
                 {"id": self.get_dynamic_field_id(location_id, "rmbb_workflow_status"), "value": "webhook_received"},
                 {"id": self.get_dynamic_field_id(location_id, "rmbb_external_id"), "value": external_id},
-                {"id": self.get_dynamic_field_id(location_id, "rmbb_submission_date"), "value": datetime.now().isoformat()},
-                {"id": self.get_dynamic_field_id(location_id, "rmbb_current_patient_info"), "value": f"{patient_form_data.get('first_name', '')} {patient_form_data.get('last_name', '')}"},
-                {"id": self.get_dynamic_field_id(location_id, "rmbb_wound_type"), "value": patient_form_data.get('wound_type', '')},
-                {"id": self.get_dynamic_field_id(location_id, "rmbb_primary_insurance"), "value": patient_form_data.get('primary_insurance_name', '')}
+                {"id": self.get_dynamic_field_id(location_id, "rmbb_ivr_received_date"), "value": datetime.now().isoformat()},
+                {"id": self.get_dynamic_field_id(location_id, "rmbb_current_patient_info"), "value": f"{patient_form_data.get('first_name', '')} {patient_form_data.get('last_name', '')} | {patient_form_data.get('wound_type', '')} | {patient_form_data.get('primary_insurance_name', '')}"
             ]
         }
         
@@ -512,11 +510,9 @@ class GHLRMBBWorkflowHandler:
             "customField": [
                 {"id": self.get_dynamic_field_id(location_id, "rmbb_workflow_status"), "value": "submitted_for_qualification"},
                 {"id": self.get_dynamic_field_id(location_id, "rmbb_current_patient_info"), "value": str(patient_response['id'])},
-                {"id": self.get_dynamic_field_id(location_id, "rmbb_case_ids"), "value": case_ids_str},
-                {"id": self.get_dynamic_field_id(location_id, "rmbb_case_id"), "value": primary_case_id},
-                {"id": self.get_dynamic_field_id(location_id, "rmbb_case_count"), "value": str(len(created_cases))},
-                {"id": self.get_dynamic_field_id(location_id, "rmbb_products"), "value": case_products_str},
-                {"id": self.get_dynamic_field_id(location_id, "rmbb_submission_date"), "value": datetime.now().isoformat()}
+                {"id": self.get_dynamic_field_id(location_id, "RMBB Case ID"), "value": case_ids_str},
+                {"id": self.get_dynamic_field_id(location_id, "rmbb_case_summary"), "value": f"Cases: {case_ids_str} | Products: {case_products_str} | Count: {len(created_cases)}"},
+                {"id": self.get_dynamic_field_id(location_id, "rmbb_ivr_received_date"), "value": datetime.now().isoformat()}
             ]
         }
         
@@ -553,7 +549,7 @@ class GHLRMBBWorkflowHandler:
             "failed_cases_count": len(failed_cases)
         }
     
-    def finalize_rmbb_submission(self, external_id, contact_id, created_cases, provider_name, display_name=None):
+    def finalize_rmbb_submission(self, external_id, contact_id, location_id, created_cases, provider_name, display_name=None):
         """
         STEP 3: Finalize RMBB Health submission and prepare for webhook
         This workflow ends here - RMBB Health will send webhook when IVR is complete
@@ -580,10 +576,9 @@ class GHLRMBBWorkflowHandler:
         final_tracking_update = {
             "customField": [
                 {"id": self.get_dynamic_field_id(location_id, "rmbb_workflow_status"), "value": "submitted_awaiting_ivr"},
-                {"id": self.get_dynamic_field_id(location_id, "rmbb_case_ids"), "value": case_ids_str},
-                {"id": self.get_dynamic_field_id(location_id, "rmbb_case_id"), "value": primary_case_id},
-                {"id": self.get_dynamic_field_id(location_id, "rmbb_case_count"), "value": str(len(created_cases))},
-                {"id": self.get_dynamic_field_id(location_id, "rmbb_submission_date"), "value": datetime.now().isoformat()},
+                {"id": self.get_dynamic_field_id(location_id, "RMBB Case ID"), "value": case_ids_str},
+                {"id": self.get_dynamic_field_id(location_id, "rmbb_case_summary"), "value": f"Cases: {case_ids_str} | Products: {len(created_cases)} cases submitted"},
+                {"id": self.get_dynamic_field_id(location_id, "rmbb_ivr_received_date"), "value": datetime.now().isoformat()},
                 {"id": self.get_dynamic_field_id(location_id, "rmbb_awaiting_ivr"), "value": "true"}
             ]
         }
@@ -1587,6 +1582,7 @@ Effective Date: {ivr_data['effective_date']}
             submission_result = self.finalize_rmbb_submission(
                 external_id=external_id,
                 contact_id=contact_id,
+                location_id=location_id,
                 created_cases=created_cases,
                 provider_name=provider_name,
                 display_name=display_name
@@ -1650,8 +1646,8 @@ Effective Date: {ivr_data['effective_date']}
                     error_status_update = {
                         "customField": [
                             {"id": self.get_dynamic_field_id(locals().get('location_id'), "rmbb_workflow_status"), "value": "error"},
-                            {"id": self.get_dynamic_field_id(locals().get('location_id'), "rmbb_error_message"), "value": error_msg},
-                            {"id": self.get_dynamic_field_id(locals().get('location_id'), "rmbb_error_date"), "value": datetime.now().isoformat()}
+                            {"id": self.get_dynamic_field_id(locals().get('location_id'), "rmbb_current_notes"), "value": f"ERROR: {error_msg}"},
+                            {"id": self.get_dynamic_field_id(locals().get('location_id'), "rmbb_ivr_received_date"), "value": datetime.now().isoformat()}
                         ]
                     }
                     # Try to get provider info from locals for proper error update
