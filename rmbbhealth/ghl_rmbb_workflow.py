@@ -32,6 +32,9 @@ class GHLRMBBWorkflowHandler:
     """Complete workflow handler for GHL → RMBB Health → GHL integration"""
     
     # GHL Custom Field Mappings - Document Processing Fields (IVR Results & Document Extraction)
+    # 🚨 DEPRECATED: These hardcoded Cell Products field IDs are now replaced with dynamic field resolution
+    # This dictionary is kept for reference only - all functionality now uses get_dynamic_field_id() method
+    # The same field IDs are used as fallback in provider_location_cache.py get_field_mapping() method
     DOCUMENT_PROCESSING_FIELDS = {
         # Current Status Fields (6 fields)
         "rmbb_current_patient_info": "XueHehokZYjJSvWGzjfk",
@@ -93,9 +96,29 @@ class GHLRMBBWorkflowHandler:
         
         # Configure logging
         logging.basicConfig(level=logging.INFO)
-        
+
         # No separate database - all tracking stored in GHL contact custom fields for HIPAA compliance
-    
+
+    def get_dynamic_field_id(self, location_id, field_name):
+        """
+        Get dynamic field ID using provider cache with fallback system.
+
+        This method replaces hardcoded field IDs with provider-specific dynamic resolution.
+        Uses the shared infrastructure in provider_location_cache.py.
+
+        Args:
+            location_id (str): GHL location ID to identify the provider
+            field_name (str): Field name to resolve (e.g., 'rmbb_wound_size_coverage_calculator')
+
+        Returns:
+            str: Provider-specific field ID, or Cell Products fallback ID, or None
+        """
+        if not location_id or not field_name:
+            return None
+
+        # Use shared infrastructure for dynamic field resolution
+        return self.provider_cache.get_field_mapping(location_id, field_name)
+
     def handle_ghl_webhook(self, webhook_payload):
         """
         STEP 1: Process GHL form submission webhook
@@ -201,12 +224,12 @@ class GHLRMBBWorkflowHandler:
         # Store initial tracking data in GHL contact custom fields
         initial_tracking_data = {
             "customField": [
-                {"id": "k9onZaMZVJ5Zwlopf2fi", "value": "webhook_received"},  # rmbb_workflow_status
-                {"id": "YpL2cH7rV4mN9xT6wK1s", "value": external_id},  # rmbb_external_id
-                {"id": "drfCODR4HhoKeI3eoH6J", "value": datetime.now().isoformat()},  # rmbb_submission_date
-                {"id": "XueHehokZYjJSvWGzjfk", "value": f"{patient_form_data.get('first_name', '')} {patient_form_data.get('last_name', '')}"},  # rmbb_patient_name
-                {"id": "tLNZ4EYxxXUO9HrDpkl5", "value": patient_form_data.get('wound_type', '')},  # rmbb_wound_type
-                {"id": "FoqW1DyrjW6WtsoPflFZ", "value": patient_form_data.get('primary_insurance_name', '')}  # rmbb_primary_insurance
+                {"id": self.get_dynamic_field_id(location_id, "rmbb_workflow_status"), "value": "webhook_received"},
+                {"id": self.get_dynamic_field_id(location_id, "rmbb_external_id"), "value": external_id},
+                {"id": self.get_dynamic_field_id(location_id, "rmbb_submission_date"), "value": datetime.now().isoformat()},
+                {"id": self.get_dynamic_field_id(location_id, "rmbb_current_patient_info"), "value": f"{patient_form_data.get('first_name', '')} {patient_form_data.get('last_name', '')}"},
+                {"id": self.get_dynamic_field_id(location_id, "rmbb_wound_type"), "value": patient_form_data.get('wound_type', '')},
+                {"id": self.get_dynamic_field_id(location_id, "rmbb_primary_insurance"), "value": patient_form_data.get('primary_insurance_name', '')}
             ]
         }
         
@@ -288,7 +311,7 @@ class GHLRMBBWorkflowHandler:
         print(f"🔍 DEBUG - patient_response: {patient_response}")
         
         # Extract selected products
-        product_info = self.extract_selected_biologic_product(patient_form_data)
+        product_info = self.extract_selected_biologic_product(patient_form_data, location_id)
         selected_products = product_info["selected_products"]
         
         # Save wound size to GHL custom field for later use during APPROVED status
@@ -299,7 +322,7 @@ class GHLRMBBWorkflowHandler:
         if wound_size_data:
             wound_size_update = {
                 "customField": [
-                    {"id": "XQLSYwSOodHOBrqv8oz0", "value": wound_size_data}  # rmbb_wound_size_coverage_calculator
+                    {"id": self.get_dynamic_field_id(location_id, "rmbb_wound_size_coverage_calculator"), "value": wound_size_data}
                 ]
             }
             
@@ -487,13 +510,13 @@ class GHLRMBBWorkflowHandler:
         
         rmbb_tracking_update = {
             "customField": [
-                {"id": "k9onZaMZVJ5Zwlopf2fi", "value": "submitted_for_qualification"},  # rmbb_workflow_status
-                {"id": "XueHehokZYjJSvWGzjfk", "value": str(patient_response['id'])},  # rmbb_patient_id
-                {"id": "WGKrQzlaNsK8Y4t5bUYf", "value": case_ids_str},  # rmbb_case_ids (multiple, comma-separated)
-                {"id": "M9Dap36CFurN03kQALVC", "value": primary_case_id},  # rmbb_case_id (primary case for reorders)
-                {"id": "DuqFjhMUOv2yKa5qbdyR", "value": str(len(created_cases))},  # rmbb_case_count
-                {"id": "tLNZ4EYxxXUO9HrDpkl5", "value": case_products_str},  # rmbb_products
-                {"id": "drfCODR4HhoKeI3eoH6J", "value": datetime.now().isoformat()}  # rmbb_submission_completed
+                {"id": self.get_dynamic_field_id(location_id, "rmbb_workflow_status"), "value": "submitted_for_qualification"},
+                {"id": self.get_dynamic_field_id(location_id, "rmbb_current_patient_info"), "value": str(patient_response['id'])},
+                {"id": self.get_dynamic_field_id(location_id, "rmbb_case_ids"), "value": case_ids_str},
+                {"id": self.get_dynamic_field_id(location_id, "rmbb_case_id"), "value": primary_case_id},
+                {"id": self.get_dynamic_field_id(location_id, "rmbb_case_count"), "value": str(len(created_cases))},
+                {"id": self.get_dynamic_field_id(location_id, "rmbb_products"), "value": case_products_str},
+                {"id": self.get_dynamic_field_id(location_id, "rmbb_submission_date"), "value": datetime.now().isoformat()}
             ]
         }
         
@@ -556,12 +579,12 @@ class GHLRMBBWorkflowHandler:
         # Update GHL contact to show cases submitted and awaiting IVR
         final_tracking_update = {
             "customField": [
-                {"id": "k9onZaMZVJ5Zwlopf2fi", "value": "submitted_awaiting_ivr"},  # rmbb_workflow_status
-                {"id": "WGKrQzlaNsK8Y4t5bUYf", "value": case_ids_str},  # rmbb_case_ids (multiple, comma-separated)
-                {"id": "M9Dap36CFurN03kQALVC", "value": primary_case_id},  # rmbb_case_id (primary case for reorders)
-                {"id": "DuqFjhMUOv2yKa5qbdyR", "value": str(len(created_cases))},  # rmbb_case_count
-                {"id": "drfCODR4HhoKeI3eoH6J", "value": datetime.now().isoformat()},  # rmbb_submission_completed_date
-                {"id": "4AnL32P9rjYcPjbukcok", "value": "true"}  # rmbb_awaiting_ivr
+                {"id": self.get_dynamic_field_id(location_id, "rmbb_workflow_status"), "value": "submitted_awaiting_ivr"},
+                {"id": self.get_dynamic_field_id(location_id, "rmbb_case_ids"), "value": case_ids_str},
+                {"id": self.get_dynamic_field_id(location_id, "rmbb_case_id"), "value": primary_case_id},
+                {"id": self.get_dynamic_field_id(location_id, "rmbb_case_count"), "value": str(len(created_cases))},
+                {"id": self.get_dynamic_field_id(location_id, "rmbb_submission_date"), "value": datetime.now().isoformat()},
+                {"id": self.get_dynamic_field_id(location_id, "rmbb_awaiting_ivr"), "value": "true"}
             ]
         }
         
@@ -644,10 +667,10 @@ Effective Date: {ivr_data['effective_date']}
         # Final status update to GHL contact
         final_status_update = {
             "customField": [
-                {"id": "k9onZaMZVJ5Zwlopf2fi", "value": "completed"},  # rmbb_workflow_status
-                {"id": "drfCODR4HhoKeI3eoH6J", "value": "true"},  # rmbb_provider_notified
-                {"id": "4AnL32P9rjYcPjbukcok", "value": datetime.now().isoformat()},  # rmbb_completion_date
-                {"id": "WGKrQzlaNsK8Y4t5bUYf", "value": notification_result.get('notification_id', '')}  # rmbb_notification_id
+                {"id": self.get_dynamic_field_id(location_id, "rmbb_workflow_status"), "value": "completed"},
+                {"id": self.get_dynamic_field_id(location_id, "rmbb_provider_notified"), "value": "true"},
+                {"id": self.get_dynamic_field_id(location_id, "rmbb_completion_date"), "value": datetime.now().isoformat()},
+                {"id": self.get_dynamic_field_id(location_id, "rmbb_notification_id"), "value": notification_result.get('notification_id', '')}
             ]
         }
         
@@ -886,8 +909,14 @@ Effective Date: {ivr_data['effective_date']}
     def transform_case_data(self, form_data, patient_id):
         """Transform GHL form data to RMBB case format - matches rmbbhealth.txt structure"""
         
-        # Extract selected biologic product and wound size from GHL form
-        product_info = self.extract_selected_biologic_product(form_data)
+        # Extract selected biologic product and wound size from GHL form (need location_id for dynamic field resolution)
+        # Get location_id from form_data context or provider info
+        location_id = getattr(self, '_current_location_id', None)
+        if not location_id:
+            # Fallback to extracting from form_data if available
+            location_id = form_data.get('location_id', '')
+
+        product_info = self.extract_selected_biologic_product(form_data, location_id)
         
         # Product extraction completed
         
@@ -1118,24 +1147,28 @@ Effective Date: {ivr_data['effective_date']}
         return int(physician_id)
     
     
-    def extract_selected_biologic_product(self, form_data):
+    def extract_selected_biologic_product(self, form_data, location_id):
         """
         Extract the selected biologic product from GHL form data.
         Provider fills in cm2 for the product(s) they want to use.
+
+        Args:
+            form_data: GHL form submission data
+            location_id: GHL location ID for dynamic field resolution
         """
-        # List of all biologic products with RMBB Health environment-specific IDs and GHL custom field IDs
-        # Verified against RMBB Health API and GHL API on 2025-08-31 for both dev and prod environments
+        # List of all biologic products with dynamic field resolution
+        # Field IDs resolved dynamically per provider sub-account
         products = {
-            "amniomaxx_q4239": {"name": "Amnio-Maxx", "q_code": "Q4239", "ghl_field_id": "tOGJkZFd2ymaHGKYrVU2"},
-            "palingen_q4173": {"name": "PalinGen", "q_code": "Q4173", "ghl_field_id": "gN96ValY4BEEzUFBD6Z0"},
-            "membrane_wrap_trilayer_q4205": {"name": "Membrane Wrap", "q_code": "Q4205", "ghl_field_id": "1hvUvoGbO7rMLSgEFoDz"},
-            "amnioamp_mp_q4250": {"name": "AmnioAMP-MP", "q_code": "Q4250", "ghl_field_id": "f2ahSKCm3LRuN0djazBg"},
-            "membrane_wrap_hydro_q4290": {"name": "Membrane Wrap-Hydro", "q_code": "Q4290", "ghl_field_id": "TIjFjavn2llFCwGizWj2"},
-            "biovance_q4154": {"name": "Biovance", "q_code": "Q4154", "ghl_field_id": "nS8MzgEAKuaGNjxdPGe7"},
-            "amchoplast_q4316": {"name": "AmchoPlast", "q_code": "Q4316", "ghl_field_id": "b5h4W8FSMO1E8KSleixD"},
-            "helicoll_q4164": {"name": "Helicoll", "q_code": "Q4164", "ghl_field_id": "lqdbhafh2zTeM23u0OMe"},
-            "xcell_amnio_matrix_q4280": {"name": "Xcell Amnio Matrix", "q_code": "Q4280", "ghl_field_id": "49vxcOnMCVYPyDdDuH80"},
-            "membrane_wrap_trilayer_q4344": {"name": "Membrane Wrap Tri-Layer", "q_code": "Q4344", "ghl_field_id": "TBD"}
+            "amniomaxx_q4239": {"name": "Amnio-Maxx", "q_code": "Q4239", "ghl_field_id": self.get_dynamic_field_id(location_id, "AmnioMaxx (Q4239) Units/CM2")},
+            "palingen_q4173": {"name": "PalinGen", "q_code": "Q4173", "ghl_field_id": self.get_dynamic_field_id(location_id, "Palingen (Q4173) Units/CM2")},
+            "membrane_wrap_trilayer_q4205": {"name": "Membrane Wrap", "q_code": "Q4205", "ghl_field_id": self.get_dynamic_field_id(location_id, "Membrane Wrap (Q4205) Units/CM2")},
+            "amnioamp_mp_q4250": {"name": "AmnioAMP-MP", "q_code": "Q4250", "ghl_field_id": self.get_dynamic_field_id(location_id, "AmnioAmp-MP (Q4250) Units/CM2")},
+            "membrane_wrap_hydro_q4290": {"name": "Membrane Wrap-Hydro", "q_code": "Q4290", "ghl_field_id": self.get_dynamic_field_id(location_id, "Membrane Wrap Hydro (Q4290) Units/CM2")},
+            "biovance_q4154": {"name": "Biovance", "q_code": "Q4154", "ghl_field_id": self.get_dynamic_field_id(location_id, "Biovance (Q4154) Units/CM2")},
+            "amchoplast_q4316": {"name": "AmchoPlast", "q_code": "Q4316", "ghl_field_id": self.get_dynamic_field_id(location_id, "Amchoplast (Q4316) Units/CM2")},
+            "helicoll_q4164": {"name": "Helicoll", "q_code": "Q4164", "ghl_field_id": self.get_dynamic_field_id(location_id, "Helicoll (Q4164) Units/CM2")},
+            "xcell_amnio_matrix_q4280": {"name": "Xcell Amnio Matrix", "q_code": "Q4280", "ghl_field_id": self.get_dynamic_field_id(location_id, "XCell Amnio Matrix (Q4280) Units/CM2")},
+            "membrane_wrap_trilayer_q4344": {"name": "Membrane Wrap Tri-Layer", "q_code": "Q4344", "ghl_field_id": self.get_dynamic_field_id(location_id, "Membrane Wrap Tri-Layer (Q4344) Units/CM2")}
         }
         
         selected_products = []
@@ -1342,11 +1375,12 @@ Effective Date: {ivr_data['effective_date']}
         logging.info(f"🔑 Falling back to default headers for sub-account: {lookup_name}")
         return self.ghl_headers, location_id
 
-    def _create_document_processing_field_update(self, extracted_data, case_data=None):
+    def _create_document_processing_field_update(self, location_id, extracted_data, case_data=None):
         """
-        Create GHL custom field update using proper field IDs for document processing fields.
-        
+        Create GHL custom field update using DYNAMIC field IDs for document processing fields.
+
         Args:
+            location_id (str): GHL location ID for provider-specific field resolution
             extracted_data (dict): Document extraction results
             case_data (dict, optional): RMBB case data for additional context
             
@@ -1363,30 +1397,30 @@ Effective Date: {ivr_data['effective_date']}
         
         # Current Status Fields
         field_updates.extend([
-            {"id": self.DOCUMENT_PROCESSING_FIELDS["rmbb_current_status"], "value": approval_status},
-            {"id": self.DOCUMENT_PROCESSING_FIELDS["rmbb_current_decision_summary"], "value": extracted_data.get('summary', '')[:500]},
-            {"id": self.DOCUMENT_PROCESSING_FIELDS["rmbb_current_notes"], "value": extracted_data.get('notes', '')[:1000]},
+            {"id": self.get_dynamic_field_id(location_id, "rmbb_current_status"), "value": approval_status},
+            {"id": self.get_dynamic_field_id(location_id, "rmbb_current_decision_summary"), "value": extracted_data.get('summary', '')[:500]},
+            {"id": self.get_dynamic_field_id(location_id, "rmbb_current_notes"), "value": extracted_data.get('notes', '')[:1000]},
         ])
         
         # IVR-Specific Fields (if applicable)
         if case_data:
             field_updates.extend([
-                {"id": self.DOCUMENT_PROCESSING_FIELDS["rmbb_ivr_patient_data"], "value": case_data.get('patient_name', '')},
-                {"id": self.DOCUMENT_PROCESSING_FIELDS["rmbb_ivr_primary_insurance"], "value": case_data.get('primary_insurance', {}).get('result', '')},
-                {"id": self.DOCUMENT_PROCESSING_FIELDS["rmbb_ivr_secondary_insurance"], "value": case_data.get('secondary_insurance', {}).get('result', '')},
-                {"id": self.DOCUMENT_PROCESSING_FIELDS["rmbb_ivr_coverage_summary"], "value": case_data.get('overall_insurance_result', '')},
-                {"id": self.DOCUMENT_PROCESSING_FIELDS["rmbb_ivr_authorization_info"], "value": extracted_data.get('authorization_info', '')},
+                {"id": self.get_dynamic_field_id(location_id, "rmbb_ivr_patient_data"), "value": case_data.get('patient_name', '')},
+                {"id": self.get_dynamic_field_id(location_id, "rmbb_ivr_primary_insurance"), "value": case_data.get('primary_insurance', {}).get('result', '')},
+                {"id": self.get_dynamic_field_id(location_id, "rmbb_ivr_secondary_insurance"), "value": case_data.get('secondary_insurance', {}).get('result', '')},
+                {"id": self.get_dynamic_field_id(location_id, "rmbb_ivr_coverage_summary"), "value": case_data.get('overall_insurance_result', '')},
+                {"id": self.get_dynamic_field_id(location_id, "rmbb_ivr_authorization_info"), "value": extracted_data.get('authorization_info', '')},
             ])
         
         # Document Tracking Fields
         field_updates.extend([
-            {"id": self.DOCUMENT_PROCESSING_FIELDS["rmbb_document_history"], "value": f"{document_type} processed on {processed_date[:10]}"},
-            {"id": self.DOCUMENT_PROCESSING_FIELDS["rmbb_case_summary"], "value": extracted_data.get('case_summary', '')[:1000]},
-            {"id": self.DOCUMENT_PROCESSING_FIELDS["rmbb_total_documents"], "value": str(extracted_data.get('document_count', 1))},
+            {"id": self.get_dynamic_field_id(location_id, "rmbb_document_history"), "value": f"{document_type} processed on {processed_date[:10]}"},
+            {"id": self.get_dynamic_field_id(location_id, "rmbb_case_summary"), "value": extracted_data.get('case_summary', '')[:1000]},
+            {"id": self.get_dynamic_field_id(location_id, "rmbb_total_documents"), "value": str(extracted_data.get('document_count', 1))},
         ])
         
         # Legacy Field
-        field_updates.append({"id": self.DOCUMENT_PROCESSING_FIELDS["rmbb_approval_status"], "value": approval_status})
+        field_updates.append({"id": self.get_dynamic_field_id(location_id, "rmbb_approval_status"), "value": approval_status})
         
         return {
             "customField": field_updates
@@ -1615,9 +1649,9 @@ Effective Date: {ivr_data['effective_date']}
                 if 'contact_id' in locals():
                     error_status_update = {
                         "customField": [
-                            {"id": "k9onZaMZVJ5Zwlopf2fi", "value": "error"},  # rmbb_workflow_status
-                            {"id": "tLNZ4EYxxXUO9HrDpkl5", "value": error_msg},  # rmbb_error_message
-                            {"id": "4AnL32P9rjYcPjbukcok", "value": datetime.now().isoformat()}  # rmbb_error_date
+                            {"id": self.get_dynamic_field_id(locals().get('location_id'), "rmbb_workflow_status"), "value": "error"},
+                            {"id": self.get_dynamic_field_id(locals().get('location_id'), "rmbb_error_message"), "value": error_msg},
+                            {"id": self.get_dynamic_field_id(locals().get('location_id'), "rmbb_error_date"), "value": datetime.now().isoformat()}
                         ]
                     }
                     # Try to get provider info from locals for proper error update
