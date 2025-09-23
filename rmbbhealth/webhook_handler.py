@@ -1099,17 +1099,10 @@ def handle_rmbb_status_webhook():
                 {"id": get_dynamic_field_id(location_id, "rmbb_approval_status"), "value": approval_analysis['status']},  # rmbb_approval_status
                 
                 # PRODUCT QUANTITY FIELDS - Units/CM2 for each product (9 fields)
-                # NOTE: These base fields are kept for backward compatibility
-                # Size-specific fields from wound calculation will be added separately
-                {"id": get_dynamic_field_id(location_id, "AmnioMaxx (Q4239) Units/CM2"), "value": ""},  # AmnioMaxx (Q4239) Units/CM2
-                {"id": get_dynamic_field_id(location_id, "AmnioAmp-MP (Q4250) Units/CM2"), "value": ""},  # AmnioAmp-MP (Q4250) Units/CM2
-                {"id": get_dynamic_field_id(location_id, "Membrane Wrap Hydro (Q4290) Units/CM2"), "value": ""},  # Membrane Wrap Hydro (Q4290) Units/CM2
-                {"id": get_dynamic_field_id(location_id, "Membrane Wrap (Q4205) Units/CM2"), "value": ""},  # Membrane Wrap (Q4205) Units/CM2
-                {"id": get_dynamic_field_id(location_id, "Biovance (Q4154) Units/CM2"), "value": ""},  # Biovance (Q4154) Units/CM2
-                {"id": get_dynamic_field_id(location_id, "XCell Amnio Matrix (Q4280) Units/CM2"), "value": ""},  # XCell Amnio Matrix (Q4280) Units/CM2
-                {"id": get_dynamic_field_id(location_id, "Palingen (Q4173) Units/CM2"), "value": ""},  # Palingen (Q4173) Units/CM2
-                {"id": get_dynamic_field_id(location_id, "Amchoplast (Q4316) Units/CM2"), "value": ""},  # Amchoplast (Q4316) Units/CM2
-                {"id": get_dynamic_field_id(location_id, "Helicoll (Q4164) Units/CM2"), "value": ""},  # Helicoll (Q4164) Units/CM2
+                # IMPORTANT: DO NOT CLEAR THESE FIELDS - preserve values set during initial submission
+                # These fields contain the actual product units used and should not be overwritten
+                # Size-specific fields from wound calculation are handled separately
+                # Removing empty value assignments that were clearing valuable product data
                 
                 # Communication status
                 {"key": "rmbb_last_fax_status", "value": last_fax_status or ""},
