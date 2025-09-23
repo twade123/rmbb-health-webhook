@@ -52,6 +52,13 @@ graph TD
 - **Tag Preservation**: Fixed tag overwriting issue - all tags are preserved
 - **Real-time Application**: Tags applied immediately when status updates occur
 
+### ✅ **Dynamic Field Mapping System** (MAJOR UPGRADE - September 2025)
+- **🔄 Provider-Specific Field Resolution**: All files now use dynamic field ID resolution per sub-account
+- **📊 96 Critical Fields Supported**: Complete RMBB field mapping across all provider sub-accounts
+- **🛠️ Auto Field Mapper Utility**: Command-line tool for easy field mapping of new sub-accounts
+- **🔀 Fallback System**: Cell Products fallback for missing fields ensures 100% compatibility
+- **⚡ Real-Time Field Updates**: All 5 core files converted from hardcoded to dynamic field resolution
+
 ### ✅ **Enhanced Status Field Mapping**
 - **Corrected Field Data**: Status fields now contain actual RMBB status data
 - **Provider-Focused Information**: Clear APPROVED/DENIED/PENDING status
@@ -1007,7 +1014,7 @@ RMBB_LOCATION_ID=your_production_location_id      # Production location ID
 #### **4. 🆕 GitHub Persistence Configuration** (Critical for Railway Deployment)
 ```bash
 # Add these environment variables for hierarchical cache persistence:
-GITHUB_TOKEN=
+GITHUB_TOKEN=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
 GITHUB_REPO_OWNER=twade123
 GITHUB_REPO_NAME=rmbb-health-webhook
 
