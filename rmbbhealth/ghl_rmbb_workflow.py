@@ -227,7 +227,7 @@ class GHLRMBBWorkflowHandler:
                 {"id": self.get_dynamic_field_id(location_id, "rmbb_workflow_status"), "value": "webhook_received"},
                 {"id": self.get_dynamic_field_id(location_id, "rmbb_external_id"), "value": external_id},
                 {"id": self.get_dynamic_field_id(location_id, "rmbb_ivr_received_date"), "value": datetime.now().isoformat()},
-                {"id": self.get_dynamic_field_id(location_id, "rmbb_current_patient_info"), "value": f"{patient_form_data.get('first_name', '')} {patient_form_data.get('last_name', '')} | {patient_form_data.get('wound_type', '')} | {patient_form_data.get('primary_insurance_name', '')}"
+                {"id": self.get_dynamic_field_id(location_id, "rmbb_current_patient_info"), "value": f"{patient_form_data.get('first_name', '')} {patient_form_data.get('last_name', '')} | {patient_form_data.get('wound_type', '')} | {patient_form_data.get('primary_insurance_name', '')}"}
             ]
         }
         
