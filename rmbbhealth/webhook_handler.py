@@ -849,13 +849,26 @@ def handle_rmbb_status_webhook():
         
         # Check if webhook contains complete case data OR is just a simple status update (Option 1)
         case_status = payload.get('status', '').upper()
-        if (payload.get('primary_insurance') or payload.get('overall_insurance_result') is not None or
-            case_status in ['CASE CREATED']):
+
+        # FORCE API call for statuses that need detailed information
+        STATUSES_REQUIRING_API_CALL = [
+            'DENIED', 'REJECTED', 'APPEALED', 'APPEAL', 'DECLINED', 'TRASH',
+            'NOT COVERED', 'DISQUALIFIED', 'FAILED', 'INELIGIBLE'
+        ]
+
+        if case_status in STATUSES_REQUIRING_API_CALL:
+            # Force API call for denied/rejected/appealed to get reason details
+            logging.info(f"🔍 Status requiring details ({case_status}) - fetching case data via API")
+        elif (payload.get('primary_insurance') or payload.get('overall_insurance_result') is not None or
+              case_status in ['CASE CREATED']):
             logging.info(f"📦 Simple status update ({case_status}) - using webhook data directly")
             case_data = payload
         else:
             # Complex status that needs additional case data - fetch via API (Option 2)
             logging.info(f"📡 Minimal webhook received - fetching case {case_id} via API")
+
+        # Make API call for statuses requiring detailed information or minimal webhooks
+        if case_status in STATUSES_REQUIRING_API_CALL or not case_data:
             
             if not case_id:
                 return jsonify({"error": "Missing case_id - cannot fetch case data"}), 400
@@ -865,13 +878,15 @@ def handle_rmbb_status_webhook():
                 from services.case_service import CaseService
                 case_service = CaseService()
                 
-                # Fetch complete case data
+                # Fetch complete case data (includes denial reasons, appeal details, etc.)
                 case_data = case_service.get_case(case_id)
-                
+
                 if not case_data:
                     return jsonify({"error": f"Could not fetch case data for case_id {case_id}"}), 404
-                    
+
                 logging.info(f"✅ Fetched complete case data via API: {len(case_data)} fields")
+
+                # For denied/rejected/appealed statuses, we now have access to detailed reasons
                 
             except Exception as e:
                 logging.error(f"❌ Failed to fetch case data via API: {str(e)}")
