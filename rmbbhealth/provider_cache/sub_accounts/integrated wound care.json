@@ -136,7 +136,8 @@
       "57278",
       "57290",
       "57291",
-      "58027"
+      "58027",
+      "58051"
     ],
     "sample_contact_id": "09XPDo1KBDypWM3ebMsD"
   },
@@ -410,6 +411,22 @@
         "product_id": 229,
         "q_code": "Q4239",
         "saved_at": "2025-10-02T16:18:09.779146"
+      }
+    },
+    "58051": {
+      "case_id": "58051",
+      "display_name": "Integrated Wound Care",
+      "provider_name": "Linda A. Foster, MD",
+      "provider_key": "integrated wound care",
+      "contact_id": "09XPDo1KBDypWM3ebMsD",
+      "location_id": "uyNJLBsVOLYr6PBVUeB4",
+      "external_id": "ghl_contact_09XPDo1KBDypWM3ebMsD_20251002_184528_229",
+      "created": "2025-10-02T18:45:35.417494",
+      "approved_product": {
+        "name": "Amnio-Maxx",
+        "product_id": 229,
+        "q_code": "Q4239",
+        "saved_at": "2025-10-02T18:45:35.417508"
       }
     }
   }
