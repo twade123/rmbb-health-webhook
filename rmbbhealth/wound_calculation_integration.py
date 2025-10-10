@@ -19,6 +19,30 @@ from typing import Dict, Optional
 from product_wound_coverage_calculator import ProductWoundCoverageCalculator
 from ghl_rmbb_workflow import GHLRMBBWorkflowHandler
 
+def get_dynamic_field_id(location_id, field_name):
+    """
+    Get dynamic field ID using provider cache with fallback system.
+
+    This helper function provides dynamic field resolution for wound calculation integration.
+
+    Args:
+        location_id (str): GHL location ID to identify the provider
+        field_name (str): Field name to resolve (e.g., 'rmbb_wound_size_coverage_calculator')
+
+    Returns:
+        str: Provider-specific field ID, or Cell Products fallback ID, or None
+    """
+    if not location_id or not field_name:
+        return None
+
+    try:
+        from services.provider_location_cache import get_provider_cache
+        provider_cache = get_provider_cache()
+        return provider_cache.get_field_mapping(location_id, field_name)
+    except Exception as e:
+        logging.error(f"❌ Error getting dynamic field mapping for location {location_id}, field {field_name}: {e}")
+        return None
+
 
 class WoundCalculationIntegration:
     """
@@ -60,13 +84,37 @@ class WoundCalculationIntegration:
                 logging.error("❌ Failed to extract wound info")
                 return None
             
-            # Step 2: Map RMBB Health product to our product catalog
-            mapped_product = self._map_rmbb_product(product_info['product_id'])
+            # Step 2: Get location_id from provider cache using case_id
+            case_id = case_data.get('case_id') or case_data.get('id')
+            if not case_id:
+                logging.error("❌ No case_id found in case_data")
+                return None
+
+            # Lookup location_id from provider cache
+            from services.provider_location_cache import get_provider_cache
+            provider_cache = get_provider_cache()
+            case_mapping = provider_cache.get_case_mapping(str(case_id))
+
+            if not case_mapping:
+                logging.error(f"❌ No case mapping found in provider cache for case_id {case_id}")
+                return None
+
+            location_id = case_mapping.get('location_id')
+            if not location_id:
+                logging.error(f"❌ No location_id found in case mapping for case_id {case_id}")
+                return None
+
+            logging.info(f"✅ Retrieved location_id {location_id} from provider cache for case_id {case_id}")
+
+            # Step 3: Map RMBB Health product to our product catalog with location context
+
+            mapped_product = self._map_rmbb_product(product_info['product_id'], location_id)
             if not mapped_product:
                 return None
             
             # Step 3: Calculate optimal product size combination
             calculation_result = self.calculator.calculate_wound_coverage(
+                location_id=location_id,
                 product_name=mapped_product['name'],
                 wound_size_cm2=wound_info['wound_size_cm2']
             )
@@ -137,44 +185,22 @@ class WoundCalculationIntegration:
     
     def _extract_wound_info(self, case_data: Dict) -> Optional[Dict]:
         """
-        Extract wound size information from case_data (reorders) or GHL custom field (status updates).
-        
+        Extract wound size information from GHL custom field Rmbb_wound_size_coverage_calculator.
+        ALWAYS uses GHL custom field - never uses case_data wound_size (for both approval and reorder).
+
         Args:
-            case_data (dict): Case data containing wound_size (reorders) or case_id (status updates)
-            
+            case_data (dict): Case data containing case_id for GHL lookup
+
         Returns:
             dict: Wound information with numerical size in cm², or None if not found
         """
         # DEBUG: Log what we received in case_data
         logging.info(f"   🔍 _extract_wound_info received case_data keys: {list(case_data.keys())}")
-        logging.info(f"   🔍 wound_size value: '{case_data.get('wound_size')}'")
-        logging.info(f"   🔍 total_wound_size value: '{case_data.get('total_wound_size')}'")
-        
-        # REORDER SCENARIO: Check if wound_size is provided in case_data first
-        if case_data.get('wound_size') or case_data.get('total_wound_size'):
-            wound_size_str = case_data.get('wound_size') or case_data.get('total_wound_size')
-            logging.info(f"   🔍 Using wound_size_str: '{wound_size_str}' (type: {type(wound_size_str)})")
-            
-            # Parse wound size from case data
-            import re
-            cm2_match = re.search(r'(\d+(?:\.\d+)?)', str(wound_size_str))
-            if cm2_match:
-                wound_size_cm2 = float(cm2_match.group(1))
-                logging.info(f"   📏 ✅ USING REORDER PAYLOAD wound size: {wound_size_cm2} cm²")
-                
-                return {
-                    'wound_size_cm2': wound_size_cm2,
-                    'wound_size_str': f"{wound_size_cm2} cm²",
-                    'total_wound_size_str': f"{wound_size_cm2} cm²",
-                    'wound_type': 'From Reorder Payload'
-                }
-            else:
-                logging.warning(f"   ⚠️ Could not parse wound size from: '{wound_size_str}'")
-        else:
-            logging.info(f"   🔍 No wound_size or total_wound_size in case_data, falling back to GHL lookup")
-        
-        # STATUS UPDATE SCENARIO: Fall back to GHL custom field lookup
-        # Get case_id for provider cache lookup
+        logging.info(f"   🔍 wound_size in case_data (IGNORED): '{case_data.get('wound_size')}'")
+        logging.info(f"   🔍 total_wound_size in case_data (IGNORED): '{case_data.get('total_wound_size')}'")
+        logging.info(f"   ✅ ALWAYS using GHL custom field Rmbb_wound_size_coverage_calculator for wound size")
+
+        # Get case_id for provider cache lookup to access GHL custom field
         case_id = case_data.get('case_id') or case_data.get('id')
         if not case_id:
             logging.warning("⚠️ No case_id provided for wound size lookup")
@@ -210,9 +236,10 @@ class WoundCalculationIntegration:
                 contact_data_response = response.json().get('contact', {})
                 custom_fields = contact_data_response.get('customField', [])
                 
-                # Find rmbb_wound_size_coverage_calculator field
+                # Find rmbb_wound_size_coverage_calculator field using dynamic resolution
+                wound_size_field_id = get_dynamic_field_id(location_id, 'rmbb_wound_size_coverage_calculator')
                 for field in custom_fields:
-                    if field.get('id') == 'XQLSYwSOodHOBrqv8oz0':
+                    if field.get('id') == wound_size_field_id:
                         field_value = field.get('value', '')
                         
                         if field_value:
@@ -289,28 +316,29 @@ class WoundCalculationIntegration:
         
         return None
     
-    def _map_rmbb_product(self, product_id: int) -> Optional[Dict]:
+    def _map_rmbb_product(self, product_id: int, location_id: str) -> Optional[Dict]:
         """
         Map RMBB Health product ID to our product catalog.
         
         Args:
             product_id (int): RMBB Health product ID
-            
+            location_id (str): GHL location ID for dynamic field resolution
+
         Returns:
             dict: Product information with name, q_code, etc., or None if not found
         """
         try:
             # Product mapping from ghl_rmbb_workflow.py
             products = {
-                "amniomaxx_q4239": {"name": "AmnioMaxx", "q_code": "Q4239", "dev_id": 364, "prod_id": 229, "ghl_field_id": "tOGJkZFd2ymaHGKYrVU2"},
-                "palingen_q4173": {"name": "Palingen", "q_code": "Q4173", "dev_id": 373, "prod_id": 341, "ghl_field_id": "gN96ValY4BEEzUFBD6Z0"},
-                "membrane_wrap_trilayer_q4205": {"name": "Membrane Wrap", "q_code": "Q4205", "dev_id": 361, "prod_id": 98, "ghl_field_id": "1hvUvoGbO7rMLSgEFoDz"},
-                "amnioamp_mp_q4250": {"name": "AmnioAmp-MP", "q_code": "Q4250", "dev_id": 365, "prod_id": 230, "ghl_field_id": "f2ahSKCm3LRuN0djazBg"},
-                "membrane_wrap_hydro_q4290": {"name": "Membrane Wrap H", "q_code": "Q4290", "dev_id": 362, "prod_id": 99, "ghl_field_id": "TIjFjavn2llFCwGizWj2"},
-                "biovance_q4154": {"name": "Biovance", "q_code": "Q4154", "dev_id": 367, "prod_id": 232, "ghl_field_id": "nS8MzgEAKuaGNjxdPGe7"},
-                "amchoplast_q4316": {"name": "Amchoplast", "q_code": "Q4316", "dev_id": 375, "prod_id": 343, "ghl_field_id": "b5h4W8FSMO1E8KSleixD"},
-                "helicoll_q4164": {"name": "Helicoll", "q_code": "Q4164", "dev_id": 374, "prod_id": 342, "ghl_field_id": "lqdbhafh2zTeM23u0OMe"},
-                "xcell_amnio_matrix_q4280": {"name": "Xcell Amnio Matrix", "q_code": "Q4280", "dev_id": 372, "prod_id": 237, "ghl_field_id": "49vxcOnMCVYPyDdDuH80"}
+                "amniomaxx_q4239": {"name": "AmnioMaxx", "q_code": "Q4239", "dev_id": 364, "prod_id": 229, "ghl_field_id": get_dynamic_field_id(location_id, "AmnioMaxx (Q4239) Units/CM2")},
+                "palingen_q4173": {"name": "Palingen", "q_code": "Q4173", "dev_id": 373, "prod_id": 341, "ghl_field_id": get_dynamic_field_id(location_id, "Palingen (Q4173) Units/CM2")},
+                "membrane_wrap_trilayer_q4205": {"name": "Membrane Wrap", "q_code": "Q4205", "dev_id": 361, "prod_id": 98, "ghl_field_id": get_dynamic_field_id(location_id, "Membrane Wrap (Q4205) Units/CM2")},
+                "amnioamp_mp_q4250": {"name": "AmnioAmp-MP", "q_code": "Q4250", "dev_id": 365, "prod_id": 230, "ghl_field_id": get_dynamic_field_id(location_id, "AmnioAmp-MP (Q4250) Units/CM2")},
+                "membrane_wrap_hydro_q4290": {"name": "Membrane Wrap H", "q_code": "Q4290", "dev_id": 362, "prod_id": 99, "ghl_field_id": get_dynamic_field_id(location_id, "Membrane Wrap Hydro (Q4290) Units/CM2")},
+                "biovance_q4154": {"name": "Biovance", "q_code": "Q4154", "dev_id": 367, "prod_id": 232, "ghl_field_id": get_dynamic_field_id(location_id, "Biovance (Q4154) Units/CM2")},
+                "amchoplast_q4316": {"name": "Amchoplast", "q_code": "Q4316", "dev_id": 375, "prod_id": 343, "ghl_field_id": get_dynamic_field_id(location_id, "Amchoplast (Q4316) Units/CM2")},
+                "helicoll_q4164": {"name": "Helicoll", "q_code": "Q4164", "dev_id": 374, "prod_id": 342, "ghl_field_id": get_dynamic_field_id(location_id, "Helicoll (Q4164) Units/CM2")},
+                "xcell_amnio_matrix_q4280": {"name": "Xcell Amnio Matrix", "q_code": "Q4280", "dev_id": 372, "prod_id": 237, "ghl_field_id": get_dynamic_field_id(location_id, "XCell Amnio Matrix (Q4280) Units/CM2")}
             }
             
             # Search for matching product by development or production ID
