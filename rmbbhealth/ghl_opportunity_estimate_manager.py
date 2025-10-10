@@ -483,6 +483,7 @@ class GHLOpportunityEstimateManager:
     def get_insurance_coverage_percentage(self, contact_id: str) -> float:
         """
         Extract insurance coverage percentage from contact's custom field using dynamic field resolution.
+        Looks at rmbb_primary_insurance_status field which contains RMBB's coverage determination.
 
         Args:
             contact_id: GHL contact ID
@@ -491,11 +492,11 @@ class GHLOpportunityEstimateManager:
             float: Insurance coverage percentage (0-100)
         """
         try:
-            # Get dynamic field ID for insurance field
-            insurance_field_id = get_dynamic_field_id(self.location_id, "rmbb_current_insurance_info")
+            # Get dynamic field ID for primary insurance status field (contains RMBB coverage data)
+            insurance_field_id = get_dynamic_field_id(self.location_id, "rmbb_primary_insurance_status")
 
             if not insurance_field_id:
-                logging.warning(f"⚠️ No field mapping found for rmbb_current_insurance_info, using default coverage")
+                logging.warning(f"⚠️ No field mapping found for rmbb_primary_insurance_status, using default coverage")
                 return 80.0  # Default assumption
 
             # Get contact details
@@ -511,20 +512,20 @@ class GHLOpportunityEstimateManager:
                 # Find insurance field using dynamic field ID
                 for field in custom_fields:
                     if field.get('id') == insurance_field_id:
-                        insurance_data = field.get('value', '')
+                        insurance_data = field.get('value', '').upper()
 
-                        # Parse coverage percentage from insurance data
-                        if 'COVERED 100%' in insurance_data:
+                        # Parse coverage percentage from RMBB insurance status
+                        # Only two scenarios: 100% (no patient responsibility) or 80% (provider makes less)
+                        if '100%' in insurance_data or '100 %' in insurance_data:
+                            logging.info(f"✅ Found 100% coverage in rmbb_primary_insurance_status")
                             return 100.0
-                        elif 'COVERED' in insurance_data and '%' in insurance_data:
-                            import re
-                            pct_match = re.search(r'COVERED (\d+)%', insurance_data)
-                            if pct_match:
-                                return float(pct_match.group(1))
+                        elif '80%' in insurance_data or '80 %' in insurance_data:
+                            logging.info(f"✅ Found 80% coverage in rmbb_primary_insurance_status")
+                            return 80.0
 
-                        # Default assumption if coverage found but no percentage specified
-                        if 'COVERED' in insurance_data:
-                            return 80.0  # Conservative default
+                        # If field has data but no recognizable percentage, log it
+                        if insurance_data:
+                            logging.warning(f"⚠️ Unrecognized coverage format: {insurance_data[:100]}")
 
                         break
 
