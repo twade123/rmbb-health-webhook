@@ -288,6 +288,7 @@ def analyze_rmbb_approval_status(status_data):
     approved_patterns = ['APPROVED', 'ACCEPTED', 'AUTHORIZED', 'COVERED', 'QUALIFIED', 'COMPLETED', 'SUCCESS']
     denied_patterns = ['DENIED', 'REJECTED', 'DECLINED', 'NOT COVERED', 'DISQUALIFIED', 'FAILED', 'INELIGIBLE']
     pending_patterns = ['PENDING', 'UNDER REVIEW', 'PROCESSING', 'SUBMITTED', 'IN PROGRESS', 'AWAITING']
+    required_patterns = ['REQUIRED', 'NOTES NEEDED', 'DOCUMENTATION NEEDED', 'ADDITIONAL INFO']
     created_patterns = ['CASE CREATED', 'CREATED', 'INITIATED', 'RECEIVED']
     
     # Priority order: overall_result > primary_result > case_status > external_status > insurance statuses
@@ -317,7 +318,7 @@ def analyze_rmbb_approval_status(status_data):
                 'all_statuses': status_data
             }
         
-        # Check for denied status  
+        # Check for denied status
         if any(pattern in field_value for pattern in denied_patterns):
             return {
                 'status': 'DENIED',
@@ -327,7 +328,18 @@ def analyze_rmbb_approval_status(status_data):
                 'determining_value': field_value,
                 'all_statuses': status_data
             }
-    
+
+        # Check for required notes/documentation status
+        if any(pattern in field_value for pattern in required_patterns):
+            return {
+                'status': 'REQUIRED_NOTES',
+                'message': f'Additional documentation required based on {field_name}: {field_value}',
+                'confidence': 'HIGH',
+                'determining_field': field_name,
+                'determining_value': field_value,
+                'all_statuses': status_data
+            }
+
     # Check for pending status
     for field_name, field_value in priority_fields:
         if field_value and any(pattern in field_value for pattern in pending_patterns):
@@ -1065,7 +1077,21 @@ def handle_rmbb_status_webhook():
                 logging.error(f"❌ Wound coverage calculation error: {str(e)}")
                 logging.error(traceback.format_exc())
                 # Continue with normal webhook processing - wound calculation is supplementary
-        
+
+        # 📋 REQUIRED DOCUMENTATION: Handle REQUIRED_NOTES status when RMBB needs additional medical records
+        if approval_analysis['status'] == 'REQUIRED_NOTES':
+            logging.info(f"📋 REQUIRED_NOTES status detected - additional documentation needed")
+            logging.info(f"   📄 Documentation request: {approval_analysis['message']}")
+            logging.info(f"   🔍 Based on field: {approval_analysis['determining_field']}")
+
+            # Extract specific requirements from coverage summary if available
+            coverage_summary = case_data.get('coverage_summary', '')
+            if coverage_summary:
+                logging.info(f"   📝 RMBB Requirements: {coverage_summary[:200]}...")
+
+            # Will update GHL contact with REQUIRED_NOTES status and notify provider below
+            # Provider notification will include the specific documentation requirements
+
         # Enhanced GHL contact update with comprehensive status tracking
         # Using CORRECT format: customField (singular) with value
         
@@ -1083,8 +1109,8 @@ def handle_rmbb_status_webhook():
                 {"id": get_dynamic_field_id(location_id, "rmbb_overall_result"), "value": overall_insurance_result or ""},  # rmbb_overall_result
                 
                 # Insurance-specific statuses - using correct GHL field IDs
-                # Fix: Use insurance results, not status
-                {"id": get_dynamic_field_id(location_id, "rmbb_primary_insurance_status"), "value": primary_insurance_result or primary_insurance_status or ""},  # rmbb_primary_insurance_status
+                # For REQUIRED_NOTES status, store the coverage_summary (documentation requirements), not the status text
+                {"id": get_dynamic_field_id(location_id, "rmbb_primary_insurance_status"), "value": case_data.get('coverage_summary', '') if approval_analysis['status'] == 'REQUIRED_NOTES' else (primary_insurance_result or primary_insurance_status or "")},  # rmbb_primary_insurance_status
                 {"id": get_dynamic_field_id(location_id, "rmbb_secondary_insurance_status"), "value": secondary_insurance_result or secondary_insurance_status or ""},  # rmbb_secondary_insurance_status
                 {"id": get_dynamic_field_id(location_id, "rmbb_tertiary_insurance_status"), "value": tertiary_insurance_status or ""},  # rmbb_tertiary_insurance_status
                 
@@ -1171,7 +1197,46 @@ def handle_rmbb_status_webhook():
             }), 500
         
         logging.info(f"✅ Updated GHL contact {ghl_contact_id} with IVR results")
-        
+
+        # 📊 CREATE OPPORTUNITY ESTIMATE: For approved cases with successful wound calculation
+        if wound_calculation_result and wound_calculation_result.get('success') and sub_account_api_key:
+            try:
+                logging.info(f"📊 Creating opportunity estimate for approved case {case_id}")
+
+                from ghl_opportunity_estimate_manager import GHLOpportunityEstimateManager
+
+                # Initialize opportunity estimate manager with sub-account credentials
+                estimate_manager = GHLOpportunityEstimateManager(
+                    api_key=sub_account_api_key,
+                    sub_account_id=location_id,
+                    location_id=location_id
+                )
+
+                # Create opportunity with financial breakdown (insurance coverage, provider discount, etc.)
+                estimate_result = estimate_manager.create_wound_product_estimate(case_data, wound_calculation_result)
+
+                if estimate_result.get("success"):
+                    opportunity_id = estimate_result.get('opportunity_id')
+                    financial_breakdown = estimate_result.get('financial_breakdown', {})
+
+                    logging.info(f"✅ Opportunity estimate created successfully:")
+                    logging.info(f"   🎯 Opportunity ID: {opportunity_id}")
+                    logging.info(f"   💰 Total Product Cost: ${financial_breakdown.get('total_product_cost', 0):.2f}")
+                    logging.info(f"   🏥 Insurance Coverage: {financial_breakdown.get('insurance_coverage_pct', 0)}%")
+                    logging.info(f"   💵 Insurance Reimbursement: ${financial_breakdown.get('insurance_reimbursement', 0):.2f}")
+                    logging.info(f"   📦 Cell Products Invoice: ${financial_breakdown.get('cell_products_invoice', 0):.2f}")
+                    logging.info(f"   📈 Provider Revenue: ${financial_breakdown.get('provider_revenue', 0):.2f}")
+                    logging.info(f"   📊 Provider Margin: {financial_breakdown.get('provider_margin_pct', 0):.1f}%")
+                else:
+                    logging.warning(f"⚠️ Failed to create opportunity estimate: {estimate_result.get('error')}")
+
+            except Exception as e:
+                logging.error(f"❌ Error creating opportunity estimate: {str(e)}")
+                logging.error(traceback.format_exc())
+                # Continue with normal workflow - opportunity creation is supplementary
+        elif wound_calculation_result and wound_calculation_result.get('success') and not sub_account_api_key:
+            logging.warning(f"⚠️ Cannot create opportunity estimate - no sub account API key available")
+
         # 🏷️ ENHANCED: Apply workflow tags based on status analysis
         if status_trigger_analysis and status_trigger_analysis.get('workflow_tags') and sub_account_api_key:
             logging.info(f"🏷️ Applying workflow tags for trigger type: {status_trigger_analysis['trigger_type']}")
@@ -1303,6 +1368,7 @@ def handle_rmbb_status_webhook():
         
     except Exception as e:
         logging.error(f"❌ Error processing RMBB Health webhook: {str(e)}")
+        logging.error(traceback.format_exc())  # Added full traceback logging
         logging.error(f"📋 Request data: {request.get_data(as_text=True)}")
         return jsonify({
             "error": "Internal server error processing RMBB webhook",
