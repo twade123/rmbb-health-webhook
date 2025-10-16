@@ -912,7 +912,8 @@ def handle_rmbb_status_webhook():
         case_status = case_data.get('status')                           # Primary status field
         external_status = case_data.get('external_status')             # External-facing status
         overall_insurance_result = case_data.get('overall_insurance_result', '')  # Final approval result
-        
+        coverage_summary = case_data.get('coverage_summary', '')       # Coverage summary with documentation requirements
+
         # Insurance-specific status monitoring
         primary_insurance_status = case_data.get('primary_insurance', {}).get('status', '')
         secondary_insurance_status = case_data.get('secondary_insurance', {}).get('status', '')
@@ -1084,13 +1085,9 @@ def handle_rmbb_status_webhook():
             logging.info(f"   📄 Documentation request: {approval_analysis['message']}")
             logging.info(f"   🔍 Based on field: {approval_analysis['determining_field']}")
 
-            # Extract specific requirements from coverage summary if available
-            coverage_summary = case_data.get('coverage_summary', '')
+            # Log the documentation requirements from coverage_summary
             if coverage_summary:
                 logging.info(f"   📝 RMBB Requirements: {coverage_summary[:200]}...")
-
-            # Will update GHL contact with REQUIRED_NOTES status and notify provider below
-            # Provider notification will include the specific documentation requirements
 
         # Enhanced GHL contact update with comprehensive status tracking
         # Using CORRECT format: customField (singular) with value
@@ -1110,7 +1107,7 @@ def handle_rmbb_status_webhook():
                 
                 # Insurance-specific statuses - using correct GHL field IDs
                 # For REQUIRED_NOTES status, store the coverage_summary (documentation requirements), not the status text
-                {"id": get_dynamic_field_id(location_id, "rmbb_primary_insurance_status"), "value": case_data.get('coverage_summary', '') if approval_analysis['status'] == 'REQUIRED_NOTES' else (primary_insurance_result or primary_insurance_status or "")},  # rmbb_primary_insurance_status
+                {"id": get_dynamic_field_id(location_id, "rmbb_primary_insurance_status"), "value": coverage_summary if approval_analysis['status'] == 'REQUIRED_NOTES' else (primary_insurance_result or primary_insurance_status or "")},  # rmbb_primary_insurance_status
                 {"id": get_dynamic_field_id(location_id, "rmbb_secondary_insurance_status"), "value": secondary_insurance_result or secondary_insurance_status or ""},  # rmbb_secondary_insurance_status
                 {"id": get_dynamic_field_id(location_id, "rmbb_tertiary_insurance_status"), "value": tertiary_insurance_status or ""},  # rmbb_tertiary_insurance_status
                 
@@ -1128,7 +1125,7 @@ def handle_rmbb_status_webhook():
                 {"id": get_dynamic_field_id(location_id, "rmbb_ivr_patient_data"), "value": ""},  # rmbb_ivr_patient_data
                 {"id": get_dynamic_field_id(location_id, "rmbb_ivr_primary_insurance"), "value": primary_insurance_result or ""},  # rmbb_ivr_primary_insurance
                 {"id": get_dynamic_field_id(location_id, "rmbb_ivr_secondary_insurance"), "value": secondary_insurance_result or ""},  # rmbb_ivr_secondary_insurance
-                {"id": get_dynamic_field_id(location_id, "rmbb_ivr_coverage_summary"), "value": overall_insurance_result or ""},  # rmbb_ivr_coverage_summary
+                {"id": get_dynamic_field_id(location_id, "rmbb_ivr_coverage_summary"), "value": coverage_summary or ""},  # rmbb_ivr_coverage_summary - FIXED: was using overall_insurance_result
                 {"id": get_dynamic_field_id(location_id, "rmbb_ivr_authorization_info"), "value": ""},  # rmbb_ivr_authorization_info
                 
                 # DOCUMENT PROCESSING FIELDS - Document Tracking Fields (3 fields)
