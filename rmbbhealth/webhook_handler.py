@@ -1209,8 +1209,15 @@ def handle_rmbb_status_webhook():
                     location_id=location_id
                 )
 
+                # CRITICAL FIX: Enrich case_data with GHL contact_id before passing to opportunity manager
+                # The opportunity manager expects 'contact_id' key, but RMBB API only provides 'id' (case_id)
+                enriched_case_data = case_data.copy()
+                enriched_case_data['contact_id'] = ghl_contact_id
+
+                logging.info(f"📋 Enriched case data with contact_id: {ghl_contact_id}")
+
                 # Create opportunity with financial breakdown (insurance coverage, provider discount, etc.)
-                estimate_result = estimate_manager.create_wound_product_estimate(case_data, wound_calculation_result)
+                estimate_result = estimate_manager.create_wound_product_estimate(enriched_case_data, wound_calculation_result)
 
                 if estimate_result.get("success"):
                     opportunity_id = estimate_result.get('opportunity_id')
