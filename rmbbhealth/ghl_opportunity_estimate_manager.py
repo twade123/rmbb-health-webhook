@@ -180,27 +180,56 @@ class GHLOpportunityEstimateManager:
                 opportunity_data["phone"] = case_data["patient_phone"]
             
             logging.info(f"📝 Opportunity payload: {json.dumps(opportunity_data, indent=2)}")
-            logging.info(f"🔗 Creating in pipeline {pipeline_id} at stage {draft_stage_id}")
-            
-            # Create opportunity via correct GHL V1 pipeline API
-            response = requests.post(
-                f"{self.base_url}/pipelines/{pipeline_id}/opportunities/",
-                headers=self.headers,
-                json=opportunity_data
+
+            # Step 3.5: Check if contact already has an opportunity in this pipeline
+            logging.info(f"🔍 Checking for existing opportunity in pipeline {pipeline_id}...")
+            search_response = requests.get(
+                f"{self.base_url}/pipelines/{pipeline_id}/opportunities",
+                headers=self.headers
             )
-            
+
+            existing_opportunity_id = None
+            if search_response.status_code == 200:
+                opportunities = search_response.json().get("opportunities", [])
+                # Find opportunity for this contact
+                for opp in opportunities:
+                    if opp.get("contact", {}).get("id") == contact_id:
+                        existing_opportunity_id = opp.get("id")
+                        logging.info(f"✅ Found existing opportunity: {existing_opportunity_id}")
+                        break
+
+            # Create or update opportunity
+            if existing_opportunity_id:
+                # Update existing opportunity
+                logging.info(f"🔄 Updating existing opportunity {existing_opportunity_id}...")
+                response = requests.put(
+                    f"{self.base_url}/pipelines/{pipeline_id}/opportunities/{existing_opportunity_id}",
+                    headers=self.headers,
+                    json=opportunity_data
+                )
+                opportunity_id = existing_opportunity_id
+            else:
+                # Create new opportunity
+                logging.info(f"🔗 Creating new opportunity in pipeline {pipeline_id} at stage {draft_stage_id}")
+                response = requests.post(
+                    f"{self.base_url}/pipelines/{pipeline_id}/opportunities/",
+                    headers=self.headers,
+                    json=opportunity_data
+                )
+
             if response.status_code in [200, 201]:
                 result = response.json()
-                opportunity_id = result.get("id")
-                
-                logging.info(f"✅ Estimate opportunity created: {opportunity_id}")
-                
+                if not existing_opportunity_id:
+                    opportunity_id = result.get("id")
+
+                logging.info(f"✅ Estimate opportunity {'updated' if existing_opportunity_id else 'created'}: {opportunity_id}")
+
                 # Step 4: Add detailed notes with revenue breakdown
                 notes_result = self._add_detailed_notes(
-                    pipeline_id, 
-                    opportunity_id, 
-                    case_data, 
-                    order_items, 
+                    pipeline_id,
+                    opportunity_id,
+                    case_data,
+                    order_items,
                     wound_calculation_result,
                     {
                         "insurance_coverage_pct": insurance_coverage_pct,
@@ -211,10 +240,11 @@ class GHLOpportunityEstimateManager:
                         "provider_discount_pct": provider_discount_pct
                     }
                 )
-                
+
                 return {
                     "success": True,
                     "opportunity_id": opportunity_id,
+                    "opportunity_updated": existing_opportunity_id is not None,
                     "pipeline_id": pipeline_id,
                     "stage_id": draft_stage_id,
                     "estimate_total": total_value,
@@ -222,6 +252,7 @@ class GHLOpportunityEstimateManager:
                     "case_id": case_data.get('id'),
                     "data": result,
                     "notes_added": notes_result.get("success", False),
+                    "note_id": notes_result.get("note_id"),
                     # Add revenue calculations to response
                     "financial_breakdown": {
                         "total_product_cost": total_product_cost,
@@ -327,22 +358,22 @@ class GHLOpportunityEstimateManager:
             # Look for existing RMBB Health pipeline or use IVR Processing pipeline
             rmbb_pipeline = None
             ivr_pipeline = None
-            
+
             for pipeline in pipelines:
                 if pipeline.get("name") == "RMBB Health Orders":
                     rmbb_pipeline = pipeline
                     break
                 elif pipeline.get("name") == "IVR Processing":
                     ivr_pipeline = pipeline
-            
-            # Use RMBB Health pipeline if exists, otherwise use IVR Processing pipeline  
+
+            # Use RMBB Health pipeline if exists, otherwise use IVR Processing pipeline
             target_pipeline = rmbb_pipeline or ivr_pipeline
-            
+
             if target_pipeline:
                 # Pipeline exists, extract stage IDs
                 stages = target_pipeline.get("stages", [])
                 stage_map = {stage.get("name"): stage.get("id") for stage in stages}
-                
+
                 if rmbb_pipeline:
                     logging.info(f"✅ Found RMBB Health pipeline: {target_pipeline['id']}")
                     # Use dedicated RMBB stages
@@ -371,10 +402,9 @@ class GHLOpportunityEstimateManager:
                         "using_ivr_pipeline": True
                     }
             else:
-                return {
-                    "success": False,
-                    "error": "No suitable pipeline found. Need either 'RMBB Health Orders' or 'IVR Processing' pipeline."
-                }
+                # No suitable pipeline found - create IVR Approved Order pipeline
+                logging.info("📝 Creating new IVR Approved Order pipeline...")
+                return self._create_ivr_approved_order_pipeline()
                 
         except Exception as e:
             logging.error(f"❌ Error getting RMBB pipeline: {str(e)}")
@@ -382,7 +412,7 @@ class GHLOpportunityEstimateManager:
                 "success": False,
                 "error": str(e)
             }
-    
+
     def get_provider_discount_from_tags(self, contact_id: str) -> float:
         """
         Get provider discount percentage from contact tags (60% or 65%).
